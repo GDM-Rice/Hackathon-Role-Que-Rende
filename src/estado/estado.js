@@ -8,6 +8,7 @@ export const VERSAO = 1
 export const TELAS = [
   'boasVindas', 'inicio', 'mare', 'tempestade', 'missao', 'dividas',
   'tripulacao', 'visaoFamiliar', 'ajuda', 'ajustes', 'fontes', 'luneta',
+  'entrar', 'cadastro', 'recuperarSenha', 'conta',
 ]
 
 export function estadoInicial(hoje) {

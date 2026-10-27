@@ -8,7 +8,7 @@ export const CONFERIDO = 'CONFERIDO'
 export const FRASES = {
   assinatura: 'Você voltou. Isso conta.',
   nadaPerdido: 'Nada do que você recuperou foi perdido.',
-  soNesteCelular: 'Tudo fica só neste celular.',
+  privacidade: 'Seu progresso fica guardado na sua conta. Só você tem acesso.',
   apostei: 'Apostei hoje · conte sem medo',
   naoSubstitui: 'O Terraformar é um apoio e não substitui um profissional.',
 }
@@ -62,7 +62,7 @@ export const TEXTOS = {
   tripulacao: { titulo: 'Sua tripulação', botao: 'Preciso de você' },
   visaoFamiliar: { titulo: 'Como minha tripulação me vê' },
   ajuda: { titulo: 'Ajuda' },
-  ajustes: { titulo: 'Ajustes', privacidade: 'Seus dados ficam só neste celular.' },
+  ajustes: { titulo: 'Ajustes', privacidade: 'Seu progresso tem backup na sua conta. Só você tem acesso.' },
   fontes: { titulo: 'Sobre as informações' },
   luneta: {
     titulo: 'Luneta',

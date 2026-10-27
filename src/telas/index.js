@@ -11,6 +11,11 @@ import Ajuda from './Ajuda.jsx'
 import Ajustes from './Ajustes.jsx'
 import Fontes from './Fontes.jsx'
 import Luneta from './Luneta.jsx'
+import Entrar from './Entrar.jsx'
+import Cadastro from './Cadastro.jsx'
+import RecuperarSenha from './RecuperarSenha.jsx'
+import NovaSenha from './NovaSenha.jsx'
+import Conta from './Conta.jsx'
 
 export const TELAS = {
   boasVindas: BoasVindas,
@@ -25,4 +30,9 @@ export const TELAS = {
   ajustes: Ajustes,
   fontes: Fontes,
   luneta: Luneta,
+  entrar: Entrar,
+  cadastro: Cadastro,
+  recuperarSenha: RecuperarSenha,
+  novaSenha: NovaSenha,
+  conta: Conta,
 }

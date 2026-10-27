@@ -1,12 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { act } from 'react'
-import { createRoot } from 'react-dom/client'
 import Luneta from './Luneta.jsx'
-import { EstadoProvider } from '../estado/EstadoContext.jsx'
+import { montar as montarComProviders } from '../testes/ajudantes.jsx'
 import { estadoDoRafael } from '../demo/demo.js'
 import { hojeISO } from '../util/datas.js'
-
-globalThis.IS_REACT_ACT_ENVIRONMENT = true
 
 const json = (status, corpo) => ({ ok: status < 300, status, json: async () => corpo })
 const CONSTELACOES = [{ id: 'familia', nome: 'Família' }, { id: 'dividas', nome: 'Dívidas' }]
@@ -27,13 +24,8 @@ function backendFalso(extra = {}) {
 }
 
 async function montar() {
-  const el = document.createElement('main')
-  document.body.replaceChildren(el)
   const inicial = { ...estadoDoRafael(hojeISO()), tela: 'luneta' }
-  await act(async () => {
-    createRoot(el).render(<EstadoProvider inicial={inicial}><Luneta /></EstadoProvider>)
-  })
-  return el
+  return montarComProviders({ inicial, demo: true, conteudo: <Luneta /> })
 }
 
 const botao = (el, texto) => [...el.querySelectorAll('button')].find((b) => b.textContent.trim() === texto)

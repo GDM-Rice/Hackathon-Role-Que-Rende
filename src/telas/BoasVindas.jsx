@@ -1,6 +1,7 @@
 // Módulo 03 · Boas-vindas (1ª vez). CLAUDE.md 4.1
 import { useState } from 'react'
 import { useEstado } from '../estado/EstadoContext.jsx'
+import { useConta } from '../conta/ContaContext.jsx'
 import { TEXTOS, FRASES, detectarRisco } from '../conteudo/conteudo.js'
 import { propsDoPlaneta } from '../regras/regras.js'
 import Planeta from '../planeta/Planeta.jsx'
@@ -8,8 +9,9 @@ import CartaoRisco from '../componentes/CartaoRisco.jsx'
 
 export default function BoasVindas() {
   const { estado, atualizar } = useEstado()
+  const { usuario } = useConta()
   const t = TEXTOS.boasVindas
-  const [apelido, setApelido] = useState(estado.perfil.apelido)
+  const [apelido, setApelido] = useState(estado.perfil.apelido || usuario?.user_metadata?.apelido || '')
   const [motivo, setMotivo] = useState(estado.perfil.motivo)
   const [gasto, setGasto] = useState(estado.perfil.gastoSemanal ?? '')
   const [naoDizer, setNaoDizer] = useState(false)
@@ -57,7 +59,7 @@ export default function BoasVindas() {
           <input type="checkbox" className="size-5" checked={naoDizer} onChange={(e) => setNaoDizer(e.target.checked)} />
           {t.prefiroNaoDizer}
         </label>
-        <p className="texto-apoio m-0">{FRASES.soNesteCelular}</p>
+        <p className="texto-apoio m-0">{FRASES.privacidade}</p>
         <button type="submit" className="botao botao--primario botao--cta">{t.botao}</button>
       </form>
     </section>
