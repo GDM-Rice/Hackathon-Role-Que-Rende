@@ -1,1 +1,52 @@
-@import "tailwindcss";
+/* Fontes self-hosted (OFL), entram no bundle e no cache offline */
+@import '@fontsource/fraunces/latin-400.css';
+@import '@fontsource/fraunces/latin-600.css';
+@import '@fontsource/atkinson-hyperlegible/latin-400.css';
+@import '@fontsource/atkinson-hyperlegible/latin-700.css';
+
+@import 'tailwindcss';
+@import './estilos/tokens.css';
+@import './estilos/base.css';
+
+/* Liga os tokens ao Tailwind: bg-marinho, text-texto-apoio, border-borda, font-titulo...
+   "inline" faz a classe usar var(--token), então alto contraste e daltonismo funcionam. */
+@theme inline {
+  --color-*: initial;
+  --color-marinho: var(--marinho);
+  --color-azul: var(--azul);
+  --color-destaque: var(--destaque);
+  --color-azul-claro: var(--azul-claro);
+  --color-fundo: var(--fundo);
+  --color-superficie: var(--superficie);
+  --color-texto: var(--texto);
+  --color-texto-apoio: var(--texto-apoio);
+  --color-texto-sobre-escuro: var(--texto-sobre-escuro);
+  --color-borda: var(--borda);
+  --color-borda-input: var(--borda-input);
+  --color-trilho: var(--trilho);
+  --color-tracejado: var(--tracejado);
+  --color-verde: var(--verde);
+  --color-verde-borda: var(--verde-borda);
+  --color-verde-texto: var(--verde-texto);
+  --color-verde-suave: var(--verde-suave);
+  --color-chip-crise-bg: var(--chip-crise-bg);
+  --color-chip-crise-tx: var(--chip-crise-tx);
+  --color-chip-financas-bg: var(--chip-financas-bg);
+  --color-chip-financas-tx: var(--chip-financas-tx);
+  --color-chip-vinculos-bg: var(--chip-vinculos-bg);
+  --color-chip-vinculos-tx: var(--chip-vinculos-tx);
+  --color-ocre-texto: var(--ocre-texto);
+  --color-fundo-tempestade: var(--fundo-tempestade);
+  --color-branco: #FFFFFF;
+  --color-transparent: transparent;
+  --color-current: currentColor;
+
+  --font-titulo: var(--fonte-titulo);
+  --font-texto: var(--fonte-texto);
+
+  --radius-input: var(--raio-input);
+  --radius-botao: var(--raio-botao);
+  --radius-cartao: var(--raio-cartao);
+  --radius-cartao-g: var(--raio-cartao-g);
+  --radius-pilula: var(--raio-pilula);
+}
