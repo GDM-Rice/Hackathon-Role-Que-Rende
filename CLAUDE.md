@@ -54,7 +54,7 @@ Se um pedido conflitar com isto, pare e avise.
 
 ## 3. Stack e estrutura
 
-O que está decidido: **PWA**, funciona offline, **com backend** (API Node.js em `backend/`), **sem roteador** (a tela atual é `estado.tela`), sem biblioteca para o mapa (o SVG é escrito à mão), dados no `localStorage`.
+O que está decidido: **PWA**, funciona offline, **com backend** (API Node.js em `backend/`), **sem roteador** (a tela atual é `estado.tela`), sem biblioteca para o mapa (o SVG é escrito à mão), dados no `localStorage` com backup na conta (Supabase).
 
 **Stack escolhida:** **React 19 + Vite 8 + Tailwind CSS 4**, JavaScript (JSX, sem TypeScript). PWA com `vite-plugin-pwa` (manifest + service worker Workbox, precache de tudo). Fontes self-hosted via `@fontsource` (entram no bundle). Testes com **Vitest + jsdom** (`npm test`).
 **Backend:** Node.js puro (`node:http`, sem dependências) em `backend/`, porta 3001. Serve a **Luneta** (comunidade anônima), o conteúdo público (Ajuda, Fontes, Metas) e a demo. Em desenvolvimento o Vite encaminha `/api` para ele; no build, o endereço vem de `VITE_API_URL`. Detalhes em `docs/backend.md`.
@@ -81,6 +81,10 @@ src/
   api/cliente.js        chamada HTTP única (base, timeout, token, erros)    (02)
   api/token.js          identificador anônimo do aparelho                   (02)
   api/luneta.js         funções da Luneta usadas pelas telas                (02)
+  api/supabase.js       cliente do Supabase (chaves do .env.local)          (02)
+  api/conta.js          cadastro, login, logout, senha, apagar, backup      (02)
+  conta/ContaContext.jsx  sessão, restauração e backup automático           (02)
+  conta/sincronia.js    regras puras do backup                              (02)
   App.jsx               desenha a tela de estado.tela                       (02)
   index.css             fontes + Tailwind + @theme ligando os tokens        (02)
   estilos/tokens.css    variáveis da seção 8 (incl. alto contraste, daltonismo, P/M/G)  (05)
@@ -97,6 +101,8 @@ src/
   assets/planeta.svg    molde do planeta (import ?raw, inserido inline)     (01)
   assets/mare-ondas.svg água da tela Maré                                   (01)
   **/*.test.js(x)       testes ao lado do arquivo testado
+  testes/ajudantes.jsx  montar o app e interagir nos testes de tela
+supabase/migrations/    SQL da tabela progresso (RLS) e de apagar_minha_conta
 ```
 
 Convenções:
@@ -110,11 +116,15 @@ Convenções:
 
 ## 4. Telas e navegação
 
-Valores de `estado.tela`: `boasVindas · inicio · mare · tempestade · missao · dividas · tripulacao · visaoFamiliar · ajuda · ajustes · fontes · luneta`
+Valores de `estado.tela`: `boasVindas · inicio · mare · tempestade · missao · dividas · tripulacao · visaoFamiliar · ajuda · ajustes · fontes · luneta · entrar · cadastro · recuperarSenha · conta` (`novaSenha` abre pelo link do e-mail)
 > O contrato do canvas lista as telas sem `tempestade`. **[decidir]** se Dia de tempestade é tela própria (sugerido) ou camada sobre o Início.
 
 ```
+Sem login ──> Entrar ──> Criar conta · Esqueci minha senha (Maré, Ajuda e Fontes abrem sem login)
+Entrar ──> (backup restaurado) Início, ou Boas-vindas na conta nova
+Link do e-mail ──> Criar senha nova ──> Início
 Boas-vindas (1ª vez) ──> Início
+Ajustes ──> Minha conta (trocar apelido/e-mail/senha, sair, apagar conta)
 Início ──> Maré · Missão · Dívidas e Barreiras · Tripulação (──> Visão do familiar) · Ajuda · Ajustes
 Início ──"Apostei hoje"──> Dia de tempestade
 Início ──> Luneta (comunidade anônima, precisa de internet)
@@ -135,7 +145,8 @@ Tamanho de referência do design: **390 × 844** (celular). No desktop, centrali
   | Como quer ser chamado? | texto (`perfil.apelido`) | obrigatório |
   | Seu motivo para recomeçar | texto (`perfil.motivo`) | obrigatório, passa por `detectarRisco` |
   | Quanto apostava por semana, mais ou menos? (opcional) | numérico, `inputmode="numeric"` (`perfil.gastoSemanal`) | opcional, com opção **"Prefiro não dizer"** |
-- Aviso: "Tudo fica só neste celular."
+- Aviso: "Seu progresso fica guardado na sua conta. Só você tem acesso."
+- O apelido vem preenchido com o da conta.
 - Botão primário embaixo: **"Começar a missão"** (marca `perfil.inicio = hoje`).
 - Modo demo: campos já preenchidos com o Rafael.
 
@@ -214,8 +225,8 @@ Ordem fixa, um cartão por serviço (o que é + botão de ligar/abrir + linha "F
 - **Alto contraste** · **Modo para daltonismo** · **Animações**: seguir o celular / reduzidas / normais
 - **Som** · **Legendas dos sons**
 - **Prévia ao vivo** (um mini planeta + texto) para a banca ver a troca na hora
-- Privacidade: "Seus dados ficam só neste celular."
-- **Apagar meus dados** (com confirmação em tela própria, sem `confirm()` do navegador)
+- Privacidade: "Seu progresso tem backup na sua conta. Só você tem acesso."
+- **Minha conta** → tela de conta (4.12), onde ficam sair e apagar a conta (com confirmação em tela própria, sem `confirm()` do navegador)
 - Sobre as informações → Fontes
 
 ### 4.10 Fontes · módulo 06
@@ -230,14 +241,24 @@ Lista de todas as fontes citadas no app (o que diz, de onde vem, link conferido)
 - Moderação do backend barra links, valores, contatos e ofertas de aposta. A tela mostra o que tirar, sem bronca.
 - Texto com sinal de risco à vida **não sai do aparelho**: mostra o cartão com CVV 188 e SAMU 192.
 - Sem internet ou sem backend: "A Luneta precisa de internet. O resto do Terraformar funciona sem ela." + "Tentar de novo".
-- Sem notificações. "Apagar meus dados" também apaga o identificador anônimo.
+- Sem notificações. Sair da conta também apaga o identificador anônimo.
+
+### 4.12 Contas · login obrigatório **[decidir módulo dono]**
+Detalhes, configuração do Supabase e fluxo do backup em `docs/contas.md`.
+- **Entrar:** e-mail e senha · "Esqueci minha senha" · "Ainda não tenho conta". Maré e Ajuda no topo.
+- **Criar conta:** apelido (passa por `detectarRisco`), e-mail, senha (mín. 8) e repetição. Com confirmação de e-mail ligada no Supabase, avisa para abrir o link.
+- **Recuperar senha:** envia o link por e-mail; a mensagem não revela se a conta existe.
+- **Criar senha nova:** abre sozinha quando a pessoa volta pelo link.
+- **Minha conta** (em Ajustes): e-mail, trocar apelido, e-mail e senha, **Sair** (grava o backup e apaga os dados do celular) e **Apagar minha conta** (apaga conta e backup).
+- Erros em tom calmo, sem vermelho (`TEXTOS.conta.erros`). Campos com `autocomplete` e "Mostrar senha".
 
 ---
 
 ## 5. Estado e regras do jogo
 
 ### 5.1 Estado (persistido em `localStorage`, chave sugerida `terraformar:v1`)
-Chaves do contrato: `tela · perfil · recomeco · mares · mapa · tripulacao · acessibilidade · hoje · metasVistas`.
+Chaves do contrato: `tela · perfil · recomeco · mares · mapa · tripulacao · acessibilidade · hoje · metasVistas · dono · atualizadoEm`.
+`dono` = id da conta dona dos dados (`'demo'` na demonstração); `atualizadoEm` = última mudança feita pela pessoa, usada para decidir entre o local e o backup.
 Formas sugeridas (**o módulo 02 é dono do contrato**; ajuste aqui se mudar):
 ```js
 {
@@ -444,7 +465,7 @@ Nunca use cor fora destes tokens. Nada de vermelho em lugar nenhum.
 - Calmo, adulto, acolhedor, direto. Frases curtas. Tratar por "você".
 - Nunca culpar a pessoa; quem secou o planeta foram as apostas. Nunca usar "vício" como rótulo da pessoa, nem "fracasso", "recaída" como bronca, "você perdeu".
 - Termos do app: **dia de recomeço**, **dia de tempestade**, **Maré**, **tripulação**, **Barreiras**, **missão**, **meta**.
-- Frases fixas: "Você voltou. Isso conta." · "Nada do que você recuperou foi perdido." · "Tudo fica só neste celular." · "Apostei hoje · conte sem medo".
+- Frases fixas: "Você voltou. Isso conta." · "Nada do que você recuperou foi perdido." · "Seu progresso fica guardado na sua conta. Só você tem acesso." · "Apostei hoje · conte sem medo".
 - Toda afirmação de saúde, finanças ou lei leva linha "Fonte:" e entra na tela Fontes. Links ficam `A_CONFERIR` até alguém da equipe abrir e confirmar.
 - Todos os textos moram em `js/conteudo.js`, nunca espalhados pelas telas.
 
@@ -455,6 +476,8 @@ Nunca use cor fora destes tokens. Nada de vermelho em lugar nenhum.
 Persona **Rafael**: motivo "Para voltar a dormir em paz", apostava ~R$ 120/semana.
 Estado no dia 21: Sul e Sudeste verdes, Centro-Oeste brotando (21 de 30), mar limpando (9 de 10 Marés), 1 rio (Amazonas), 1 ave (Ana), "R$ 360 longe das apostas".
 Finanças: essenciais aluguel R$ 900 · luz R$ 120 · água R$ 60 · comida R$ 600. Dívidas: **cartão de crédito R$ 2.800 a 12% a.m.** (passo atual: ligar para negociar) → cheque especial 8% → empréstimo da irmã 0%.
+
+**Demo sem login:** `?demo=1` abre o Rafael sem conta e sem rede (os dados nunca viram backup de uma conta). Na jornada do palco, o passo 1 (Boas-vindas) pode usar uma conta de teste já confirmada.
 
 **Painel Demo** (escondido, ex.: 5 toques na marca ou `?demo=1`) **[decidir gatilho]**: preencher com o Rafael, pular para o dia 21, informar o número de WhatsApp de um colega (nunca mostrado), resetar.
 
@@ -499,6 +522,7 @@ Mantenha um `CREDITOS.md` atualizado: ferramentas de IA usadas e para quê (incl
 - [ ] Teclado e leitor de tela funcionam; alvos ≥ 44 px; foco visível.
 - [ ] Respeita animações reduzidas.
 - [ ] Textos vêm de `conteudo.js`; afirmações têm fonte.
-- [ ] Funciona offline (menos a Luneta); nenhum dado pessoal sai do aparelho.
+- [ ] Funciona offline depois do primeiro login (menos a Luneta).
+- [ ] Dados pessoais só vão para o backup da própria conta; o celular da tripulação nunca sai do aparelho.
 - [ ] A jornada da demo (seção 10) continua passando.
 - [ ] Crie testes para cada nova feature.

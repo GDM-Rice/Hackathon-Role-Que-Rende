@@ -6,6 +6,7 @@ Guia rápido para a equipe trabalhar no Terraformar sem pisar no módulo dos out
 
 ```bash
 npm install
+cp .env.example .env.local   # e preencha as chaves do Supabase (ver docs/contas.md)
 npm run dev       # abre em http://localhost:5173
 npm run dev -- --host   # para abrir no celular pela rede local
 ```
@@ -36,7 +37,7 @@ Para usar a Luneta em desenvolvimento, rode **dois terminais**: `npm run backend
 | Módulo | Pastas e arquivos |
 |---|---|
 | 01 Arte | `src/planeta/`, `src/assets/`, `public/icone-app.svg`, `public/icones.svg` |
-| 02 Integrador | `src/estado/`, `src/api/`, `backend/`, `src/App.jsx`, `src/main.jsx`, `src/componentes/`, `src/estilos/base.css`, configs |
+| 02 Integrador | `src/estado/`, `src/api/`, `src/conta/`, `supabase/`, `backend/`, `src/App.jsx`, `src/main.jsx`, `src/componentes/`, `src/estilos/base.css`, configs |
 | 03 Telas | `src/telas/BoasVindas.jsx`, `Inicio.jsx`, `Mare.jsx`, `Tempestade.jsx` |
 | 04 Telas | `src/telas/Dividas.jsx`, `Tripulacao.jsx`, `VisaoFamiliar.jsx`, `Ajuda.jsx`, `Fontes.jsx` |
 | 05 Game Design | `src/regras/`, `src/telas/Missao.jsx`, `Ajustes.jsx`, `src/estilos/tokens.css` |

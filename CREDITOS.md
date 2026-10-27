@@ -7,6 +7,7 @@ Declaração exigida pelo edital (item 8.5). Mantenha atualizado a cada novo ass
 |---|---|
 | Claude Code (Anthropic) | Estrutura base do projeto, configuração, regras do jogo e testes |
 | Claude (Anthropic) | Backend da Luneta e do conteúdo público (pasta `backend/`) e seus testes |
+| Claude Code (Anthropic) | Integração do front com o backend, contas (login, cadastro, recuperação de senha) e backup no Supabase |
 
 ## Fontes tipográficas
 | Fonte | Licença | Origem |
@@ -18,8 +19,14 @@ Declaração exigida pelo edital (item 8.5). Mantenha atualizado a cada novo ass
 | Biblioteca | Licença |
 |---|---|
 | React, React DOM | MIT |
+| @supabase/supabase-js | MIT |
 | Backend (`backend/`) | nenhuma: usa só módulos nativos do Node.js (`node:http`, `node:crypto`, `node:test`) |
 | Workbox (via vite-plugin-pwa) | MIT |
+
+## Serviços
+| Serviço | Para quê |
+|---|---|
+| Supabase (Auth + Postgres) | contas, recuperação de senha por e-mail e backup do progresso |
 
 ## Ferramentas de desenvolvimento
 Vite, @vitejs/plugin-react, Tailwind CSS, vite-plugin-pwa, Vitest, jsdom, ESLint: todas MIT.

@@ -4,7 +4,9 @@ Como o Terraformar funciona por dentro. Para regras de produto e design, veja o 
 
 ## Visão geral
 
-- **PWA com backend.** O app roda no navegador e os dados pessoais ficam no `localStorage` do aparelho. O backend (`backend/`) atende só a **Luneta**, a comunidade anônima. Detalhes em [`backend.md`](backend.md).
+- **PWA com login obrigatório.** O app roda no navegador com o estado no `localStorage` e **backup na conta** (Supabase). Detalhes em [`contas.md`](contas.md).
+- **Backend próprio** (`backend/`) só para a **Luneta**, a comunidade anônima. Detalhes em [`backend.md`](backend.md).
+- Providers: `EstadoProvider` (estado) por fora e `ContaProvider` (sessão e backup) por dentro. `App.jsx` só mostra telas protegidas com sessão; Maré, Ajuda e Fontes abrem sem login.
 - **Sem roteador.** A tela atual é `estado.tela`; `App.jsx` escolhe o componente em `telas/index.js`.
 - **O planeta nunca é salvo.** Ele é calculado a partir do estado por funções puras (`regras/regras.js`). Assim nada regride por erro.
 
@@ -43,7 +45,7 @@ Navegar é só mudar a tela: `irPara('ajuda')`. Para cair num item da tela Fonte
 
 ## Estado
 
-Definido em [`src/estado/estado.js`](../src/estado/estado.js). Chave no `localStorage`: `terraformar:v1`.
+Definido em [`src/estado/estado.js`](../src/estado/estado.js). Chave no `localStorage`: `terraformar:v1`. A sessão do Supabase fica em `terraformar:sessao` e o identificador da Luneta em `terraformar:token`.
 
 | Chave | O que guarda |
 |---|---|
@@ -57,6 +59,8 @@ Definido em [`src/estado/estado.js`](../src/estado/estado.js). Chave no `localSt
 | `acessibilidade` | texto P/M/G, alto contraste, daltonismo, animações, som, legendas |
 | `hoje` | data de hoje (sempre recalculada ao abrir, nunca confiada do que foi salvo) |
 | `metasVistas` | metas já celebradas |
+| `dono` | id da conta dona dos dados (`'demo'` na demonstração) |
+| `atualizadoEm` | última mudança feita pela pessoa (decide entre local e backup) |
 
 `migrar()` completa campos que faltam sem apagar nada, então dá para acrescentar chaves sem quebrar quem já usa o app. Mudança no formato passa pelo módulo 02.
 

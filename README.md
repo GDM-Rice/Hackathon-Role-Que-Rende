@@ -1,6 +1,6 @@
 # Terraformar
 
-App de celular (PWA, offline) com backend próprio para a comunidade anônima, para quem quer recomeçar depois das apostas online.
+App de celular (PWA, offline) com login, backup do progresso no Supabase e backend próprio para a comunidade anônima, para quem quer recomeçar depois das apostas online.
 Cada dia sem apostar devolve vida a uma parte do planeta. **Você voltou. Isso conta.**
 
 Game Jam Rolê que Rende · BBDW 2026 · desafio "Além da Aposta: caminhos para recomeçar".
@@ -12,6 +12,7 @@ Game Jam Rolê que Rende · BBDW 2026 · desafio "Além da Aposta: caminhos para
 | [`docs/arquitetura.md`](docs/arquitetura.md) | como o app funciona por dentro: estado, regras, planeta, PWA |
 | [`docs/contribuindo.md`](docs/contribuindo.md) | ambiente, Git, quem mexe em quê, receitas e testes |
 | [`docs/acessibilidade.md`](docs/acessibilidade.md) | o que já está pronto e como testar |
+| [`docs/contas.md`](docs/contas.md) | login, cadastro, recuperação de senha, backup e como configurar o Supabase |
 | [`docs/backend.md`](docs/backend.md) | backend: rotas, Luneta, privacidade e integração com o front |
 | [`CREDITOS.md`](CREDITOS.md) | declaração de IA, código aberto e assets (edital 8.5) |
 
@@ -19,6 +20,7 @@ Game Jam Rolê que Rende · BBDW 2026 · desafio "Além da Aposta: caminhos para
 
 ```bash
 npm install
+cp .env.example .env.local   # chaves do Supabase (ver docs/contas.md)
 npm run dev        # desenvolvimento
 npm test           # testes (vitest)
 npm run lint
@@ -28,7 +30,7 @@ npm run test:backend  # testes do backend (node:test)
 npm run preview    # serve o build: use para testar offline
 ```
 
-Modo demo (Rafael no dia 21): abra com `?demo=1`.
+Modo demo (Rafael no dia 21, sem login e offline): abra com `?demo=1`.
 
 ## Estrutura
 
