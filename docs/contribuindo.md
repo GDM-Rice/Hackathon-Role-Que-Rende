@@ -18,6 +18,11 @@ npm run dev -- --host   # para abrir no celular pela rede local
 | `npm run lint` | ESLint |
 | `npm run build` | gera `dist/` com o service worker |
 | `npm run preview` | serve o `dist/` (use para testar offline) |
+| `npm run backend` | sobe o backend em `localhost:3001` |
+| `npm run backend:dev` | backend que reinicia ao salvar |
+| `npm run test:backend` | testes do backend |
+
+Para usar a Luneta em desenvolvimento, rode **dois terminais**: `npm run backend` e `npm run dev`. O Vite encaminha `/api` para o backend.
 
 ## Git
 
@@ -31,7 +36,7 @@ npm run dev -- --host   # para abrir no celular pela rede local
 | Módulo | Pastas e arquivos |
 |---|---|
 | 01 Arte | `src/planeta/`, `src/assets/`, `public/icone-app.svg`, `public/icones.svg` |
-| 02 Integrador | `src/estado/`, `src/App.jsx`, `src/main.jsx`, `src/componentes/`, `src/estilos/base.css`, configs |
+| 02 Integrador | `src/estado/`, `src/api/`, `backend/`, `src/App.jsx`, `src/main.jsx`, `src/componentes/`, `src/estilos/base.css`, configs |
 | 03 Telas | `src/telas/BoasVindas.jsx`, `Inicio.jsx`, `Mare.jsx`, `Tempestade.jsx` |
 | 04 Telas | `src/telas/Dividas.jsx`, `Tripulacao.jsx`, `VisaoFamiliar.jsx`, `Ajuda.jsx`, `Fontes.jsx` |
 | 05 Game Design | `src/regras/`, `src/telas/Missao.jsx`, `Ajustes.jsx`, `src/estilos/tokens.css` |
@@ -87,6 +92,24 @@ import { propsDoPlaneta } from '../regras/regras.js'
 <Planeta {...propsDoPlaneta(estado)} tamanho={220} />
 ```
 
+### Chamar o backend
+
+Nunca use `fetch` numa tela. Crie uma função em `src/api/` (siga `luneta.js`) e trate os dois erros:
+
+```js
+import { ErroDaApi } from '../api/cliente.js'
+import { listarPosts } from '../api/luneta.js'
+
+try {
+  const posts = await listarPosts('familia')
+} catch (e) {
+  if (e instanceof ErroDaApi) mostrar(e.message, e.detalhes) // regra do backend (ex.: moderação)
+  else mostrar(TEXTOS.luneta.semConexao)                     // SemConexao: aviso calmo, nunca erro técnico
+}
+```
+
+Nos testes, simule o backend com `vi.stubGlobal('fetch', ...)` (veja `src/api/api.test.js` e `src/telas/Luneta.test.jsx`). Rota nova no backend precisa de teste em `backend/tests/`.
+
 ### Adicionar um texto
 
 Todo texto mora em [`src/conteudo/conteudo.js`](../src/conteudo/conteudo.js), dentro de `TEXTOS.<tela>`. Afirmação de saúde, finanças ou lei precisa de uma entrada em `FONTES` e de `<LinhaFonte texto="..." idFonte="..." />` na tela.
@@ -120,6 +143,7 @@ Checklist da seção 12 do [`CLAUDE.md`](../CLAUDE.md), resumido:
 - [ ] Teclado e leitor de tela funcionam; alvos ≥ 44 px; foco visível.
 - [ ] Respeita animações reduzidas.
 - [ ] Textos em `conteudo.js`, com fonte quando preciso.
-- [ ] Funciona offline.
+- [ ] Funciona offline (a Luneta mostra o aviso de "precisa de internet").
+- [ ] Nenhum dado pessoal vai para o backend.
 - [ ] A jornada da demo continua passando.
 - [ ] Tem teste.

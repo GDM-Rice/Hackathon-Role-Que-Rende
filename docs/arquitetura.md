@@ -4,7 +4,7 @@ Como o Terraformar funciona por dentro. Para regras de produto e design, veja o 
 
 ## Visão geral
 
-- **PWA sem back-end.** Tudo roda no navegador; os dados ficam no `localStorage` do aparelho.
+- **PWA com backend.** O app roda no navegador e os dados pessoais ficam no `localStorage` do aparelho. O backend (`backend/`) atende só a **Luneta**, a comunidade anônima. Detalhes em [`backend.md`](backend.md).
 - **Sem roteador.** A tela atual é `estado.tela`; `App.jsx` escolhe o componente em `telas/index.js`.
 - **O planeta nunca é salvo.** Ele é calculado a partir do estado por funções puras (`regras/regras.js`). Assim nada regride por erro.
 
@@ -94,13 +94,29 @@ Metas fixas: Sul 7 · Sudeste 14 · Centro-Oeste 30 · Nordeste 60 · Norte (Bra
 - [`index.css`](../src/index.css): liga os tokens ao Tailwind com `@theme inline`. A paleta padrão do Tailwind está **desligada** (`--color-*: initial`), então `bg-red-500` não existe; use `bg-marinho`, `text-texto-apoio`, `border-borda`...
 - [`estilos/base.css`](../src/estilos/base.css): classes dos componentes base (`.tela`, `.cartao`, `.botao--primario`, `.campo`, `.barra`, `.chip`...).
 
+## Backend e a camada `src/api/`
+
+```
+ Tela Luneta ──► src/api/luneta.js ──► src/api/cliente.js ──fetch──► /api/... ──► backend/ (porta 3001)
+                                             │
+                                             └─ src/api/token.js (identificador anônimo no localStorage)
+```
+
+- **Só `src/api/cliente.js` chama `fetch`.** Ele monta o endereço, manda o token anônimo no cabeçalho `X-Planeta-Token`, corta a chamada em 8 s e transforma qualquer problema em um de dois erros:
+  - `ErroDaApi`: o backend respondeu com uma regra (ex.: moderação `422`, com `detalhes` do que tirar);
+  - `SemConexao`: sem internet, backend desligado ou resposta que não é JSON.
+- **Endereço:** em desenvolvimento é `/api`, e o Vite encaminha para `localhost:3001` (`server.proxy` em `vite.config.js`). No build, defina `VITE_API_URL` (ver `.env.example`).
+- **Service worker:** `/api` nunca é respondido pelo cache (`navigateFallbackDenylist`), e a API manda `Cache-Control: no-store`.
+- **Identificador anônimo:** 32 caracteres aleatórios gerados no aparelho. O backend guarda só o hash. "Apagar meus dados" apaga o token, e o aparelho vira um planeta novo.
+- **O que nunca vai para o backend:** perfil, motivo, finanças, Marés, tripulação e o estado do planeta. Os "dias de recomeço" só vão num post se a pessoa marcar.
+
 ## PWA e offline
 
 Configurado em [`vite.config.js`](../vite.config.js) com `vite-plugin-pwa`:
 - manifest (nome, cores `#042C53` / `#F4F8FC`, ícones em `public/icons/`);
 - service worker Workbox com precache de JS, CSS, HTML, SVG, PNG e fontes.
 
-O service worker só existe no build. Para testar offline: `npm run build && npm run preview`, abrir uma vez, desligar a rede e recarregar.
+O service worker só existe no build. Para testar offline: `npm run build && npm run preview`, abrir uma vez, desligar a rede e recarregar. Tudo funciona, menos a Luneta, que mostra o aviso de "precisa de internet".
 
 ## Modo demo
 

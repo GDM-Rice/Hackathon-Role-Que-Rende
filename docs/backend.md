@@ -1,8 +1,8 @@
-# Backend (API opcional)
+# Backend
 
-Pequena API em Node.js para o que **não dá para fazer só no celular**: a comunidade anônima (Luneta) e o conteúdo público com fonte conferida. O app continua funcionando **offline e sem ela**.
+Pequena API em Node.js para o que **não dá para fazer só no celular**: a comunidade anônima (Luneta) e o conteúdo público com fonte conferida. Fora a Luneta, o app continua funcionando **offline e sem ela**.
 
-> **[decidir com o 02]** O `CLAUDE.md` diz "sem back-end" e "dados só no celular". Este backend respeita a regra: ele **nunca recebe** perfil, finanças, Marés nem tripulação. Só guarda o que a pessoa escolhe **publicar**, de forma anônima. Se a equipe preferir manter o app 100% sem servidor, basta não rodar o backend: nada no front depende dele.
+> **Privacidade:** o backend **nunca recebe** perfil, finanças, Marés nem tripulação (CLAUDE.md, regra 6). Só guarda o que a pessoa escolhe **publicar** na Luneta, de forma anônima.
 
 ## Como rodar
 
@@ -46,6 +46,21 @@ Respostas em JSON. Erros: `{ "erro": { "codigo", "mensagem", ... } }`.
 - **Sem notificação.** O servidor nunca avisa ninguém.
 - **Limites.** 20 escritas por minuto por aparelho (100 por IP), corpo de até 10 KB, 500 posts na memória.
 - **Privacidade.** Nada de IP, token ou corpo em log. `Cache-Control: no-store`.
+
+## Integração com o front
+
+| Peça | Arquivo |
+|---|---|
+| Chamada HTTP única (endereço, token, tempo limite, erros) | `src/api/cliente.js` |
+| Identificador anônimo do aparelho (`terraformar:token`) | `src/api/token.js` |
+| Funções de cada rota da Luneta | `src/api/luneta.js` |
+| Tela | `src/telas/Luneta.jsx` |
+
+- **Desenvolvimento:** `npm run backend` + `npm run dev`. O Vite encaminha `/api` para a porta 3001, então não há CORS.
+- **Build:** se a API ficar em outro domínio, defina `VITE_API_URL` no build e `CORS_ORIGEM` no backend com o endereço do app (ver `.env.example`).
+- **Erros:** resposta `{ erro }` vira `ErroDaApi` (a tela mostra `mensagem` e `detalhes`). Sem rede, backend desligado ou resposta que não é JSON vira `SemConexao` (a tela mostra o aviso calmo e "Tentar de novo").
+- **Risco à vida:** o front checa com `detectarRisco` **antes** de enviar; se encontrar, o texto nem sai do aparelho. O backend checa de novo e responde `publicado: false, risco: true`, e a tela mostra o mesmo cartão.
+- As rotas `/api/metas`, `/api/ajuda`, `/api/fontes` e `/api/demo/rafael` existem, mas o front **não** as usa: ele lê os mesmos dados direto de `conteudo.js`, `regras.js` e `demo.js`, para funcionar offline.
 
 ## O que fica de fora (de propósito)
 

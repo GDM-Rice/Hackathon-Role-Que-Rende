@@ -109,13 +109,14 @@ Convenções:
 
 ## 4. Telas e navegação
 
-Valores de `estado.tela`: `boasVindas · inicio · mare · tempestade · missao · dividas · tripulacao · visaoFamiliar · ajuda · ajustes · fontes`
+Valores de `estado.tela`: `boasVindas · inicio · mare · tempestade · missao · dividas · tripulacao · visaoFamiliar · ajuda · ajustes · fontes · luneta`
 > O contrato do canvas lista as telas sem `tempestade`. **[decidir]** se Dia de tempestade é tela própria (sugerido) ou camada sobre o Início.
 
 ```
 Boas-vindas (1ª vez) ──> Início
 Início ──> Maré · Missão · Dívidas e Barreiras · Tripulação (──> Visão do familiar) · Ajuda · Ajustes
 Início ──"Apostei hoje"──> Dia de tempestade
+Início ──> Luneta (comunidade anônima, precisa de internet)
 Todo "saiba mais" / "Sobre as informações" ──> Fontes
 Maré e Ajuda: no topo de TODAS as telas
 Telas internas: link "‹ Início" no topo (alvo ≥ 44 px)
@@ -218,6 +219,17 @@ Ordem fixa, um cartão por serviço (o que é + botão de ligar/abrir + linha "F
 
 ### 4.10 Fontes · módulo 06
 Lista de todas as fontes citadas no app (o que diz, de onde vem, link conferido). Todo "saiba mais" cai aqui, rolando até o item certo.
+
+### 4.11 Luneta · comunidade anônima **[decidir módulo dono]**
+Única tela que usa o backend (`src/telas/Luneta.jsx`, API em `docs/backend.md`).
+- Planetas anônimos ("Planeta Jade-42 · 12 dias") conversam em **constelações**: Primeiros dias · Dívidas · Família · Tempestades.
+- Publicar, responder, **"Me identifico"** e denunciar. Ordem cronológica.
+- **Sem ranking e sem curtida pública:** só quem escreveu vê quantas pessoas se identificaram.
+- Mostrar os dias de recomeço é **opcional** (caixa desmarcada por padrão).
+- Moderação do backend barra links, valores, contatos e ofertas de aposta. A tela mostra o que tirar, sem bronca.
+- Texto com sinal de risco à vida **não sai do aparelho**: mostra o cartão com CVV 188 e SAMU 192.
+- Sem internet ou sem backend: "A Luneta precisa de internet. O resto do Terraformar funciona sem ela." + "Tentar de novo".
+- Sem notificações. "Apagar meus dados" também apaga o identificador anônimo.
 
 ---
 
