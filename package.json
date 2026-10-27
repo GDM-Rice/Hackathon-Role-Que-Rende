@@ -9,7 +9,10 @@
     "preview": "vite preview",
     "lint": "eslint .",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "backend": "node backend/src/servidor.js",
+    "backend:dev": "node --watch backend/src/servidor.js",
+    "test:backend": "node --test \"backend/tests/*.test.js\""
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.118.0",

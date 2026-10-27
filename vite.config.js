@@ -33,9 +33,16 @@ export default defineConfig({
       workbox: {
         globPatterns: ['**/*.{js,css,html,svg,png,woff2}'],
         navigateFallback: '/index.html',
+        // O service worker não pode "responder" /api com o index.html.
+        navigateFallbackDenylist: [/^\/api\//],
       },
     }),
   ],
+  // Em desenvolvimento, o front chama /api e o Vite encaminha para o backend
+  // (npm run backend, porta 3001). Não afeta o build nem o modo offline.
+  server: {
+    proxy: { '/api': 'http://localhost:3001' },
+  },
   test: {
     environment: 'jsdom',
     include: ['src/**/*.test.{js,jsx}'],

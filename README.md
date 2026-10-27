@@ -12,6 +12,7 @@ Game Jam Rolê que Rende · BBDW 2026 · desafio "Além da Aposta: caminhos para
 | [`docs/arquitetura.md`](docs/arquitetura.md) | como o app funciona por dentro: estado, regras, planeta, PWA |
 | [`docs/contribuindo.md`](docs/contribuindo.md) | ambiente, Git, quem mexe em quê, receitas e testes |
 | [`docs/acessibilidade.md`](docs/acessibilidade.md) | o que já está pronto e como testar |
+| [`docs/backend.md`](docs/backend.md) | API opcional: Luneta, conteúdo público, demo, privacidade |
 | [`CREDITOS.md`](CREDITOS.md) | declaração de IA, código aberto e assets (edital 8.5) |
 
 ## Rodar
@@ -22,6 +23,8 @@ npm run dev        # desenvolvimento
 npm test           # testes (vitest)
 npm run lint
 npm run build      # gera dist/ com service worker (offline)
+npm run backend    # API opcional em http://localhost:3001 (sem instalar nada novo)
+npm run test:backend  # testes do backend (node:test)
 npm run preview    # serve o build: use para testar offline
 ```
 

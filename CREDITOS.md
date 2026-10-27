@@ -6,6 +6,7 @@ Declaração exigida pelo edital (item 8.5). Mantenha atualizado a cada novo ass
 | Ferramenta | Para quê |
 |---|---|
 | Claude Code (Anthropic) | Estrutura base do projeto, configuração, regras do jogo e testes |
+| Claude (Anthropic) | Backend da Luneta e do conteúdo público (pasta `backend/`) e seus testes |
 
 ## Fontes tipográficas
 | Fonte | Licença | Origem |
@@ -17,6 +18,7 @@ Declaração exigida pelo edital (item 8.5). Mantenha atualizado a cada novo ass
 | Biblioteca | Licença |
 |---|---|
 | React, React DOM | MIT |
+| Backend (`backend/`) | nenhuma: usa só módulos nativos do Node.js (`node:http`, `node:crypto`, `node:test`) |
 | Workbox (via vite-plugin-pwa) | MIT |
 
 ## Ferramentas de desenvolvimento
