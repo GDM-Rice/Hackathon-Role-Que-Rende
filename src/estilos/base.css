@@ -1,0 +1,125 @@
+/* Terraformar · base e componentes (CLAUDE.md seção 8.3) */
+
+body {
+  margin: 0;
+  background: var(--fundo);
+  color: var(--texto);
+  font-family: var(--fonte-texto);
+  font-size: 0.9375rem; /* 15 px */
+  line-height: 1.45;
+  -webkit-font-smoothing: antialiased;
+}
+
+#app {
+  max-width: var(--largura-max);
+  min-height: 100dvh;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+}
+
+:focus-visible {
+  outline: 2px solid var(--destaque);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html[data-animacoes='seguir'] *,
+  html[data-animacoes='seguir'] *::before,
+  html[data-animacoes='seguir'] *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+html[data-animacoes='reduzidas'] *,
+html[data-animacoes='reduzidas'] *::before,
+html[data-animacoes='reduzidas'] *::after {
+  animation-duration: 0.01ms !important;
+  transition-duration: 0.01ms !important;
+}
+
+.so-leitor {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;
+}
+
+/* Tela */
+.tela {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 20px var(--espaco-tela) 24px;
+}
+.tela--escura { background: var(--marinho); color: #FFFFFF; }
+.tela--tempestade { background: var(--fundo-tempestade); }
+
+/* Tipografia */
+.titulo-tela { font-family: var(--fonte-titulo); font-weight: 600; font-size: 1.75rem; line-height: 1.15; color: var(--marinho); margin: 0; }
+.saudacao { font-family: var(--fonte-titulo); font-weight: 400; font-size: 1.625rem; margin: 0; }
+.frase-chave { font-family: var(--fonte-titulo); font-weight: 400; font-size: 1.875rem; line-height: 1.2; margin: 0; }
+.texto-apoio { color: var(--texto-apoio); font-size: 0.875rem; }
+.rotulo-secao { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--texto-apoio); margin: 8px 0 0; }
+
+/* Cartão */
+.cartao {
+  background: var(--superficie);
+  border: var(--largura-borda) solid var(--borda);
+  border-radius: var(--raio-cartao);
+  padding: 16px;
+}
+.cartao--escuro { background: var(--marinho); color: #FFFFFF; border-color: var(--marinho); }
+
+/* Botões */
+.botao {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  min-height: 48px; padding: 0 20px;
+  border-radius: var(--raio-botao);
+  font: inherit; font-weight: 700; font-size: 1.0625rem;
+  cursor: pointer; text-decoration: none;
+  transition: background-color var(--duracao), border-color var(--duracao);
+}
+.botao--primario { background: var(--marinho); color: #FFFFFF; border: 0; }
+.botao--secundario { background: var(--superficie); color: var(--marinho); border: var(--largura-borda) solid var(--destaque); }
+.botao--cta { width: 100%; min-height: 52px; margin-top: auto; }
+.botao[disabled], .botao[aria-disabled='true'] { opacity: 0.5; cursor: not-allowed; }
+
+.botao-icone {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: var(--alvo-min); height: var(--alvo-min);
+  background: var(--superficie); color: var(--marinho);
+  border: var(--largura-borda) solid var(--borda); border-radius: 12px;
+  cursor: pointer;
+}
+
+.link-voltar {
+  display: inline-flex; align-items: center; min-height: var(--alvo-min);
+  color: var(--texto-apoio); font-size: 0.9375rem; text-decoration: none;
+  background: none; border: 0; padding: 0; cursor: pointer; font-family: inherit;
+}
+
+/* Ícone do sprite */
+.icone { width: 24px; height: 24px; flex: none; }
+.icone--p { width: 20px; height: 20px; }
+
+/* Input */
+.campo { display: flex; flex-direction: column; gap: 6px; font-weight: 700; font-size: 0.875rem; }
+.campo input {
+  min-height: var(--alvo-min); padding: 0 12px;
+  border: var(--largura-borda) solid var(--borda-input); border-radius: var(--raio-input);
+  font: inherit; font-weight: 400; font-size: 0.9375rem; color: var(--texto); background: var(--superficie);
+}
+
+/* Barra de progresso */
+.barra { height: 10px; background: var(--trilho); border-radius: var(--raio-pilula); overflow: hidden; }
+.barra__preenchimento { height: 100%; background: var(--verde); border-radius: var(--raio-pilula); transition: width var(--duracao); }
+
+/* Chip */
+.chip { display: inline-flex; align-items: center; padding: 4px 12px; border-radius: var(--raio-pilula); font-weight: 700; font-size: 0.8125rem; }
+
+/* Linha de fonte */
+.linha-fonte { font-size: 0.75rem; color: var(--texto-apoio); }
+
+/* Planeta */
+.planeta svg { width: 100%; height: auto; display: block; }
+.planeta [id^='regiao-'] { transition: transform var(--duracao) ease-out; }

@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" role="img" aria-label="Terraformar: planeta com o Brasil verde e o mar limpo">
+  <!-- Ícone do app (PWA). Fundo cheio = serve como "maskable": o globo fica dentro da zona segura (80%). -->
+  <rect width="512" height="512" rx="112" fill="#042C53"/>
+  <g transform="translate(72 73.6) scale(1.6)">
+    <circle cx="115" cy="114" r="113" fill="#185FA5"/>
+    <clipPath id="clip-globo-icone"><circle cx="115" cy="114" r="113"/></clipPath>
+    <path clip-path="url(#clip-globo-icone)" fill-rule="evenodd" fill="#042C53" opacity="0.22" d="M2 114a113 113 0 1 0 226 0a113 113 0 1 0 -226 0Z M-6 102a106 106 0 1 0 212 0a106 106 0 1 0 -212 0Z"/>
+    <path d="M40 40 C70 18 120 8 160 20" stroke="#FFFFFF" stroke-opacity="0.22" stroke-width="10" fill="none" stroke-linecap="round"/>
+    <g fill="#639922" stroke="#3B6D11" stroke-width="1.5" stroke-linejoin="round">
+      <polygon points="15.5,76.5 35,60 37.5,35 50,30 65,20 85,15 105,30 125,20 135,35 145,45 155,45 145,70 150,80 155,95 155,105 135,105 135,90 95,87.5 80,90 85,107.5 60,95 37.5,95 20,85"/>
+      <polygon points="155,45 165,52.5 185,55 200,65 210,70 210,85 192.5,105 190,125 187,132 155,117.5 155,105 155,95 150,80 145,70"/>
+      <polygon points="135,90 135,105 155,105 155,117.5 130,135 120,148 110,157 107.5,155 95,140 95,120 85,115 85,107.5 80,90 95,87.5"/>
+      <polygon points="155,117.5 187,132 182.5,142.5 170,155 155,160 145,166.5 120,148 130,135"/>
+      <polygon points="120,148 145,166.5 142.5,175 132.5,190 118,208.5 110,195 97,191 115,175 112,167.5 110,157"/>
+    </g>
+    <path d="M30 58 C55 48 85 52 110 46 C125 43 138 46 150 44" fill="none" stroke="#378ADD" stroke-width="3" stroke-linecap="round"/>
+    <g fill="#27500A"><path d="M60 80 l5 -11 l5 11z"/><path d="M92 66 l5 -11 l5 11z"/><path d="M120 86 l5 -11 l5 11z"/><path d="M172 82 l5 -11 l5 11z"/><path d="M112 130 l5 -11 l5 11z"/><path d="M152 148 l5 -11 l5 11z"/><path d="M118 186 l5 -11 l5 11z"/></g>
+    <path d="M182 24 q5 -5 10 0 q5 -5 10 0" fill="none" stroke="#E6F1FB" stroke-width="2.2" stroke-linecap="round"/>
+  </g>
+</svg>
