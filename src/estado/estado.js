@@ -13,6 +13,8 @@ export const TELAS = [
 export function estadoInicial(hoje) {
   return {
     versao: VERSAO,
+    dono: null, // id da conta dona destes dados ('demo' na demonstração)
+    atualizadoEm: null, // última mudança feita pela pessoa (usado no backup)
     tela: 'boasVindas',
     perfil: { apelido: '', motivo: '', gastoSemanal: null, inicio: null },
     recomeco: { tempestades: [] },

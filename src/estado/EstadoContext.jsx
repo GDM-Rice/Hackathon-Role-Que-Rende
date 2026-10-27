@@ -24,10 +24,14 @@ export function EstadoProvider({ children, inicial }) {
     aplicarAcessibilidade(estado.acessibilidade)
   }, [estado])
 
-  const atualizar = useCallback((fn) => {
+  // marcar=false: mudança que não é da pessoa (navegar, restaurar backup),
+  // então não conta como "atualizado" para o backup.
+  const atualizar = useCallback((fn, { marcar = true } = {}) => {
     setEstado((atual) => {
       const copia = structuredClone(atual)
-      return fn(copia) ?? copia
+      const novo = fn(copia) ?? copia
+      if (marcar) novo.atualizadoEm = new Date().toISOString()
+      return novo
     })
   }, [])
 
@@ -35,7 +39,7 @@ export function EstadoProvider({ children, inicial }) {
     atualizar((e) => {
       e.tela = tela
       e.ancora = ancora ?? null
-    })
+    }, { marcar: false })
     window.scrollTo?.(0, 0)
   }, [atualizar])
 

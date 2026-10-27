@@ -8,6 +8,7 @@ import { somarDias } from '../util/datas.js'
 export function estadoDoRafael(hoje) {
   const e = estadoInicial(hoje)
   e.tela = 'inicio'
+  e.dono = 'demo' // nunca vira backup de uma conta de verdade
   e.perfil = { apelido: 'Rafael', motivo: 'Para voltar a dormir em paz', gastoSemanal: 120, inicio: somarDias(hoje, -22) }
   e.recomeco.tempestades = [somarDias(hoje, -7)]
   e.mares = Array.from({ length: 9 }, (_, i) => ({
