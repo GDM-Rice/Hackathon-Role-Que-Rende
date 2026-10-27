@@ -10,6 +10,7 @@ import VisaoFamiliar from './VisaoFamiliar.jsx'
 import Ajuda from './Ajuda.jsx'
 import Ajustes from './Ajustes.jsx'
 import Fontes from './Fontes.jsx'
+import Luneta from './Luneta.jsx'
 
 export const TELAS = {
   boasVindas: BoasVindas,
@@ -23,4 +24,5 @@ export const TELAS = {
   ajuda: Ajuda,
   ajustes: Ajustes,
   fontes: Fontes,
+  luneta: Luneta,
 }

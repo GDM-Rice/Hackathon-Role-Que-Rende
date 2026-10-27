@@ -67,6 +67,11 @@ export default function Inicio() {
         ))}
       </nav>
 
+      <button type="button" className="botao botao--secundario" onClick={() => irPara('luneta')}>
+        <Icone nome="mensagem" pequeno />
+        {TEXTOS.luneta.atalho}
+      </button>
+
       <button type="button" className="link-voltar self-center underline" onClick={() => irPara('tempestade')}>
         {FRASES.apostei}
       </button>
