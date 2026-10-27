@@ -56,36 +56,41 @@ Se um pedido conflitar com isto, pare e avise.
 
 O que está decidido: **PWA**, funciona offline, sem back-end, **sem roteador** (a tela atual é `estado.tela`), sem biblioteca para o mapa (o SVG é escrito à mão), dados no `localStorage`.
 
-**[decidir] Stack sugerida:** HTML + CSS + JavaScript puro (ES modules), sem build. Se a equipe escolher outra, atualize esta seção.
+**Stack escolhida:** **React 19 + Vite 8 + Tailwind CSS 4**, JavaScript (JSX, sem TypeScript). PWA com `vite-plugin-pwa` (manifest + service worker Workbox, precache de tudo). Fontes self-hosted via `@fontsource` (entram no bundle). Testes com **Vitest + jsdom** (`npm test`).
+> `@supabase/supabase-js` e `lucide-react` estão no `package.json` mas **não devem ser usados**: Supabase é back-end (quebra "dados só no celular") e os ícones vêm do sprite próprio. **[decidir]** remover do `package.json`.
 
-Estrutura sugerida:
+Estrutura:
 ```
-index.html              shell, <main id="app">, carrega js/app.js
-manifest.webmanifest    nome, cores (#042C53 / #F4F8FC), ícones
-sw.js                   cache offline de tudo (app inteiro + fontes + assets)
-css/
-  tokens.css            variáveis da seção 8 (incl. alto contraste e daltonismo)
-  base.css              reset, tipografia, componentes
-js/
-  app.js                inicia, lê/salva estado, desenha estado.tela         (02)
-  estado.js             forma do estado, carregar/salvar/apagar, migrar      (02)
-  regras.js             funções puras do planeta e das metas                 (05)
-  planeta.js            desenha/atualiza o SVG do Planeta                    (01)
-  conteudo.js           todos os textos, Ajuda, Fontes, detectarRisco        (06)
-  demo.js               dados do Rafael e painel Demo                        (06/02)
-  telas/*.js            uma função por tela: render(estado) -> HTML          (03/04/05)
-assets/
-  planeta.svg           molde do planeta com ids por camada
-  icone-app.svg         ícone do PWA (gerar PNG 192 e 512 a partir dele)
-  icones.svg            sprite de ícones de linha (<use href="#i-...">)
-  mare-ondas.svg        água da tela Maré
-fonts/                  Fraunces e Atkinson Hyperlegible em woff2 (OFL), self-hosted
+index.html              shell, <main id="app">, carrega src/main.jsx
+vite.config.js          React + Tailwind + PWA (manifest #042C53 / #F4F8FC, cache offline) + config do Vitest
+public/
+  icone-app.svg         ícone do PWA (PNGs 192/512/180 gerados em public/icons/)
+  icones.svg            sprite de ícones de linha (<use href="/icones.svg#i-...">)
+src/
+  main.jsx              inicia; ?demo=1 carrega o Rafael                    (02)
+  App.jsx               desenha a tela de estado.tela                       (02)
+  index.css             fontes + Tailwind + @theme ligando os tokens        (02)
+  estilos/tokens.css    variáveis da seção 8 (incl. alto contraste, daltonismo, P/M/G)  (05)
+  estilos/base.css      tipografia e componentes base                       (02)
+  estado/estado.js      forma do estado, carregar/salvar/apagar, migrar     (02)
+  estado/EstadoContext.jsx  useEstado() → { estado, atualizar, irPara, apagarTudo }  (02)
+  regras/regras.js      funções puras do planeta e das metas                (05)
+  planeta/planeta.js    aplica o estado ao SVG pelos ids                    (01)
+  planeta/Planeta.jsx   componente com o SVG inline                         (01)
+  conteudo/conteudo.js  todos os textos, Ajuda, Fontes, detectarRisco       (06)
+  demo/demo.js          dados do Rafael                                     (06/02)
+  componentes/*.jsx     Topo, Icone, BarraProgresso, LinhaFonte, CartaoRisco, TelaEmConstrucao  (02)
+  telas/*.jsx           um componente por tela; telas/index.js mapeia estado.tela  (03/04/05)
+  assets/planeta.svg    molde do planeta (import ?raw, inserido inline)     (01)
+  assets/mare-ondas.svg água da tela Maré                                   (01)
+  **/*.test.js(x)       testes ao lado do arquivo testado
 ```
 
 Convenções:
 - Nomes de domínio em português, camelCase: `diasDeRecomeco`, `metaAtual`, `estadoDoMar`.
-- Cada tela é uma função `render(estado)` que devolve HTML; ações chamam `atualizar(fn)` que muda o estado, salva e redesenha.
-- Sem dependências externas em tempo de execução (o app precisa abrir offline no palco).
+- Cada tela é um componente React que lê `useEstado()`; ações chamam `atualizar((e) => { ... })`, que muda uma cópia do estado, salva e redesenha. Navegar: `irPara('tela', ancora?)`.
+- Cores pelo Tailwind ligado aos tokens (`bg-marinho`, `text-texto-apoio`, `border-borda`) ou `var(--token)`. A paleta padrão do Tailwind está desligada.
+- Sem chamadas de rede em tempo de execução (o app precisa abrir offline no palco). Para testar offline: `npm run build && npm run preview`.
 - Git: commits pequenos, mensagem em português, um módulo por branch quando possível. O integrador (02) faz o merge.
 
 ---
