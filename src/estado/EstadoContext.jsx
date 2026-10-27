@@ -4,6 +4,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import { apagar, carregar, estadoInicial, salvar } from './estado.js'
 import { hojeISO } from '../util/datas.js'
+import { apagarToken } from '../api/token.js'
 
 const EstadoContext = createContext(null)
 
@@ -40,6 +41,7 @@ export function EstadoProvider({ children, inicial }) {
 
   const apagarTudo = useCallback(() => {
     apagar()
+    apagarToken() // a Luneta passa a ver este aparelho como um planeta novo
     setEstado(estadoInicial(hojeISO()))
   }, [])
 
