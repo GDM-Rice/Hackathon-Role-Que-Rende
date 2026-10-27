@@ -6,7 +6,7 @@ Contexto do projeto para o Claude Code. Leia inteiro antes de mexer no código. 
 
 ## 1. O que é
 
-**Terraformar** é um app de celular (PWA, site responsivo, com backend próprio em Node.js) para quem quer **recomeçar depois das apostas online**. O planeta chega castigado pelas apostas: o Brasil seco e partido em 5 regiões, o mar poluído, os rios secos. **Cada dia sem apostar devolve vida a uma parte dele.**
+**Terraformar** é um app de celular (PWA, site responsivo, com login obrigatório, backup do progresso no Supabase e backend próprio em Node.js para a Luneta) para quem quer **recomeçar depois das apostas online**. O planeta chega castigado pelas apostas: o Brasil seco e partido em 5 regiões, o mar poluído, os rios secos. **Cada dia sem apostar devolve vida a uma parte dele.**
 
 - Frase-assinatura: **"Você voltou. Isso conta."**
 - Narrativa: **quem secou o planeta foram as apostas; a pessoa é quem recupera.** Nunca "olha o que você fez".
@@ -35,8 +35,8 @@ Se um pedido conflitar com isto, pare e avise.
 2. **Metas fixas e conhecidas desde o dia 1.** Iguais para todos. Nada sorteado, nada surpresa, nenhum prêmio aleatório.
 3. **Sem dinheiro e sem moeda.** O progresso é o planeta. "R$ X longe das apostas" é só texto e **não muda o planeta**.
 4. **Sem notificações** para trazer a pessoa de volta. Sem ranking, sem vidas, sem sequência que quebra.
-5. **Maré e Ajuda nunca têm limite** e ficam a um toque de qualquer tela.
-6. **Dados pessoais só no celular.** Perfil, finanças, Marés, tripulação e o planeta nunca vão para o backend. O backend só recebe o que a pessoa escolhe publicar na Luneta, de forma anônima. Na demo, tudo sintético.
+5. **Maré e Ajuda nunca têm limite** e ficam a um toque de qualquer tela, **inclusive sem login** (telas de entrar, cadastro e recuperação de senha também mostram os dois botões).
+6. **Dados pessoais só com a conta da pessoa.** O login é obrigatório e o progresso (perfil, Marés, finanças, tripulação) tem **backup no Supabase**, protegido por RLS: cada conta só lê e grava a própria linha. O **celular das pessoas da tripulação nunca sai do aparelho** (é removido do backup). O backend da Luneta continua anônimo e nunca recebe dados da conta. "Apagar minha conta" apaga tudo no servidor. Na demo (`?demo=1`), tudo sintético, sem conta e offline.
 7. **O planeta nunca é salvo, é calculado** a partir dos dados (funções puras). Assim nada regride por erro.
 8. O valor das dívidas nunca entra na conta do progresso: quem deve mais não fica para trás. Pedir ajuda nunca é "pontuado".
 
@@ -60,7 +60,8 @@ O que está decidido: **PWA**, funciona offline, **com backend** (API Node.js em
 **Backend:** Node.js puro (`node:http`, sem dependências) em `backend/`, porta 3001. Serve a **Luneta** (comunidade anônima), o conteúdo público (Ajuda, Fontes, Metas) e a demo. Em desenvolvimento o Vite encaminha `/api` para ele; no build, o endereço vem de `VITE_API_URL`. Detalhes em `docs/backend.md`.
 - O front fala com o backend **só** por `src/api/`. Nenhuma tela chama `fetch` direto.
 - Tudo que não é Luneta continua funcionando **sem o backend** (offline). Se a API não responder, a tela mostra um aviso calmo, nunca um erro.
-> `@supabase/supabase-js` e `lucide-react` estão no `package.json` mas **não são usados**: o backend é o Node próprio e os ícones vêm do sprite. **[decidir]** remover do `package.json`.
+**Contas e backup:** **Supabase** (`@supabase/supabase-js`). Auth cuida de cadastro, login, logout e recuperação de senha por e-mail; a tabela `progresso` guarda o backup do estado. SQL em `supabase/migrations/`, chaves em `.env.local` (`VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY`). Detalhes em `docs/contas.md`.
+> `lucide-react` está no `package.json` mas **não é usado**: os ícones vêm do sprite. **[decidir]** remover.
 
 Estrutura:
 ```
