@@ -6,7 +6,7 @@ Contexto do projeto para o Claude Code. Leia inteiro antes de mexer no código. 
 
 ## 1. O que é
 
-**Terraformar** é um app de celular (PWA, site responsivo, sem back-end) para quem quer **recomeçar depois das apostas online**. O planeta chega castigado pelas apostas: o Brasil seco e partido em 5 regiões, o mar poluído, os rios secos. **Cada dia sem apostar devolve vida a uma parte dele.**
+**Terraformar** é um app de celular (PWA, site responsivo, com backend próprio em Node.js) para quem quer **recomeçar depois das apostas online**. O planeta chega castigado pelas apostas: o Brasil seco e partido em 5 regiões, o mar poluído, os rios secos. **Cada dia sem apostar devolve vida a uma parte dele.**
 
 - Frase-assinatura: **"Você voltou. Isso conta."**
 - Narrativa: **quem secou o planeta foram as apostas; a pessoa é quem recupera.** Nunca "olha o que você fez".
@@ -36,7 +36,7 @@ Se um pedido conflitar com isto, pare e avise.
 3. **Sem dinheiro e sem moeda.** O progresso é o planeta. "R$ X longe das apostas" é só texto e **não muda o planeta**.
 4. **Sem notificações** para trazer a pessoa de volta. Sem ranking, sem vidas, sem sequência que quebra.
 5. **Maré e Ajuda nunca têm limite** e ficam a um toque de qualquer tela.
-6. **Dados só no celular.** Na demo, tudo sintético.
+6. **Dados pessoais só no celular.** Perfil, finanças, Marés, tripulação e o planeta nunca vão para o backend. O backend só recebe o que a pessoa escolhe publicar na Luneta, de forma anônima. Na demo, tudo sintético.
 7. **O planeta nunca é salvo, é calculado** a partir dos dados (funções puras). Assim nada regride por erro.
 8. O valor das dívidas nunca entra na conta do progresso: quem deve mais não fica para trás. Pedir ajuda nunca é "pontuado".
 
@@ -54,10 +54,13 @@ Se um pedido conflitar com isto, pare e avise.
 
 ## 3. Stack e estrutura
 
-O que está decidido: **PWA**, funciona offline, sem back-end, **sem roteador** (a tela atual é `estado.tela`), sem biblioteca para o mapa (o SVG é escrito à mão), dados no `localStorage`.
+O que está decidido: **PWA**, funciona offline, **com backend** (API Node.js em `backend/`), **sem roteador** (a tela atual é `estado.tela`), sem biblioteca para o mapa (o SVG é escrito à mão), dados no `localStorage`.
 
 **Stack escolhida:** **React 19 + Vite 8 + Tailwind CSS 4**, JavaScript (JSX, sem TypeScript). PWA com `vite-plugin-pwa` (manifest + service worker Workbox, precache de tudo). Fontes self-hosted via `@fontsource` (entram no bundle). Testes com **Vitest + jsdom** (`npm test`).
-> `@supabase/supabase-js` e `lucide-react` estão no `package.json` mas **não devem ser usados**: Supabase é back-end (quebra "dados só no celular") e os ícones vêm do sprite próprio. **[decidir]** remover do `package.json`.
+**Backend:** Node.js puro (`node:http`, sem dependências) em `backend/`, porta 3001. Serve a **Luneta** (comunidade anônima), o conteúdo público (Ajuda, Fontes, Metas) e a demo. Em desenvolvimento o Vite encaminha `/api` para ele; no build, o endereço vem de `VITE_API_URL`. Detalhes em `docs/backend.md`.
+- O front fala com o backend **só** por `src/api/`. Nenhuma tela chama `fetch` direto.
+- Tudo que não é Luneta continua funcionando **sem o backend** (offline). Se a API não responder, a tela mostra um aviso calmo, nunca um erro.
+> `@supabase/supabase-js` e `lucide-react` estão no `package.json` mas **não são usados**: o backend é o Node próprio e os ícones vêm do sprite. **[decidir]** remover do `package.json`.
 
 Estrutura:
 ```
@@ -66,8 +69,17 @@ vite.config.js          React + Tailwind + PWA (manifest #042C53 / #F4F8FC, cach
 public/
   icone-app.svg         ícone do PWA (PNGs 192/512/180 gerados em public/icons/)
   icones.svg            sprite de ícones de linha (<use href="/icones.svg#i-...">)
+backend/
+  src/servidor.js       abre a porta (npm run backend)                      (02)
+  src/app.js            rotas HTTP, CORS, limites, erros                    (02)
+  src/luneta.js         comunidade anônima, em memória                      (02)
+  src/moderacao.js      moderação automática antes de publicar              (02/06)
+  tests/*.test.js       testes do backend (npm run test:backend)
 src/
   main.jsx              inicia; ?demo=1 carrega o Rafael                    (02)
+  api/cliente.js        chamada HTTP única (base, timeout, token, erros)    (02)
+  api/token.js          identificador anônimo do aparelho                   (02)
+  api/luneta.js         funções da Luneta usadas pelas telas                (02)
   App.jsx               desenha a tela de estado.tela                       (02)
   index.css             fontes + Tailwind + @theme ligando os tokens        (02)
   estilos/tokens.css    variáveis da seção 8 (incl. alto contraste, daltonismo, P/M/G)  (05)
@@ -90,7 +102,7 @@ Convenções:
 - Nomes de domínio em português, camelCase: `diasDeRecomeco`, `metaAtual`, `estadoDoMar`.
 - Cada tela é um componente React que lê `useEstado()`; ações chamam `atualizar((e) => { ... })`, que muda uma cópia do estado, salva e redesenha. Navegar: `irPara('tela', ancora?)`.
 - Cores pelo Tailwind ligado aos tokens (`bg-marinho`, `text-texto-apoio`, `border-borda`) ou `var(--token)`. A paleta padrão do Tailwind está desligada.
-- Sem chamadas de rede em tempo de execução (o app precisa abrir offline no palco). Para testar offline: `npm run build && npm run preview`.
+- Só a Luneta usa a rede, sempre por `src/api/`. O resto do app precisa abrir offline no palco. Para testar offline: `npm run build && npm run preview`. Para rodar com backend: `npm run backend` + `npm run dev`.
 - Git: commits pequenos, mensagem em português, um módulo por branch quando possível. O integrador (02) faz o merge.
 
 ---
@@ -474,6 +486,6 @@ Mantenha um `CREDITOS.md` atualizado: ferramentas de IA usadas e para quê (incl
 - [ ] Teclado e leitor de tela funcionam; alvos ≥ 44 px; foco visível.
 - [ ] Respeita animações reduzidas.
 - [ ] Textos vêm de `conteudo.js`; afirmações têm fonte.
-- [ ] Funciona offline; nenhum dado sai do aparelho.
+- [ ] Funciona offline (menos a Luneta); nenhum dado pessoal sai do aparelho.
 - [ ] A jornada da demo (seção 10) continua passando.
 - [ ] Crie testes para cada nova feature.
