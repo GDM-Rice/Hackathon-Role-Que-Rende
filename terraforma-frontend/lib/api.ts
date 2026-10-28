@@ -85,7 +85,11 @@ export async function api<T = unknown>(
       body: body !== undefined ? JSON.stringify(body) : undefined,
     });
   } catch {
-    throw new ApiError(0, "Não foi possível conectar ao servidor. Ele está rodando?");
+    // fetch só lança erro aqui se o servidor está fora do ar OU se o navegador bloqueou por CORS.
+    throw new ApiError(
+      0,
+      `Não foi possível falar com o servidor (${API_URL}). Verifique se o back está rodando e se esta página foi aberta pelo endereço de FRONTEND_URL/CORS_ORIGINS do back (use localhost, não 127.0.0.1).`,
+    );
   }
 
   // 204 (DELETE /chats/:id) não tem corpo.

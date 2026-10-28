@@ -20,10 +20,12 @@ async function bootstrap() {
 
   // Sem isso o navegador bloqueia as chamadas do Next.js (outra origem/porta).
   // CORS_ORIGINS aceita várias origens separadas por vírgula (ex.: site + PWA);
-  // se não existir, cai no FRONTEND_URL, que continua sendo UMA só (usada no link do e-mail).
+  // se não existir (ou estiver VAZIA, como no .env.example), cai no FRONTEND_URL, que continua
+  // sendo UMA só (usada no link do e-mail). Usa || e não ??: "" não é nulo, e com ?? a lista
+  // ficava vazia e o navegador bloqueava TODAS as chamadas do front.
   const origens = (
-    process.env.CORS_ORIGINS ??
-    process.env.FRONTEND_URL ??
+    process.env.CORS_ORIGINS ||
+    process.env.FRONTEND_URL ||
     'http://localhost:3000'
   )
     .split(',')
