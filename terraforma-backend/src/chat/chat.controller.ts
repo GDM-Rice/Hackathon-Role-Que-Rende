@@ -9,7 +9,7 @@ import {
   Post,
   Query,
 } from '@nestjs/common';
-import { MessageRole } from '@prisma/client';
+import { MessageRole } from '../generated/prisma/index.js';
 import { CurrentUser } from '../auth/decorators/CurrentUser.decorator.js';
 import { PaginacaoDto } from '../common/paginacao.dto.js';
 import { ChatService } from './chat.service.js';

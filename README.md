@@ -45,7 +45,7 @@ Crie as tabelas e suba a API:
 
 ```bash
 npx prisma migrate deploy   # aplica as migrations existentes
-npm run prisma:generate     # gera o cliente do Prisma
+npm run prisma:generate     # gera o cliente em src/generated/prisma (obrigatório antes de rodar/testar)
 npm run start:dev           # http://localhost:3001
 ```
 

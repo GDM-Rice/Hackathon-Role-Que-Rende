@@ -70,7 +70,7 @@ describe('Fluxo de login e chats (e2e, sem banco real)', () => {
   let http: ReturnType<typeof request>;
 
   beforeAll(async () => {
-    const { Prisma } = await import('@prisma/client');
+    const { Prisma } = await import('../src/generated/prisma/index.js');
     (globalThis as any).__PrismaKnown = Prisma.PrismaClientKnownRequestError;
 
     const moduleRef = await Test.createTestingModule({ imports: [AppModule] })

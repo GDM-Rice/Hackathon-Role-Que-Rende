@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { MessageRole } from '@prisma/client';
+import { MessageRole } from '../generated/prisma/index.js';
 import type { PaginacaoDto } from '../common/paginacao.dto.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 
