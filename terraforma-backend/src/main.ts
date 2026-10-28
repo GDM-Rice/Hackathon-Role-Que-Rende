@@ -1,5 +1,6 @@
 import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
+import helmet from 'helmet';
 import { AppModule } from './app.module.js';
 
 async function bootstrap() {
@@ -14,10 +15,21 @@ async function bootstrap() {
     }),
   );
 
+  // Cabeçalhos de segurança padrão (X-Content-Type-Options, HSTS, etc.).
+  app.use(helmet());
+
   // Sem isso o navegador bloqueia as chamadas do Next.js (outra origem/porta).
-  app.enableCors({
-    origin: process.env.FRONTEND_URL ?? 'http://localhost:3000',
-  });
+  // CORS_ORIGINS aceita várias origens separadas por vírgula (ex.: site + PWA);
+  // se não existir, cai no FRONTEND_URL, que continua sendo UMA só (usada no link do e-mail).
+  const origens = (
+    process.env.CORS_ORIGINS ??
+    process.env.FRONTEND_URL ??
+    'http://localhost:3000'
+  )
+    .split(',')
+    .map((o) => o.trim())
+    .filter(Boolean);
+  app.enableCors({ origin: origens });
 
   await app.listen(process.env.PORT ?? 3001);
 }
