@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsString, MinLength } from 'class-validator';
+import { IsNotEmpty, IsString, MaxLength, MinLength } from 'class-validator';
 
 export class ResetPasswordDto {
   @IsString()
@@ -8,5 +8,6 @@ export class ResetPasswordDto {
   @IsString({ message: 'A senha deve ser uma string.' })
   @IsNotEmpty({ message: 'O campo novaSenha não pode estar vazio.' })
   @MinLength(8, { message: 'A senha deve ter no mínimo 8 caracteres.' })
+  @MaxLength(72, { message: 'A senha deve ter no máximo 72 caracteres.' })
   novaSenha!: string;
 }
