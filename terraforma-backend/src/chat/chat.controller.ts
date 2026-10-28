@@ -7,9 +7,11 @@ import {
   HttpStatus,
   Param,
   Post,
+  Query,
 } from '@nestjs/common';
 import { MessageRole } from '@prisma/client';
 import { CurrentUser } from '../auth/decorators/CurrentUser.decorator.js';
+import { PaginacaoDto } from '../common/paginacao.dto.js';
 import { ChatService } from './chat.service.js';
 import { CreateChatDto } from './dto/create-chat.dto.js';
 import { CreateMessageDto } from './dto/create-message.dto.js';
@@ -25,13 +27,20 @@ export class ChatController {
   }
 
   @Get()
-  findAll(@CurrentUser('sub') userId: string) {
-    return this.chatService.findAll(userId);
+  findAll(
+    @CurrentUser('sub') userId: string,
+    @Query() paginacao: PaginacaoDto,
+  ) {
+    return this.chatService.findAll(userId, paginacao);
   }
 
   @Get(':id')
-  findOne(@CurrentUser('sub') userId: string, @Param('id') id: string) {
-    return this.chatService.findOne(userId, id);
+  findOne(
+    @CurrentUser('sub') userId: string,
+    @Param('id') id: string,
+    @Query() paginacao: PaginacaoDto,
+  ) {
+    return this.chatService.findOne(userId, id, paginacao);
   }
 
   // O cliente só envia mensagens de USER; as de ASSISTANT são criadas pelo servidor.
