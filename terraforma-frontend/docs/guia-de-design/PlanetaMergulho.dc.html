@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Terraforma · planeta 3D e mergulho</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&amp;family=Fraunces:opsz,wght@9..144,400;9..144,600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#185FA5}a:hover{color:#042C53}
+</style>
+</helmet>
+<div style="width: 1200px; height: 1500px; box-sizing: border-box; padding: 56px 72px; background: #F4F8FC; color: #0F2340; font-family: 'Atkinson Hyperlegible', system-ui, sans-serif; display: flex; flex-direction: column; gap: 24px">
+
+<header style="display: flex; flex-direction: column; gap: 8px">
+<h1 style="margin: 0; font-family: 'Fraunces', Georgia, serif; font-weight: 600; font-size: 46px; color: #042C53">Planeta 3D e mergulho no oceano</h1>
+<p style="margin: 0; font-size: 18px; max-width: 1000px; line-height: 1.45">O planeta do app é 3D: foto de satélite da NASA com as 5 regiões do Brasil desenhadas por cima. Cada região passa de seca e rachada para verde e viva. O "Respire com a Terra" leva a pessoa para dentro do próprio planeta, até o mar.</p>
+<p style="margin: 0; font-size: 15px">Protótipo navegável: <a href="https://claude.ai/artifact/92jDdVALWzTNVFbAF5UEJz">Terraforma Protótipo 3D</a> (privado até ser compartilhado) · código para o repositório: <b>terraforma-planeta3d.zip</b></p>
+</header>
+
+<section style="display: flex; flex-direction: column; gap: 12px">
+<h2 style="margin: 0; font-size: 22px; color: #042C53">A queda, quadro a quadro (cerca de 5 s)</h2>
+<div style="display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 14px">
+<figure style="margin: 0; display: flex; flex-direction: column; gap: 8px"><img src="/_blob/2739d42cc97583c097f74d77d208192f" alt="Planeta no Início" style="width: 100%; aspect-ratio: 390 / 844; object-fit: cover; border-radius: 16px; border: 1px solid #D9E3EE"><figcaption style="font-size: 14px; line-height: 1.4"><b>0 s · toque</b><br>Abre o áudio em silêncio (o navegador exige um toque).</figcaption></figure>
+<figure style="margin: 0; display: flex; flex-direction: column; gap: 8px"><img src="/_blob/a4aa19d39847d805f645964cc6a656c4" alt="Planeta aproximando" style="width: 100%; aspect-ratio: 390 / 844; object-fit: cover; border-radius: 16px; border: 1px solid #D9E3EE"><figcaption style="font-size: 14px; line-height: 1.4"><b>0 a 1,8 s · zoom que acelera</b><br>Gira até o mar ao lado do Brasil. Zoom em escala logarítmica.</figcaption></figure>
+<figure style="margin: 0; display: flex; flex-direction: column; gap: 8px"><img src="/_blob/54df7b1733d83c5cf5481f4664dfaa71" alt="Vista do alto do oceano com nuvens" style="width: 100%; aspect-ratio: 390 / 844; object-fit: cover; border-radius: 16px; border: 1px solid #D9E3EE"><figcaption style="font-size: 14px; line-height: 1.4"><b>1,3 a 2,2 s · mistura</b><br>O mar visto de cima aparece por baixo do planeta, sem tela branca.</figcaption></figure>
+<figure style="margin: 0; display: flex; flex-direction: column; gap: 8px"><img src="/_blob/ba6f12e27f6da55af2f1c1c6547358b0" alt="Descendo perto do mar" style="width: 100%; aspect-ratio: 390 / 844; object-fit: cover; border-radius: 16px; border: 1px solid #D9E3EE"><figcaption style="font-size: 14px; line-height: 1.4"><b>2 a 5 s · queda</b><br>Atravessa nuvens como véus (no máximo 30%). O som entra baixo.</figcaption></figure>
+<figure style="margin: 0; display: flex; flex-direction: column; gap: 8px"><img src="/_blob/4e7788736fc279033afde1dbc5fb8576" alt="Horizonte do oceano" style="width: 100%; aspect-ratio: 390 / 844; object-fit: cover; border-radius: 16px; border: 1px solid #D9E3EE"><figcaption style="font-size: 14px; line-height: 1.4"><b>5 s · horizonte</b><br>A câmera levanta o olhar e o menu sobe devagar.</figcaption></figure>
+</div>
+<p style="margin: 0; font-size: 14px; color: #4A5D75">Na volta é o caminho inverso: sobe olhando para baixo, o planeta aparece bem de perto e se afasta desacelerando. Com movimento reduzido, não há voo: a troca é direta.</p>
+</section>
+
+<section style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px">
+<div style="background: #FFFFFF; border: 1px solid #D9E3EE; border-radius: 16px; padding: 20px 22px; display: flex; flex-direction: column; gap: 8px">
+<h2 style="margin: 0; font-size: 20px; color: #042C53">Planeta · src/planeta/globo.js</h2>
+<ul style="margin: 0; padding-left: 18px; font-size: 14px; line-height: 1.55">
+<li><code>estadoDoPlaneta({dias, mares, rios, tempestade})</code>: as regras do jogo (7, 14, 30, 60, 90 dias; 3 e 10 Marés; um rio por marco).</li>
+<li>Região seca: ocre com rachaduras. Brotando: o verde avança em manchas. Recuperada: verde vivo. O resto do mundo acompanha a média.</li>
+<li>Arrastar gira; solto, volta sozinho ao Brasil. Setas do teclado também giram. Botão de pausar o movimento.</li>
+<li>Tocar numa região abre o Mapa-Mundi nela. <code>irPara(lugar, ms, curva)</code> leva o planeta de uma tela para outra sem corte.</li>
+<li>Placas soltas que se juntam: guardado e desligado (<code>fragmentado: true</code>).</li>
+</ul>
+</div>
+<div style="background: #FFFFFF; border: 1px solid #D9E3EE; border-radius: 16px; padding: 20px 22px; display: flex; flex-direction: column; gap: 8px">
+<h2 style="margin: 0; font-size: 20px; color: #042C53">Oceano · src/planeta/oceano.js</h2>
+<ul style="margin: 0; padding-left: 18px; font-size: 14px; line-height: 1.55">
+<li>Ondas calculadas no shader, sem textura. Céu de dia, entardecer ou noite com estrelas, pela hora do celular.</li>
+<li><code>descer()</code> e <code>subir()</code>: a queda e a volta. <code>setFolego(0 a 1)</code>: a maré sobe ao inspirar.</li>
+<li>Criado em segundo plano depois que o planeta carrega, para a queda não travar.</li>
+<li>Som: <code>criarSomDoMar(url)</code>. Abre no toque, entra baixo (0,28) depois de 1,6 s, com filtro que tira o chiado. Botão "Som ligado / desligado" lembrado no aparelho.</li>
+</ul>
+</div>
+<div style="background: #FFFFFF; border: 1px solid #D9E3EE; border-radius: 16px; padding: 20px 22px; display: flex; flex-direction: column; gap: 10px">
+<h2 style="margin: 0; font-size: 20px; color: #042C53">Bolha da respiração</h2>
+<div style="display: flex; gap: 14px; align-items: center">
+<span style="display: flex; align-items: center; gap: 8px; font-size: 14px"><span style="width: 28px; height: 28px; border-radius: 50%; background: #5DCAA5; border: 2px solid #1D9E75"></span>Inspire</span>
+<span style="display: flex; align-items: center; gap: 8px; font-size: 14px"><span style="width: 28px; height: 28px; border-radius: 50%; background: #9FE1CB; border: 2px solid #1D9E75"></span>Mais um pouco</span>
+<span style="display: flex; align-items: center; gap: 8px; font-size: 14px"><span style="width: 28px; height: 28px; border-radius: 50%; background: #7F92E8; border: 2px solid #3C3489"></span>Solte</span>
+</div>
+<p style="margin: 0; font-size: 14px; line-height: 1.5">A bolha encosta no anel no fim de cada inspiração e encolhe ao soltar. Cor, tamanho e palavra mudam juntos: nada depende só da cor. O anel de fora é o tempo da sessão.</p>
+</div>
+<div style="background: #FFFFFF; border: 1px solid #D9E3EE; border-radius: 16px; padding: 20px 22px; display: flex; flex-direction: column; gap: 8px">
+<h2 style="margin: 0; font-size: 20px; color: #042C53">Cuidados de tela</h2>
+<ul style="margin: 0; padding-left: 18px; font-size: 14px; line-height: 1.55">
+<li>Painéis sobre o mar sem <code>backdrop-filter</code>: o desfoque por cima do 3D piscava.</li>
+<li>Painéis entram subindo (560 ms) e saem rápido (260 ms), um de cada vez.</li>
+<li>Celular fraco: menos segmentos na esfera e <code>setPixelRatio(1)</code>. Carregar o 3D com <code>React.lazy</code>.</li>
+<li>Sem WebGL: usar o componente Planeta em SVG como reserva.</li>
+</ul>
+</div>
+</section>
+
+<section style="background: #FAEEDA; border-radius: 16px; padding: 20px 22px; display: flex; flex-direction: column; gap: 8px">
+<h2 style="margin: 0; font-size: 20px; color: #633806">Declaração de assets (edital 8.5)</h2>
+<ul style="margin: 0; padding-left: 18px; font-size: 14px; line-height: 1.55; color: #4A2A05">
+<li>Textura da Terra e máscara da água: NASA Blue Marble, domínio público, obtidas pelo pacote npm three-globe (MIT).</li>
+<li>Fronteiras dos estados e rios: Natural Earth, domínio público. Ruído simplex: Ashima Arts (MIT). three.js (MIT).</li>
+<li>Oceano, céu, transições e técnicas: escritos durante o evento, com assistência de IA (Claude).</li>
+<li><b>Som do mar: trecho de um vídeo do YouTube enviado pela equipe. Licença NÃO conferida.</b> Confirmar com o canal ou trocar por som CC0 antes da entrega.</li>
+</ul>
+</section>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1200,"height":1500}}'>
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+</body>
+</html>

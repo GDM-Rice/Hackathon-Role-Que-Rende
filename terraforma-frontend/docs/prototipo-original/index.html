@@ -1,0 +1,1595 @@
+<title>Terraforma Protótipo 3D</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Fraunces:opsz,wght@9..144,400;9..144,600&display=swap">
+<style>
+/* Layout: bancada com o celular à esquerda e o painel da demo à direita; no celular, empilha. */
+:root {
+  --pagina: #E7EEF6; --pagina-texto: #0F2340; --pagina-suave: #4A5D75; --pagina-borda: #CCD8E6; --pagina-cartao: #FFFFFF;
+  --acento: #185FA5; --marinho: #042C53;
+  --f-titulo: 'Fraunces', Georgia, 'Times New Roman', serif;
+  --f-texto: 'Atkinson Hyperlegible', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  /* movimento: entra mais devagar do que sai */
+  --entra: 320ms; --sai: 180ms; --globo: 850ms; --curva-entra: cubic-bezier(.2,.8,.2,1); --curva-sai: cubic-bezier(.4,0,1,1);
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --pagina: #07182B; --pagina-texto: #E6F1FB; --pagina-suave: #9DB7D3; --pagina-borda: #1F3D60; --pagina-cartao: #0E2742; --acento: #85B7EB; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --pagina: #07182B; --pagina-texto: #E6F1FB; --pagina-suave: #9DB7D3; --pagina-borda: #1F3D60; --pagina-cartao: #0E2742; --acento: #85B7EB; color-scheme: dark }
+
+/* tokens do app (o tema do app é escolhido no painel, independente da página) */
+.app {
+  --bg: #F4F8FC; --sup: #FFFFFF; --borda: #D9E3EE; --linha: #E6EDF5; --texto: #0F2340; --suave: #4A5D75; --titulo: #042C53;
+  --link: #185FA5; --trilho: #E1E9F2; --verde: #639922; --verde-escuro: #27500A; --verde-claro: #EAF3DE; --verde-fundo: #F3F8EC;
+  --cartao-mare: #042C53; --cartao-mare-texto: #FFFFFF; --cartao-mare-suave: #B5D4F4; --cartao-mare-botao: #E6F1FB;
+  --nav: #ECEEF1; --nav-inativo: #5E6B78; --centro: #042C53; --centro-texto: #FFFFFF; --sombra-globo: rgba(4,44,83,.18);
+  --tempestade: #EEF1F5;
+}
+.app[data-tema="escuro"] {
+  --nav-borda: #2A3644;
+  --bg: #0A1F38; --sup: #12304F; --borda: #23476E; --linha: #1C3D61; --texto: #E6F1FB; --suave: #B5D4F4; --titulo: #E6F1FB;
+  --link: #85B7EB; --trilho: #23476E; --verde: #97C459; --verde-escuro: #C0DD97; --verde-claro: #1E3A1A; --verde-fundo: #15301F;
+  --cartao-mare: #E6F1FB; --cartao-mare-texto: #042C53; --cartao-mare-suave: #185FA5; --cartao-mare-botao: #042C53;
+  --nav: #1C2733; --nav-inativo: #B9C3CE; --centro: #E6F1FB; --centro-texto: #042C53; --sombra-globo: rgba(0,0,0,.45);
+  --tempestade: #0F2440;
+}
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { min-height: 100%; }
+body { margin: 0; background: var(--pagina); color: var(--pagina-texto); font-family: var(--f-texto); font-size: 15px; line-height: 1.5;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 24px 40px; }
+:focus-visible { outline: 3px solid #378ADD; outline-offset: 2px; }
+button { font: inherit; color: inherit; cursor: pointer; }
+
+.bancada { max-width: 1040px; margin: 0 auto; display: grid; grid-template-columns: 390px minmax(0, 1fr); gap: 40px; align-items: start; }
+.cabeca { grid-column: 1 / -1; display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 16px; }
+.cabeca h1 { margin: 0; font-family: var(--f-titulo); font-weight: 600; font-size: 30px; text-wrap: balance; }
+.cabeca p { margin: 0; color: var(--pagina-suave); max-width: 62ch; }
+
+/* ---------- o celular ---------- */
+.celular { width: 390px; height: 844px; border-radius: 44px; padding: 0; background: #0B1B2E; box-shadow: 0 0 0 1px var(--pagina-borda), 0 30px 60px -30px rgba(4,44,83,.45); position: relative; }
+.app { position: absolute; inset: 6px; border-radius: 38px; overflow: hidden; background: var(--bg); color: var(--texto); transition: background-color 400ms ease; isolation: isolate; }
+.app.no-mar { background: #0B2A4A; }
+.app[data-tela="tempestade"] { background: var(--tempestade); }
+.camada-globo { position: absolute; inset: 0; z-index: 1; }
+.sombra-globo { position: absolute; z-index: 0; left: 0; top: 0; width: 10px; height: 10px; border-radius: 50%;
+  background: radial-gradient(closest-side, var(--sombra-globo), transparent); pointer-events: none; transition: opacity 400ms; }
+.telas { position: absolute; inset: 0; z-index: 2; pointer-events: none; }
+.tela { position: absolute; inset: 0; display: flex; flex-direction: column; padding: 16px 20px 0; gap: 12px; }
+.tela[hidden] { display: none !important; }
+.tela a, .tela button, .tela input, .tela .rolavel, .tela [data-interativo] { pointer-events: auto; }
+.tela > * { transition: opacity var(--entra) var(--curva-entra), transform var(--entra) var(--curva-entra); }
+.tela.entrando > * { opacity: 0; transform: translateY(12px); }
+.tela.saindo > * { opacity: 0; transition-duration: var(--sai); transition-timing-function: var(--curva-sai); }
+.app.reduzido .tela > *, .app.reduzido .tela.entrando > * { transition-duration: 1ms !important; transform: none !important; }
+
+.slot { position: relative; flex: none; pointer-events: none; }
+.slot::before { content: ""; position: absolute; left: 50%; top: 50%; width: min(100%, 260px); aspect-ratio: 1; transform: translate(-50%, -50%); border-radius: 50%;
+  background: url(data:image/webp;base64,UklGRsYGAABXRUJQVlA4WAoAAAAQAAAAPwAAPwAAQUxQSLcCAAABoGzbkmnbmplxbePZtm3bNmo2P8C2XbJt27ZRu1ZGxHzYWCvjByJiAtCkCAAsu9tZNz385nvvvf3orefts+IAACKoUjIwcscr35nOnmd9eMNe44Ek7eUMrHv1zyTpptZRzUnyz9u2AFJuJwmw7WNGWjFnz27FSL60FyCphQysci9JNTbq6uTTGwG5MUE+fSZdnc2rsZw/DNLQACzxNKlsWZ3vrIYBjQzANr+xOFv3wmkHQBoQHDqXhVUqeQok9TMAR5PGSs14Lgb0ITiEZqzWladDehJsNdeNFbvyIEgPGYv+QWPV5rPWRO6SRJ6jsnLlpyNz6iQ4nYXVF14J6ZDTSrPN63O1LSAd8ACVAZVvDcgJEGzlxpDKQyFAxpPUIP7xwJQEay9wj0HjrhDBNSwMqnwYGSN+pUVxzloU2JHGsMpjgStZIj0AeYcWx/jj6GVm0OOQutludAY2HncWLZLyupuokYxPP0yL9cGbsZy/vB/tz/ei/fF2tN8ejWX86FZqrOfOo0VS3rQPPZLx5BVn0wPRtx74IS2O87cJuNFLHOXjwF60SCcAY/+mR3HOWwaC21miqD+HLNjMLIrxQAxASq9SY5h/OzQlCPaIojwOAiCn56kRjJ8PTQmAYP2iHkC5OwT/F5zPUp/yHgg6pjzsfWptxp8npdwJGStPd6vLTbeCoLtgP1evyQtPgqDXATiF6hUVXgxB74JzaV6LK6+CpD6S4AxS6zDnxcgJfQsOnslSQ6GejJzQoGCdj+jalhl/2AaS0Khg1BWkWhum5J1TIGhagK1fI029GVclP94bEDSfBPnw90mqWj+uSvLL44cgJ7QqgOz24EySNDVzdzdTI8l5zxw0FBC0nQTA4sfc/6Oz918fO2E5AJJQYZIMYMymx1339Pu//Pnnbx8+d9MpW08AkCShQQBWUDgg6AMAALATAJ0BKkAAQAA+tUycSackIqEuFt4w4BaJZgC7M4nEuH4+Bt3eeO04DeRrPRbAfOGVt5WdIr07sNQPyjPYd6AH7AKBS4zQ99k/anTLGDdjDZ/qm0SdKZoyM5A192c0SKSCBR+lQJINFaXickjgZae6F/YmCCToHPMNfZ0HC173INMD+hit5mjmY7eENgj0eEoJYAYge5GSpscJT1rdjlWGB/rvFwAA/v6HKT4EYAvBSGKXAPvDIl6OHAZCwCc+woL+emsW+DsI2m8+do/aikR7B9yVCjEH+Bnb3vHghHlozS7L+iWPyJ1ZPGe7/X36+zDoN740vGcs4QdfXQIS9Ea7UsEDMHgR4+TdhKgC3CFxv83n3jPjMehmePWO2FCc9VMFSkEG4JhAXagMTiyjer8bOTNv39qZqoorLs7khImytFpVe3YFFkpCI7d5Vuh9tIVvoGo8BJLH6CPqFEv4rP63oOK3YK44r4VThvL/xZjhJGXmI+DVAbyUrp4DuEyINnXKDcXGeYibFS6NvAUUR2BmZpD7bZWwaZanDFWCCXBy8daVCd8lcKN5wShgj1DXDpHbKEW74vy1cb5XbB9+MhIkat5b2daf7KqdX+lO8gyrc6rtTbknjUtM86U63K8ny+TlVOSL4bpTBN1KUroBInN9PTN7TYbm+cOzEoN3DYwoA1qhl2YSRtLAiSVG0yh8yNGG6sVq/opZqF7iTjmo9ktnD5w4gUprOLUidEb8/NbrhM8iCWuliSMpe8FO5Chd/jGC0Nu2xgU+cUbZnwE+PAnBFPYRkVk3BIaHv3V262Od7y9j2B3JoeZF7MUo6hp+NQE/EMNcJQ2VPodvYSXDQQWk7xSpRLJScWXbuOn6EjBqMBUD2hcEdeo0B2L0apCApaak9D3OjYv+sv3gMgxOAGP6+mkd8bewdIYkLmIAEnKE+jgu+F9PdEcaaKCufhnuIjnQIhvjgrCoOkxdoOdFlXRxpww6/mQ4o+txs2re9ECyWFNnkxImxp36rgBDdFtc1o/Pj1QDo2NK+UAOy5nlRJ6TGMUE1YsrEQKH8gs/2oTn6EYVvKc9B2qAWQ787f/IvqxgUT5J12Vc/NvUS53n0afv4rp1v+Z4/UC8MUtrp1pJkc2fwNAdYo1dVsX8VDLPEvQFBSIkPg6ayhSUeEr2ElUtKZE+lUbbDFupT/D1zEFcIBGnWCSmmkdDgVp7x0o//fqvFOOgHplrPjKfSWzromZCM6vXQxTxTEdf+CNvUCqo+QDVkFHflS77Xuv22q+7MMAty8aJ5t7OvkglWmy4yGwGes/fzACn5+z177g9v9/Hs5JHGQgAAAA=) center / cover no-repeat; filter: blur(5px) saturate(1.1); opacity: .95; transition: opacity 900ms ease 200ms; }
+.app.pronto .slot::before { opacity: 0; }
+
+.topo { display: flex; align-items: center; justify-content: space-between; min-height: 44px; }
+.marca { margin: 0; font-weight: 700; color: var(--link); font-size: 16px; letter-spacing: .01em; }
+.avatar { width: 44px; height: 44px; margin-right: -4px; display: flex; align-items: center; justify-content: center; border: 0; background: none; padding: 0; }
+.avatar span { width: 36px; height: 36px; border-radius: 50%; background: var(--sup); border: 1.5px solid var(--link); color: var(--titulo); font-weight: 700; display: flex; align-items: center; justify-content: center; }
+h2.saudacao { margin: 0; font-family: var(--f-titulo); font-weight: 400; font-size: 28px; line-height: 1.15; color: var(--titulo); }
+.sub { margin: 4px 0 0; font-size: 14px; color: var(--suave); }
+.botao-redondo { position: absolute; width: 44px; height: 44px; border: 0; background: none; padding: 0; display: flex; align-items: center; justify-content: center; }
+.botao-redondo span { width: 28px; height: 28px; border-radius: 50%; border: 1.5px solid var(--link); background: var(--sup); color: var(--link); display: flex; align-items: center; justify-content: center; font-family: var(--f-titulo); font-weight: 600; font-size: 15px; }
+.progresso { display: flex; flex-direction: column; gap: 8px; padding: 0 2px; }
+.linha-prog { display: flex; justify-content: space-between; align-items: baseline; font-size: 14px; gap: 8px; }
+.trilho { height: 8px; border-radius: 999px; background: var(--trilho); overflow: hidden; }
+.trilho > div { height: 100%; border-radius: 999px; background: var(--verde); transition: width 900ms var(--curva-entra); }
+.numeros { display: flex; gap: 16px; font-size: 13px; color: var(--suave); font-variant-numeric: tabular-nums; }
+.numeros b { color: var(--texto); font-size: 15px; }
+.cartao-mare { border-radius: 20px; background: var(--cartao-mare); color: var(--cartao-mare-texto); padding: 16px 16px 16px 20px; display: flex; align-items: center; justify-content: space-between; border: 0; text-align: left; width: 100%; }
+.cartao-mare small { display: block; font-size: 13px; color: var(--cartao-mare-suave); }
+.cartao-mare strong { font-size: 19px; }
+.cartao-mare i { width: 48px; height: 48px; border-radius: 50%; background: var(--cartao-mare-botao); color: var(--cartao-mare); display: flex; align-items: center; justify-content: center; flex: none; }
+.link-baixo { align-self: center; min-height: 44px; border: 0; background: none; font-size: 14px; color: var(--suave); text-decoration: underline; text-underline-offset: 3px; }
+
+/* menu */
+.nav { margin: auto -20px 0; height: 88px; background: var(--nav); border-top: 1px solid var(--nav-borda, #DDE2E8); box-shadow: 0 -8px 24px -18px rgba(15,35,64,.35); border-radius: 22px 22px 0 0; padding: 6px 10px 14px; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 4px; align-items: end; pointer-events: auto; }
+.nav button { white-space: nowrap; letter-spacing: -.01em; min-height: 60px; border: 0; background: none; border-radius: 14px; font-size: 11px; color: var(--nav-inativo); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; padding: 0; }
+.nav button svg { width: 24px; height: 24px; }
+.nav button .ponto { width: 4px; height: 4px; border-radius: 50%; background: currentColor; opacity: 0; }
+.nav { position: relative; }
+/* indicador deslizante (técnica "animated tabs" / layoutId de shadcn, Aceternity e React Bits, em CSS puro) */
+.nav .indicador { position: absolute; left: 10px; bottom: 14px; height: 60px; width: calc((100% - 36px) / 5); border-radius: 16px;
+  background: var(--ind-fundo, transparent); box-shadow: inset 0 0 0 1px var(--ind-borda, transparent);
+  transform: translateX(calc(var(--i, 2) * (100% + 4px))); opacity: var(--ind-op, 1);
+  transition: transform 460ms cubic-bezier(.34, 1.28, .5, 1), background-color 320ms ease, box-shadow 320ms ease, opacity 200ms ease; pointer-events: none; }
+.nav .indicador.sem-anim { transition: none; }
+.nav button { position: relative; z-index: 1; transition: color 260ms ease; }
+.nav button svg path, .nav button svg circle { transition: fill 260ms ease; }
+.nav button[aria-current="page"] { font-weight: 700; color: var(--cor-ativa); }
+.nav button[aria-current="page"] .ponto { opacity: 1; }
+.nav button[aria-current="page"] svg { fill: var(--fundo-ativo); stroke: var(--cor-ativa); }
+.nav button[aria-current="page"] .miolo { fill: var(--ind-fundo) !important; }
+.nav .centro svg { width: 24px; height: 24px; }
+.app.reduzido .nav .indicador, .app.reduzido .nav button, .app.reduzido .nav button svg * { transition: none; }
+.nav .centro .cor { opacity: 0; } .nav .centro[aria-current="page"] .cor { opacity: 1; } .nav .centro[aria-current="page"] .linha { opacity: 0; }
+
+/* mapa */
+.tela-mapa { padding: 0; gap: 0; }
+.mapa-topo { position: relative; height: 352px; flex: none; }
+.mapa-titulo { position: absolute; left: 20px; top: 20px; right: 20px; display: flex; flex-direction: column; gap: 2px; pointer-events: none; }
+.mapa-titulo h2 { margin: 0; font-family: var(--f-titulo); font-weight: 400; font-size: 28px; color: #FFFFFF; text-shadow: 0 1px 12px rgba(4,44,83,.7); }
+.mapa-titulo p { margin: 0; font-size: 13px; color: #E6F1FB; text-shadow: 0 1px 8px rgba(4,44,83,.9); max-width: 26ch; }
+.folha { flex: 1; min-height: 0; margin-top: -24px; background: var(--bg); border-radius: 24px 24px 0 0; box-shadow: 0 -8px 24px -12px rgba(4,44,83,.35); display: flex; flex-direction: column; position: relative; z-index: 1; pointer-events: auto; }
+.folha .alca { width: 40px; height: 4px; border-radius: 2px; background: var(--borda); margin: 10px auto 4px; flex: none; }
+.rolavel { overflow-y: auto; flex: 1; min-height: 0; padding: 6px 20px 12px; display: flex; flex-direction: column; gap: 10px; overscroll-behavior: contain; }
+.lista-regioes { list-style: none; margin: 0; padding: 0; background: var(--sup); border: 1px solid var(--borda); border-radius: 16px; overflow: hidden; }
+.lista-regioes button { width: 100%; min-height: 52px; border: 0; border-bottom: 1px solid var(--linha); background: none; display: grid; grid-template-columns: 24px minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 10px 14px; text-align: left; color: var(--texto); }
+.lista-regioes li:last-child button { border-bottom: 0; }
+.lista-regioes button[aria-pressed="true"] { background: var(--verde-fundo); }
+.lista-regioes .barra { grid-column: 2 / -1; height: 6px; border-radius: 999px; background: var(--trilho); overflow: hidden; }
+.lista-regioes .barra > div { height: 100%; background: var(--verde); border-radius: 999px; transition: width 900ms var(--curva-entra); }
+.selo { width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; }
+.selo.ok { background: var(--verde); color: #FFFFFF; }
+.selo.andando { border: 2px solid var(--verde); }
+.selo.depois { border: 1.5px dashed #A9B8C9; }
+.dias { font-size: 13px; color: var(--suave); font-variant-numeric: tabular-nums; }
+.chips { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.chip { background: var(--sup); border: 1px solid var(--borda); border-radius: 14px; padding: 10px 12px; }
+.chip p { margin: 0; } .chip .r { font-size: 12px; color: var(--suave); } .chip b { display: block; }
+.nota { margin: 0; font-size: 13px; color: var(--suave); line-height: 1.45; }
+h3.secao { margin: 4px 0 0; font-size: 15px; color: var(--titulo); }
+
+/* maré */
+.tela-mare { color: #FFFFFF; padding: 16px 16px 20px; gap: 10px; }
+.camada-oceano { position: absolute; inset: 0; z-index: 1; opacity: 0; transition: opacity 900ms cubic-bezier(.4,0,.2,1); }
+.camada-oceano.on { opacity: 1; }
+.nevoa { position: absolute; inset: 0; z-index: 8; pointer-events: none; opacity: 0;
+  background: radial-gradient(120% 90% at 50% 40%, #FFFFFF 0%, #EAF3FB 45%, #C9DDF0 100%); }
+.mare-topo { display: flex; justify-content: space-between; align-items: center; min-height: 44px; }
+.vidro { background: linear-gradient(180deg, rgba(6, 34, 64, .80), rgba(3, 22, 44, .88)); border: 1px solid rgba(230, 241, 251, .16); box-shadow: 0 18px 40px -18px rgba(1, 10, 24, .7); }
+/* painéis do mar entram subindo e saem devagar (sem piscar) */
+.tela .painel-mar { transition: opacity 560ms cubic-bezier(.2,.8,.2,1), transform 560ms cubic-bezier(.2,.8,.2,1); }
+.tela .painel-mar.surgindo { opacity: 0; transform: translateY(20px); }
+.tela .painel-mar.sumindo { opacity: 0; transform: translateY(10px); transition-duration: 260ms; transition-timing-function: cubic-bezier(.4,0,1,1); }
+.app.reduzido .tela .painel-mar { transition-duration: 1ms; transform: none; }
+.pilula { min-height: 40px; padding: 0 14px; border-radius: 999px; color: #FFFFFF; font-size: 14px; display: inline-flex; align-items: center; gap: 6px; }
+.pilula[aria-pressed="true"] { background: rgba(230, 241, 251, .92); color: #042C53; }
+.mare-cartao { pointer-events: auto; margin-top: auto; border-radius: 24px; padding: 18px 18px 16px; display: flex; flex-direction: column; gap: 12px; max-height: calc(100% - 64px); overflow-y: auto; }
+.mare-cartao h2 { margin: 0; font-family: var(--f-titulo); font-weight: 400; font-size: 28px; line-height: 1.1; color: #FFFFFF; text-wrap: balance; }
+.mare-cartao p { margin: 0; color: #CFE2F5; font-size: 14px; line-height: 1.45; }
+.mare-cartao fieldset { border: 0; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.mare-cartao legend { padding: 0; margin-bottom: 8px; font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: #9FC3E6; }
+.tecnicas { display: flex; flex-direction: column; gap: 6px; }
+.tecnica { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 10px; padding: 10px 12px; border-radius: 14px; border: 1px solid rgba(230, 241, 251, .2); background: rgba(255, 255, 255, .04); text-align: left; color: #FFFFFF; }
+.tecnica b { font-size: 15px; } .tecnica small { grid-column: 1 / -1; color: #BFD6EC; font-size: 12.5px; line-height: 1.35; }
+.tecnica .ritmo { font-size: 12px; color: #9FC3E6; font-variant-numeric: tabular-nums; align-self: center; }
+.tecnica[aria-pressed="true"] { background: rgba(230, 241, 251, .95); border-color: transparent; color: #042C53; }
+.tecnica[aria-pressed="true"] small, .tecnica[aria-pressed="true"] .ritmo { color: #2B4F75; }
+.duracoes { display: flex; gap: 6px; }
+.duracoes .pilula { border: 1px solid rgba(230, 241, 251, .25); background: transparent; flex: 1; justify-content: center; }
+.duracoes .pilula[aria-pressed="true"] { background: rgba(230, 241, 251, .95); color: #042C53; border-color: transparent; font-weight: 700; }
+.vontade { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 10px; align-items: center; }
+.vontade label { font-size: 14px; color: #FFFFFF; } .vontade output { font-size: 20px; font-weight: 700; font-variant-numeric: tabular-nums; min-width: 2ch; text-align: right; }
+.vontade input { grid-column: 1 / -1; width: 100%; accent-color: #85B7EB; }
+.vontade .escala { grid-column: 1 / -1; display: flex; justify-content: space-between; font-size: 11px; color: #9FC3E6; }
+.comecar { min-height: 52px; border: 0; border-radius: 16px; background: #E6F1FB; color: #042C53; font-weight: 700; font-size: 16px; }
+.mare-cartao details { font-size: 13px; color: #CFE2F5; }
+.mare-cartao summary { min-height: 36px; display: flex; align-items: center; cursor: pointer; color: #FFFFFF; }
+.mare-cartao details ul { margin: 4px 0 0; padding-left: 18px; display: flex; flex-direction: column; gap: 6px; }
+.sessao { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; text-align: center; }
+.anel { position: relative; width: 220px; height: 220px; }
+.anel svg { position: absolute; inset: 0; }
+.anel .bolha { position: absolute; inset: 8px; border-radius: 50%; background-color: rgba(181, 212, 244, .3); background-image: radial-gradient(circle at 40% 35%, rgba(255,255,255,.6), rgba(255,255,255,0) 62%); border: 2px solid rgba(255,255,255,.85); box-shadow: 0 10px 34px rgba(2,20,40,.28), inset 0 0 24px rgba(255,255,255,.18); transform: scale(.42); transition: background-color 700ms ease, border-color 700ms ease, box-shadow 700ms ease; }
+/* inspirar = verde-água; segurar um pouco mais = verde-água claro; soltar = azul-lavanda */
+.anel .bolha[data-fase="inspire"] { background-color: rgba(93, 202, 165, .62); border-color: #B7F2DD; box-shadow: 0 0 46px rgba(93, 202, 165, .55), inset 0 0 24px rgba(255,255,255,.2); }
+.anel .bolha[data-fase="mais"] { background-color: rgba(159, 225, 203, .78); border-color: #E1FFF3; box-shadow: 0 0 56px rgba(159, 225, 203, .65), inset 0 0 24px rgba(255,255,255,.25); }
+.anel .bolha[data-fase="solte"] { background-color: rgba(127, 146, 232, .55); border-color: #CECBF6; box-shadow: 0 0 40px rgba(127, 146, 232, .45), inset 0 0 24px rgba(255,255,255,.18); }
+.sessao .fase { transition: color 700ms ease; }
+.sessao .fase[data-fase="inspire"], .sessao .fase[data-fase="mais"] { color: #C9F5E6; }
+.sessao .fase[data-fase="solte"] { color: #DCDBFB; }
+.app.reduzido .anel .bolha { transform: none !important; }
+.sessao .fase { margin: 0; font-family: var(--f-titulo); font-size: 46px; line-height: 1; text-shadow: 0 2px 18px rgba(2, 20, 40, .55); }
+.sessao .dica { margin: 0; font-size: 16px; color: #E6F1FB; text-shadow: 0 1px 10px rgba(2, 20, 40, .7); }
+.sessao .prompt { margin: 0; max-width: 30ch; font-size: 15px; line-height: 1.45; padding: 10px 14px; border-radius: 14px; min-height: 0; }
+.sessao .prompt:empty { display: none; }
+.sessao-rodape { display: flex; align-items: center; justify-content: space-between; gap: 8px; border-radius: 18px; padding: 8px 8px 8px 16px; }
+.sessao-rodape .tempo { font-size: 20px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.sessao-rodape .tempo small { display: block; font-size: 12px; font-weight: 400; color: #BFD6EC; }
+.sessao-rodape div:last-child { display: flex; gap: 6px; }
+.sessao-rodape button { min-height: 44px; min-width: 44px; border-radius: 12px; border: 1px solid rgba(230, 241, 251, .3); background: transparent; color: #FFFFFF; padding: 0 12px; }
+.resultado { font-size: 16px !important; color: #FFFFFF !important; }
+.resultado b { font-size: 22px; }
+.passos { display: flex; gap: 6px; } .passos span { width: 22px; height: 6px; border-radius: 3px; background: #185FA5; } .passos span.feito { background: #E6F1FB; }
+.mare-fase { margin: 0; text-align: center; font-family: var(--f-titulo); font-size: 52px; color: #FFFFFF; line-height: 1; }
+.mare-conta { margin: 6px 0 0; text-align: center; color: #B5D4F4; font-variant-numeric: tabular-nums; }
+.ondas { position: absolute; left: 0; right: 0; bottom: 0; height: 300px; pointer-events: none; z-index: -1; }
+.botao { min-height: 48px; border-radius: 14px; font-weight: 700; padding: 0 16px; }
+.botao.claro { border: 1px solid #E6F1FB; background: transparent; color: #FFFFFF; }
+.botao.cheio { border: 0; background: var(--cartao-mare); color: var(--cartao-mare-texto); }
+.botao.contorno { border: 1px solid var(--borda); background: var(--sup); color: var(--texto); font-weight: 400; text-align: left; }
+.botao.branco { border: 0; background: #E6F1FB; color: #042C53; }
+
+/* tempestade */
+.voltar { align-self: flex-start; min-height: 44px; margin-left: -8px; display: flex; align-items: center; gap: 2px; border: 0; background: none; color: var(--link); font-size: 15px; padding: 0 8px; }
+.centro-texto { text-align: center; display: flex; flex-direction: column; gap: 4px; }
+.centro-texto h2 { margin: 0; font-family: var(--f-titulo); font-weight: 400; font-size: 30px; color: var(--titulo); }
+.centro-texto p { margin: 0; color: var(--suave); }
+.cartoes2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.cartoes2 div { background: var(--verde-claro); color: var(--verde-escuro); border-radius: 14px; padding: 12px; }
+.cartoes2 p { margin: 0; font-size: 12px; } .cartoes2 b { display: block; font-size: 24px; }
+.pilha { display: flex; flex-direction: column; gap: 8px; }
+
+/* telas simples */
+.simples h2 { margin: 0; font-family: var(--f-titulo); font-weight: 400; font-size: 28px; color: var(--titulo); }
+.grupo { background: var(--sup); border: 1px solid var(--borda); border-radius: 16px; padding: 4px 14px; }
+.grupo > div { padding: 12px 0; border-bottom: 1px solid var(--linha); }
+.grupo > div:last-child { border-bottom: 0; }
+.grupo b { font-size: 22px; font-variant-numeric: tabular-nums; } .grupo p { margin: 0; }
+.fonte { font-size: 11px; color: var(--suave); }
+
+/* folha de informação */
+/* Órbita */
+.lista-orbita { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.lista-orbita li { display: flex; align-items: center; gap: 12px; background: var(--sup); border: 1px solid var(--borda); border-radius: 14px; padding: 10px 12px; }
+.ini { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; flex: none; border: 1.5px solid; }
+.lista-orbita .quem { flex-grow: 1; display: flex; flex-direction: column; min-width: 0; }
+.lista-orbita .quem small { font-size: 12.5px; color: var(--suave); font-variant-numeric: tabular-nums; }
+.lista-orbita .acao-lin { min-height: 44px; border: 0; background: none; color: var(--link); font: inherit; font-weight: 700; font-size: 13px; padding: 0 4px; }
+.preciso { min-height: 60px; border: 0; border-radius: 18px; background: var(--cartao-mare); color: var(--cartao-mare-texto); font-weight: 700; font-size: 18px; }
+.caixa { background: var(--sup); border: 1px solid var(--borda); border-radius: 16px; padding: 12px 14px; display: flex; flex-direction: column; gap: 4px; }
+.caixa label { display: flex; align-items: center; justify-content: space-between; min-height: 40px; font-weight: 700; }
+.caixa input[type=checkbox] { width: 22px; height: 22px; accent-color: #185FA5; }
+.linha-perfil { display: flex; align-items: center; gap: 12px; background: var(--sup); border: 1px solid var(--borda); border-radius: 16px; padding: 12px 14px; color: var(--texto); text-align: left; width: 100%; font: inherit; }
+.linha-perfil .quem { flex-grow: 1; display: flex; flex-direction: column; } .linha-perfil small { font-size: 13px; color: var(--suave); }
+.recado-area { box-sizing: border-box; width: 100%; border: 1.5px solid #378ADD; border-radius: 14px; padding: 12px; font: inherit; font-size: 16px; line-height: 1.45; color: var(--texto); background: var(--sup); resize: none; }
+.chip-ideia { min-height: 36px; border: 1px solid var(--borda); border-radius: 999px; background: var(--sup); color: var(--texto); font-size: 13px; padding: 0 12px; }
+.recado { position: absolute; left: 14px; right: 14px; top: 64px; z-index: 6; background: var(--sup); border: 1px solid #9FE1CB; border-radius: 18px; padding: 12px 14px; box-shadow: 0 16px 34px -14px rgba(4,44,83,.45); display: flex; flex-direction: column; gap: 8px; transform: translateY(-14px); opacity: 0; transition: opacity 420ms cubic-bezier(.2,.8,.2,1), transform 420ms cubic-bezier(.2,.8,.2,1); pointer-events: none; }
+.recado.on { opacity: 1; transform: none; pointer-events: auto; }
+.app.reduzido .recado { transition-duration: 1ms; }
+.recado .cab { display: flex; align-items: center; gap: 10px; }
+.recado .cab .quem { flex-grow: 1; display: flex; flex-direction: column; } .recado .cab small { font-size: 12px; color: var(--suave); }
+.recado .fechar { width: 44px; height: 44px; margin: -8px -8px -8px 0; border: 0; background: none; color: var(--suave); font-size: 22px; }
+.recado blockquote { margin: 0; font-family: var(--f-titulo); font-size: 18px; line-height: 1.35; color: var(--titulo); }
+.recado .botoes { display: flex; gap: 8px; } .recado .botoes button { flex: 1; min-height: 44px; border-radius: 12px; font-size: 14px; }
+/* Finanças */
+.app { --fin: #854F0B; --fin-claro: #FAEEDA; --fin-borda: #EF9F27; --terra-1: #F2E6D0; --terra-2: #E7D3B0; --terra-risco: rgba(133,79,11,.18);
+  --leito: #C49A5C; --agua-1: #2F7FD1; --agua-2: #7CC4F2; --margem: #8BC34A; --rotulo: rgba(255,250,240,.82); --neutro: #5E6B78; }
+.app[data-tema="escuro"] { --fin: #FAC775; --fin-claro: #3A2A0E; --fin-borda: #BA7517; --terra-1: #2B2419; --terra-2: #1F1A12; --terra-risco: rgba(250,199,117,.10);
+  --leito: #8A6A3C; --agua-1: #3E8FE0; --agua-2: #9FD3F7; --margem: #6F9F3A; --rotulo: rgba(20,17,12,.62); --neutro: #A5AFBA; }
+.tela-fin { padding: 16px 0 0; gap: 0; }
+.tela-fin .cab-fin { padding: 0 20px 12px; display: flex; flex-direction: column; gap: 12px; }
+.cab-fin .linha-tit { display: flex; align-items: baseline; justify-content: space-between; }
+.cab-fin h2 { margin: 0; font-family: var(--f-titulo); font-weight: 400; font-size: 30px; color: var(--texto); }
+.selo-demo { font-size: 11px; color: var(--neutro); border: 1px solid var(--borda); border-radius: 999px; padding: 2px 9px; }
+/* faixa dos rios: a água corre por trás do texto (efeito "animated beam" aplicado a rios) */
+.rios-faixa { position: relative; height: 128px; border-radius: 20px; overflow: hidden; background: linear-gradient(160deg, var(--terra-1), var(--terra-2)); }
+.rios-faixa svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.rios-faixa .risco { stroke: var(--terra-risco); stroke-width: 1; fill: none; }
+.rio .margem { fill: none; stroke: var(--margem); stroke-width: 16; stroke-linecap: round; opacity: 0; filter: blur(3px); transition: opacity 1.4s ease .5s; }
+.rio .leito { fill: none; stroke: var(--leito); stroke-width: 2.5; stroke-dasharray: 3 6; stroke-linecap: round; transition: opacity .6s ease; }
+.rio .agua { fill: none; stroke: url(#grad-agua); stroke-width: 6; stroke-linecap: round; stroke-dasharray: 420; stroke-dashoffset: 420; transition: stroke-dashoffset 1.8s cubic-bezier(.5,0,.2,1); }
+.rio .brilho { fill: none; stroke: #FFFFFF; stroke-width: 2; stroke-linecap: round; stroke-dasharray: 2 18; opacity: 0; transition: opacity .6s ease 1.6s; animation: correr 1.6s linear infinite; }
+.rio.on .margem { opacity: .55; } .rio.on .leito { opacity: 0; } .rio.on .agua { stroke-dashoffset: 0; } .rio.on .brilho { opacity: .7; }
+@keyframes correr { to { stroke-dashoffset: -20; } }
+.app.reduzido .rio .brilho { animation: none; } .app.reduzido .rio * { transition-duration: 1ms !important; transition-delay: 0ms !important; }
+.rios-faixa .rotulos { position: absolute; inset: 0; }
+.rios-faixa .rot { position: absolute; left: 12px; transform: translateY(-50%); display: flex; align-items: baseline; gap: 6px; padding: 3px 9px; border-radius: 999px;
+  background: var(--rotulo); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); font-size: 12.5px; line-height: 1.2; color: var(--texto); }
+.rios-faixa .rot b { font-weight: 700; }
+.rios-faixa .rot small { font-size: 11px; color: var(--neutro); }
+.rios-faixa .rot.on small { color: var(--agua-1); font-weight: 700; }
+.app[data-tema="escuro"] .rios-faixa .rot.on small { color: var(--agua-2); }
+/* abas segmentadas com indicador deslizante */
+.seg { position: relative; display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); background: var(--trilho); border-radius: 12px; padding: 3px; }
+.seg .ind { position: absolute; top: 3px; bottom: 3px; left: 3px; width: calc((100% - 6px) / var(--n, 3)); border-radius: 9px; background: var(--sup); box-shadow: 0 1px 3px rgba(4,44,83,.18);
+  transform: translateX(calc(var(--i, 0) * 100%)); transition: transform 380ms cubic-bezier(.34, 1.2, .5, 1); }
+.app.reduzido .seg .ind { transition: none; }
+.seg button { position: relative; z-index: 1; min-height: 38px; border: 0; background: none; color: var(--neutro); font-size: 14px; border-radius: 9px; transition: color 200ms; }
+.seg button[aria-selected="true"], .seg button[aria-pressed="true"] { color: var(--texto); font-weight: 700; }
+.rol-fin { overflow-y: auto; flex: 1; min-height: 0; padding: 2px 20px 24px; display: flex; flex-direction: column; gap: 14px; overscroll-behavior: contain; pointer-events: auto; }
+.rol-fin > * { flex-shrink: 0; animation: subir 420ms cubic-bezier(.2,.8,.2,1) both; animation-delay: calc(var(--k, 0) * 55ms); }
+@keyframes subir { from { opacity: 0; transform: translateY(10px); } }
+.app.reduzido .rol-fin > * { animation: none; }
+.estrat { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.seg.mini { flex: 0 0 196px; border-radius: 999px; } .seg.mini .ind { border-radius: 999px; } .seg.mini button { min-height: 32px; font-size: 13px; border-radius: 999px; }
+.dica-fin { margin: -6px 2px 0; font-size: 13px; color: var(--neutro); }
+.foco { position: relative; border-radius: 20px; padding: 16px; background: var(--sup); display: flex; flex-direction: column; gap: 12px;
+  box-shadow: 0 1px 0 var(--borda), 0 12px 28px -18px rgba(133,79,11,.55); border: 1px solid color-mix(in srgb, var(--fin-borda) 55%, transparent); }
+.foco .etq { font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--fin); }
+.foco .topo-foco { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+.foco h3 { margin: 0; font-size: 19px; color: var(--texto); }
+.foco .val { font-variant-numeric: tabular-nums; font-weight: 700; color: var(--texto); white-space: nowrap; }
+.pontos5 { display: grid; grid-template-columns: repeat(5, 1fr); align-items: center; position: relative; }
+.pontos5::before { content: ""; position: absolute; left: 10%; right: 10%; top: 50%; height: 2px; background: var(--trilho); transform: translateY(-50%); }
+.pontos5 i { position: relative; justify-self: center; width: 12px; height: 12px; border-radius: 50%; background: var(--sup); border: 2px solid var(--trilho); }
+.pontos5 i.feito { background: var(--fin-borda); border-color: var(--fin-borda); }
+.pontos5 i.agora { border-color: var(--fin-borda); box-shadow: 0 0 0 4px color-mix(in srgb, var(--fin-borda) 25%, transparent); }
+.pontos5 .barra { position: absolute; left: 10%; top: 50%; height: 2px; background: var(--fin-borda); transform: translateY(-50%); transition: width .6s ease; }
+.passo-txt { margin: 0; font-size: 12.5px; color: var(--neutro); }
+.botao.fin { border: 0; background: var(--fin); color: #FFFFFF; display: flex; align-items: center; justify-content: center; gap: 8px; }
+.app[data-tema="escuro"] .botao.fin { color: #2A1A03; }
+.mini-tit { margin: 4px 2px -6px; font-size: 12px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--neutro); }
+.lista-curta { list-style: none; margin: 0; padding: 0; border-radius: 16px; background: var(--sup); overflow: hidden; }
+.lista-curta li + li { border-top: 1px solid var(--linha); }
+.lista-curta button { width: 100%; min-height: 56px; border: 0; background: none; color: var(--texto); padding: 8px 14px; display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 2px 10px; text-align: left; font-size: 15px; }
+.lista-curta .val { font-variant-numeric: tabular-nums; color: var(--neutro); font-size: 14px; }
+.lista-curta .mini { grid-column: 1 / -1; display: flex; gap: 3px; }
+.lista-curta .mini i { width: 14px; height: 3px; border-radius: 2px; background: var(--trilho); }
+.lista-curta .mini i.feito { background: var(--fin-borda); }
+.lista-curta .ok { color: var(--verde); font-weight: 700; font-size: 13px; }
+.rodape-fin { margin: 0; font-size: 11.5px; color: var(--neutro); text-align: center; }
+.basicos { display: flex; flex-wrap: wrap; gap: 8px; }
+.basicos button { min-height: 44px; border-radius: 999px; border: 1px solid var(--borda); background: var(--sup); color: var(--texto); padding: 0 14px; font-size: 14px; transition: background-color .2s, border-color .2s; }
+.basicos button[aria-pressed="true"] { background: var(--verde-claro); border-color: var(--verde); color: var(--verde-escuro); font-weight: 700; }
+.basicos button[aria-pressed="true"]::before { content: "✓ "; }
+.tit-fin { margin: 0; font-size: 17px; color: var(--texto); }
+.alerta-fin { margin: 0; background: var(--fin-claro); color: var(--fin); border-radius: 14px; padding: 10px 12px; font-size: 13.5px; line-height: 1.45; }
+.alerta-fin.bom { background: var(--verde-claro); color: var(--verde-escuro); }
+/* revelação progressiva (acordeão de shadcn): o detalhe só aparece se a pessoa pedir */
+.saber { border-radius: 16px; background: var(--sup); }
+.saber + .saber { margin-top: -6px; }
+.saber summary { list-style: none; cursor: pointer; min-height: 52px; padding: 0 14px; display: flex; align-items: center; justify-content: space-between; gap: 10px; font-weight: 700; font-size: 14.5px; color: var(--texto); }
+.saber summary::-webkit-details-marker { display: none; }
+.saber summary::after { content: ""; width: 8px; height: 8px; border-right: 2px solid var(--neutro); border-bottom: 2px solid var(--neutro); transform: rotate(45deg) translateY(-2px); transition: transform .25s; flex: none; }
+.saber[open] summary::after { transform: rotate(-135deg); }
+.saber .corpo { padding: 0 14px 14px; font-size: 13.5px; line-height: 1.5; color: var(--texto); display: flex; flex-direction: column; gap: 6px; }
+.saber .corpo p { margin: 0; } .saber .corpo ol { margin: 0; padding-left: 18px; }
+.saber .fonte { font-size: 11px; color: var(--neutro); }
+.saber summary .lado { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.saber summary .ico { width: 34px; height: 34px; border-radius: 10px; flex: none; display: flex; align-items: center; justify-content: center; background: var(--trilho); color: var(--neutro); }
+.saber.ativa summary .ico { background: var(--verde-claro); color: var(--verde-escuro); }
+.saber summary .est { font-size: 12px; font-weight: 700; color: var(--neutro); white-space: nowrap; }
+.saber.ativa summary .est { color: var(--verde); }
+.saber.conferir { opacity: .72; }
+.escolhas { display: flex; flex-wrap: wrap; gap: 6px; }
+.escolhas button { min-height: 40px; border-radius: 999px; border: 1px solid var(--borda); background: var(--sup); color: var(--texto); padding: 0 13px; font-size: 13.5px; transition: background-color .2s, border-color .2s; }
+.escolhas button[aria-pressed="true"] { border-color: var(--fin-borda); background: var(--fin-claro); font-weight: 700; }
+.rotulo-fin { margin: 0; font-size: 12px; font-weight: 700; color: var(--neutro); }
+.roteiro { font-family: var(--f-titulo); font-size: 16px; line-height: 1.45; color: var(--texto); margin: 0; }
+.cartao-fin { background: var(--sup); border-radius: 18px; padding: 14px; display: flex; flex-direction: column; gap: 10px; }
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+/* Boas-vindas: a história do planeta em 3 passos, sempre no espaço escuro */
+.app.no-boas { background: radial-gradient(120% 80% at 50% 38%, #0B2340 0%, #061426 55%, #030A15 100%); }
+.estrelas { position: absolute; inset: 0; z-index: 0; opacity: 0; transition: opacity 900ms ease; pointer-events: none;
+  background-image: radial-gradient(1px 1px at 20px 30px, #fff, transparent), radial-gradient(1px 1px at 120px 80px, rgba(255,255,255,.8), transparent),
+    radial-gradient(1.5px 1.5px at 200px 160px, #fff, transparent), radial-gradient(1px 1px at 310px 40px, rgba(255,255,255,.7), transparent),
+    radial-gradient(1px 1px at 60px 220px, rgba(255,255,255,.6), transparent), radial-gradient(1.5px 1.5px at 260px 260px, rgba(255,255,255,.9), transparent),
+    radial-gradient(1px 1px at 160px 330px, rgba(255,255,255,.6), transparent), radial-gradient(1px 1px at 350px 190px, #fff, transparent);
+  background-size: 390px 360px; animation: piscar 5s ease-in-out infinite alternate; }
+.app.no-boas .estrelas { opacity: .75; }
+@keyframes piscar { to { filter: brightness(.55); } }
+.app.reduzido .estrelas { animation: none; }
+.tela-boas { padding: 16px 24px 28px; gap: 0; color: #E6F1FB; }
+.tela-boas .cab-boas { display: flex; align-items: center; justify-content: space-between; min-height: 44px; }
+.tela-boas .marca { color: #85B7EB; }
+.pontos-boas { display: flex; gap: 6px; }
+.pontos-boas i { width: 6px; height: 6px; border-radius: 999px; background: rgba(230,241,251,.28); transition: width 360ms var(--curva-entra), background-color 360ms; }
+.pontos-boas i.on { width: 22px; background: #E6F1FB; }
+.pular { min-height: 44px; border: 0; background: none; color: #B5D4F4; font-size: 14px; padding: 0 4px; }
+.boas-corpo { display: flex; flex-direction: column; gap: 14px; flex: 1; min-height: 0; justify-content: flex-end; }
+.boas-tit { margin: 0; font-family: var(--f-titulo); font-weight: 400; font-size: 31px; line-height: 1.15; color: #FFFFFF; }
+.boas-sub { margin: 0; font-size: 16px; line-height: 1.5; color: #B5D4F4; }
+/* texto que aparece palavra por palavra, saindo do desfoque (TextGenerateEffect, Aceternity) */
+.palavra { display: inline-block; white-space: pre; animation: palavra 640ms cubic-bezier(.2,.8,.2,1) both; animation-delay: calc(var(--k) * 70ms + var(--d, 0ms)); }
+@keyframes palavra { from { opacity: 0; filter: blur(8px); transform: translateY(6px); } }
+.app.reduzido .palavra { animation: none; }
+.boas-botao { min-height: 56px; border: 0; border-radius: 18px; background: #E6F1FB; color: #042C53; font-weight: 700; font-size: 17px; display: flex; align-items: center; justify-content: center; gap: 8px; }
+.boas-botao:focus-visible, .pular:focus-visible, .motivos button:focus-visible { outline: 3px solid #85B7EB; outline-offset: 3px; }
+.surgir { animation: subir 520ms cubic-bezier(.2,.8,.2,1) both; animation-delay: var(--d, 0ms); }
+.app.reduzido .surgir { animation: none; }
+/* passo 2: contador de dias (NumberTicker, Magic UI) e os 3 hábitos que trocam a aposta */
+.contador { display: flex; align-items: baseline; gap: 8px; font-variant-numeric: tabular-nums; }
+.contador b { font-family: var(--f-titulo); font-weight: 400; font-size: 44px; line-height: 1; color: #FFFFFF; min-width: 2ch; }
+.contador span { color: #B5D4F4; font-size: 15px; }
+.habitos { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.habitos li { display: grid; grid-template-columns: 38px minmax(0, 1fr); gap: 2px 12px; align-items: center; padding: 10px 12px; border-radius: 16px;
+  background: rgba(230,241,251,.06); border: 1px solid rgba(230,241,251,.1); transition: background-color 500ms, border-color 500ms; }
+.habitos li .ico { grid-row: span 2; width: 38px; height: 38px; border-radius: 12px; display: flex; align-items: center; justify-content: center; background: rgba(230,241,251,.08); color: #B5D4F4; transition: background-color 500ms, color 500ms; }
+.habitos li b { font-size: 15px; color: #FFFFFF; }
+.habitos li small { font-size: 13px; color: #B5D4F4; }
+.habitos li.vivo { background: rgba(93,202,165,.12); border-color: rgba(93,202,165,.35); }
+.habitos li.vivo .ico { background: rgba(93,202,165,.22); color: #9FE1CB; }
+/* passo 3 */
+.campo-boas { display: flex; flex-direction: column; gap: 6px; }
+.campo-boas label, .campo-boas .rot { font-size: 13px; font-weight: 700; color: #B5D4F4; }
+.campo-boas input { min-height: 50px; border-radius: 14px; border: 1px solid rgba(230,241,251,.25); background: rgba(230,241,251,.06); color: #FFFFFF; font: inherit; font-size: 17px; padding: 0 14px; }
+.campo-boas input:focus { outline: 2px solid #85B7EB; outline-offset: 1px; }
+.motivos { display: flex; flex-wrap: wrap; gap: 8px; }
+.motivos button { min-height: 42px; border-radius: 999px; border: 1px solid rgba(230,241,251,.25); background: transparent; color: #E6F1FB; padding: 0 14px; font-size: 14px; transition: background-color 200ms, border-color 200ms; }
+.motivos button[aria-pressed="true"] { background: rgba(93,202,165,.18); border-color: #5DCAA5; color: #FFFFFF; font-weight: 700; }
+.privado { margin: 0; display: flex; gap: 8px; align-items: center; font-size: 13px; color: #B5D4F4; }
+/* Trocar a aposta: substituição de lazer no momento da vontade */
+.botao-troca { margin-top: -4px; min-height: 50px; border-radius: 16px; border: 0; background: #F2C14E; color: #3A2A05; font-size: 16px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 8px 18px -12px rgba(140,95,10,.7); }
+.botao-troca svg { color: #6B3B1F; }
+.tela-troca { padding: 16px 0 0; gap: 0; }
+.tela-troca .cab-troca { padding: 0 20px 12px; display: flex; flex-direction: column; gap: 10px; }
+.tela-troca h2 { margin: 0; font-family: var(--f-titulo); font-weight: 400; font-size: 30px; color: var(--texto); }
+.tela-troca .lead { margin: -4px 0 0; font-size: 15px; color: var(--neutro); }
+.trocas { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.trocas li { display: grid; grid-template-columns: 40px minmax(0, 1fr) auto; gap: 2px 12px; align-items: center; padding: 12px; border-radius: 16px; background: var(--sup); transition: box-shadow 300ms, background-color 300ms; }
+.trocas li .ico { grid-row: span 2; width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center; background: #E1F5EE; color: #0F6E56; }
+.app[data-tema="escuro"] .trocas li .ico { background: rgba(93,202,165,.16); color: #9FE1CB; }
+.trocas li b { font-size: 15px; color: var(--texto); }
+.trocas li small { grid-column: 2; font-size: 13px; color: var(--neutro); line-height: 1.35; }
+.trocas li button { grid-row: span 2; grid-column: 3; min-height: 40px; border-radius: 12px; border: 0; background: #0F6E56; color: #FFFFFF; font-weight: 700; font-size: 14px; padding: 0 14px; }
+.app[data-tema="escuro"] .trocas li button { background: #5DCAA5; color: #04342C; }
+.trocas li.fazendo { box-shadow: inset 0 0 0 2px #5DCAA5; }
+.trocas li.fazendo button { background: transparent; color: #0F6E56; box-shadow: inset 0 0 0 1px #5DCAA5; }
+.app[data-tema="escuro"] .trocas li.fazendo button { color: #9FE1CB; }
+.minhas { display: flex; flex-wrap: wrap; gap: 8px; }
+.minhas button { min-height: 40px; border-radius: 999px; border: 1px solid var(--borda); background: var(--sup); color: var(--texto); padding: 0 14px; font-size: 14px; }
+.minhas form { display: flex; gap: 6px; width: 100%; }
+.minhas input { flex: 1; min-width: 0; min-height: 42px; border-radius: 12px; border: 1px solid var(--borda); background: var(--sup); color: var(--texto); font: inherit; font-size: 14px; padding: 0 12px; }
+.minhas form button { border-radius: 12px; }
+.passou { position: absolute; left: 12px; right: 12px; bottom: 14px; z-index: 6; background: var(--sup); border-radius: 22px; padding: 14px; box-shadow: 0 18px 40px -12px rgba(4,44,83,.45); border: 1px solid var(--borda);
+  display: flex; flex-direction: column; gap: 10px; transform: translateY(130%); transition: transform 420ms cubic-bezier(.2,.8,.2,1); }
+.passou.on { transform: none; }
+.app.reduzido .passou { transition-duration: 1ms; }
+.passou h3 { margin: 0; font-size: 16px; color: var(--texto); }
+.notas { display: grid; grid-template-columns: repeat(11, minmax(0, 1fr)); gap: 3px; }
+.notas button { min-height: 40px; border-radius: 10px; border: 1px solid var(--borda); background: var(--bg); color: var(--texto); font-size: 14px; padding: 0; font-variant-numeric: tabular-nums; }
+.notas button[aria-pressed="true"] { background: #0F6E56; border-color: #0F6E56; color: #FFFFFF; font-weight: 700; }
+.passou .legenda-notas { display: flex; justify-content: space-between; font-size: 11.5px; color: var(--neutro); margin-top: -4px; }
+.info { position: absolute; inset: auto 0 0 0; z-index: 5; background: var(--sup); border-radius: 24px 24px 0 0; padding: 8px 20px 24px; box-shadow: 0 -12px 40px -10px rgba(4,44,83,.5); transform: translateY(105%); transition: transform 380ms var(--curva-entra); max-height: 80%; overflow-y: auto; }
+.info.aberta { transform: none; }
+.app.reduzido .info { transition-duration: 1ms; }
+.info h2 { margin: 6px 0 4px; font-family: var(--f-titulo); font-weight: 400; font-size: 24px; color: var(--titulo); }
+.veu { position: absolute; inset: 0; z-index: 4; background: rgba(4,20,40,.4); opacity: 0; pointer-events: none; transition: opacity 300ms; }
+.veu.on { opacity: 1; pointer-events: auto; }
+.aviso { position: absolute; left: 20px; right: 20px; bottom: 104px; z-index: 6; background: var(--titulo); color: var(--bg); border-radius: 14px; padding: 12px 14px; font-size: 14px; opacity: 0; transform: translateY(8px); transition: opacity 240ms, transform 240ms; pointer-events: none; }
+.aviso.on { opacity: 1; transform: none; }
+
+/* ---------- painel da demo ---------- */
+.painel { display: flex; flex-direction: column; gap: 20px; min-width: 0; }
+.painel section { background: var(--pagina-cartao); border: 1px solid var(--pagina-borda); border-radius: 18px; padding: 18px 20px; display: flex; flex-direction: column; gap: 12px; }
+.painel h2 { margin: 0; font-size: 13px; letter-spacing: .08em; text-transform: uppercase; color: var(--pagina-suave); }
+.controle { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 12px; align-items: center; }
+.controle label { font-weight: 700; } .controle output { font-variant-numeric: tabular-nums; color: var(--pagina-suave); }
+.controle input[type=range] { grid-column: 1 / -1; width: 100%; accent-color: #185FA5; }
+.marcas { display: flex; flex-wrap: wrap; gap: 8px; }
+.marcas button, .painel .acao { min-height: 40px; border-radius: 12px; border: 1px solid var(--pagina-borda); background: transparent; color: var(--pagina-texto); padding: 0 12px; }
+.painel .acao.forte { background: #042C53; color: #FFFFFF; border-color: #042C53; }
+.check { display: flex; align-items: center; gap: 10px; min-height: 36px; }
+.check input { width: 20px; height: 20px; accent-color: #185FA5; }
+.check small { color: var(--pagina-suave); }
+.legenda { margin: 0; font-size: 13px; color: var(--pagina-suave); }
+.creditos { font-size: 12px; color: var(--pagina-suave); margin: 0; }
+
+@media (max-width: 900px) {
+  .bancada { grid-template-columns: minmax(0, 1fr); justify-items: center; }
+  .painel { width: 100%; max-width: 430px; }
+}
+@media (max-width: 430px) {
+  body { padding-left: 0; padding-right: 0; padding-block: 0 24px; }
+  .cabeca { padding: 16px max(16px, env(safe-area-inset-left, 0px)) 0; }
+  .celular { width: 100%; max-width: 390px; height: 844px; border-radius: 0; box-shadow: none; background: transparent; }
+  .app { inset: 0; border-radius: 0; }
+  .painel { padding: 0 16px; }
+}
+@media (prefers-reduced-motion: reduce) { .tela > * { transition-duration: 1ms !important; } }
+</style>
+
+<div class="bancada">
+  <header class="cabeca">
+    <h1>Terraforma</h1>
+    <p>Protótipo navegável com o planeta em 3D. Arraste o planeta, toque numa região do Brasil e use o painel para avançar os dias.</p>
+  </header>
+
+  <div class="celular">
+    <div class="app" id="app" data-tela="inicio">
+      <div class="sombra-globo" id="sombra" aria-hidden="true"></div>
+      <div class="estrelas" aria-hidden="true"></div>
+      <div class="camada-globo" id="camada"></div>
+      <div class="camada-oceano" id="camada-oceano"></div>
+
+      <div class="telas">
+        <!-- BOAS-VINDAS -->
+        <section class="tela tela-boas" id="tela-boas" data-tela="boas" aria-label="Boas-vindas" hidden>
+          <div class="cab-boas"><p class="marca">Terraforma</p><span class="pontos-boas" aria-hidden="true"><i></i><i></i><i></i></span><button class="pular" type="button" id="boas-pular">Pular</button></div>
+          <div class="slot" data-slot id="boas-slot" style="height: 400px"></div>
+          <div class="boas-corpo" id="boas-corpo" aria-live="polite"></div>
+        </section>
+
+        <!-- INÍCIO -->
+        <section class="tela" id="tela-inicio" data-tela="inicio" aria-label="Início">
+          <div class="topo"><p class="marca">Terraforma</p><button class="avatar" type="button" data-ir="perfil" aria-label="Seu perfil"><span>R</span></button></div>
+          <div><h2 class="saudacao" id="saudacao">Boa noite, Rafael.</h2><p class="sub">Para voltar a dormir em paz.</p></div>
+          <div class="slot" data-slot style="height: 286px">
+            <button class="botao-redondo" type="button" id="pausar" style="left: 4px; bottom: -4px" aria-label="Pausar o movimento do planeta" aria-pressed="false"><span><svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true"><path id="icone-pausa" d="M3 2h2v8H3zM7 2h2v8H7z" fill="currentColor"></path></svg></span></button>
+            <button class="botao-redondo" type="button" id="abrir-info" style="right: 4px; bottom: -4px" aria-label="Por que o planeta começa seco"><span>i</span></button>
+          </div>
+          <div class="progresso">
+            <div class="linha-prog"><span>Próxima região: <b id="prox-nome">Centro-Oeste</b></span><span id="prox-falta" style="color: var(--suave)">faltam 9 dias</span></div>
+            <div class="trilho" role="progressbar" id="prox-barra" aria-label="Progresso da próxima região" aria-valuemin="0" aria-valuemax="100" aria-valuenow="70"><div style="width: 70%"></div></div>
+            <div class="numeros"><span><b id="n-dias">21</b> <span id="n-dias-txt">dias de recomeço</span></span><span><b id="n-reais">R$ 360</b> longe das apostas</span></div>
+          </div>
+          <button class="cartao-mare" type="button" data-ir="mare"><span><small>A vontade de apostar apareceu? Faça uma meditação.</small><strong>Respire com a Terra</strong></span><i><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M3 10c3-3 6 3 9 0s6 3 9 0M3 15c3-3 6 3 9 0s6 3 9 0"></path></svg></i></button>
+          <button class="botao-troca" type="button" data-ir="troca"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 19c0-8 5-14 15-14 0 10-6 15-14 15"/><path d="M5 19c3-4 6-7 10-9"/></svg>Hábitos saudáveis</button>
+          <button class="link-baixo" type="button" data-ir="tempestade">Apostei hoje. Contar sem medo</button>
+          <nav class="nav" aria-label="Menu principal" data-nav></nav>
+        </section>
+
+        <!-- MAPA-MUNDI -->
+        <section class="tela tela-mapa" id="tela-mapa" data-tela="mapa" aria-label="Mapa-Mundi" hidden>
+          <div class="mapa-topo slot" data-slot data-zoom="1"><div class="mapa-titulo"><h2>Mapa-Mundi</h2><p>Toque numa região, no mapa ou na lista.</p></div></div>
+          <div class="folha">
+            <div class="alca" aria-hidden="true"></div>
+            <div class="rolavel">
+              <h3 class="secao">Brasil, pelos dias de recomeço</h3>
+              <ul class="lista-regioes" id="lista-regioes"></ul>
+              <p class="nota" id="nota-regiao"></p>
+              <h3 class="secao">Mar e rios</h3>
+              <div class="chips"><div class="chip"><p class="r">Mar</p><b id="chip-mar">Limpando</b><p class="r" id="chip-mar-s">9 de 10 Marés</p></div><div class="chip"><p class="r">Rios</p><b id="chip-rios">1 de 3</b><p class="r" id="chip-rios-s">Amazonas</p></div></div>
+              <p class="nota" id="nota-rio"></p>
+            </div>
+            <nav class="nav" aria-label="Menu principal" data-nav style="margin: 0"></nav>
+          </div>
+        </section>
+
+        <!-- RESPIRE COM A TERRA -->
+        <section class="tela tela-mare" id="tela-mare" data-tela="mare" aria-label="Respire com a Terra" hidden>
+          <div class="mare-topo">
+            <button class="pilula vidro" type="button" id="mare-voltar"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"></path></svg>Planeta</button>
+            <button class="pilula vidro" type="button" id="som" aria-pressed="true" aria-label="Som do mar"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4z"></path><path id="som-ondas" d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12"></path><path id="som-x" d="M17 9l5 6M22 9l-5 6" hidden></path></svg><span id="som-texto">Som ligado</span></button>
+          </div>
+
+          <div class="mare-cartao vidro painel-mar" id="mare-escolha" hidden>
+            <h2>Respire com a Terra</h2>
+            <p>A vontade costuma subir, chegar a um pico e baixar. A maré sobe quando você inspira e desce quando você solta.</p>
+            <fieldset><legend>Técnica</legend>
+              <div class="tecnicas" id="tecnicas"></div>
+            </fieldset>
+            <fieldset><legend>Duração</legend>
+              <div class="duracoes" id="duracoes"><button type="button" class="pilula" data-min="1" aria-pressed="false">1 min</button><button type="button" class="pilula" data-min="3" aria-pressed="true">3 min</button><button type="button" class="pilula" data-min="5" aria-pressed="false">5 min</button></div>
+            </fieldset>
+            <div class="vontade"><label for="vontade-antes">Quanto está a vontade agora?</label><output id="o-antes" for="vontade-antes">5</output><input type="range" id="vontade-antes" min="0" max="10" value="5"><span class="escala" aria-hidden="true"><span>0 · nenhuma</span><span>10 · muito forte</span></span></div>
+            <button class="comecar" type="button" id="comecar">Começar</button>
+            <details><summary>Por que essas técnicas</summary>
+              <ul>
+                <li>Respirar devagar, abaixo de 10 vezes por minuto, aumenta a variabilidade cardíaca e está ligado a menos ansiedade e mais relaxamento (Zaccaro et al., 2018; Laborde et al., 2022).</li>
+                <li>5 minutos por dia de suspiro cíclico melhoraram o humor mais do que meditação, num estudo de 28 dias (Balban et al., 2023).</li>
+                <li>Surfar a vontade: em fumantes, observar a vontade sem agir reduziu o consumo na semana seguinte (Bowen e Marlatt, 2009). Em jogo, terapia com atenção plena reduziu a fissura (Melero Ventola et al., 2020).</li>
+                <li>Não substitui tratamento. Se a vontade não passar, ligue 188 (CVV) ou chame alguém da sua órbita.</li>
+              </ul>
+            </details>
+          </div>
+
+          <div class="sessao painel-mar" id="mare-sessao" hidden>
+            <div class="anel" aria-hidden="true">
+              <svg viewBox="0 0 220 220"><circle cx="110" cy="110" r="104" fill="none" stroke="rgba(255,255,255,.22)" stroke-width="4"></circle><circle id="anel-prog" cx="110" cy="110" r="104" fill="none" stroke="#FFFFFF" stroke-width="4" stroke-linecap="round" stroke-dasharray="653.5" stroke-dashoffset="653.5" transform="rotate(-90 110 110)"></circle></svg>
+              <div class="bolha" id="bolha"></div>
+            </div>
+            <p class="fase" id="fase">Inspire</p>
+            <p class="dica" id="dica">pelo nariz</p>
+            <p class="prompt vidro" id="prompt" aria-live="polite"></p>
+          </div>
+          <div class="sessao-rodape vidro painel-mar" id="mare-rodape" hidden>
+            <span class="tempo" id="tempo">3:00<small id="tecnica-nome">Respiração lenta</small></span>
+            <div><button type="button" id="pausa-sessao">Pausar</button><button type="button" id="encerrar">Encerrar</button></div>
+          </div>
+
+          <div class="mare-cartao vidro painel-mar" id="mare-fim" hidden>
+            <h2 id="fim-titulo">Passou?</h2>
+            <div class="vontade"><label for="vontade-depois">E agora, quanto está a vontade?</label><output id="o-depois" for="vontade-depois">5</output><input type="range" id="vontade-depois" min="0" max="10" value="5"><span class="escala" aria-hidden="true"><span>0 · nenhuma</span><span>10 · muito forte</span></span></div>
+            <p class="resultado" id="resultado" aria-live="polite"></p>
+            <p id="fim-mare"></p>
+            <button class="comecar" type="button" id="fim-voltar">Voltar ao planeta</button>
+            <button class="pilula" type="button" id="fim-mais" style="justify-content: center; border: 1px solid rgba(230,241,251,.3); background: transparent; color: #FFFFFF">Mais uma rodada</button>
+          </div>
+        </section>
+
+        <!-- TEMPESTADE -->
+        <section class="tela" id="tela-tempestade" data-tela="tempestade" aria-label="Dia de tempestade" hidden>
+          <button class="voltar" type="button" data-ir="inicio"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"></path></svg>Início</button>
+          <div class="slot" data-slot style="height: 210px"></div>
+          <div class="centro-texto"><p style="font-size: 14px">Dia de tempestade registrado</p><h2>Você voltou. Isso conta.</h2><p>As nuvens passam. Nada do que você recuperou foi perdido.</p></div>
+          <div class="cartoes2"><div><p>Dias de recomeço</p><b id="t-dias">21</b><p>continuam aqui</p></div><div><p>Regiões verdes</p><b id="t-verdes">2 de 5</b><p id="t-verdes-nomes">Sul e Sudeste</p></div></div>
+          <div class="pilha">
+            <button class="botao cheio" type="button" data-ir="mare" style="text-align: left">Respirar com a Terra</button>
+            <button class="botao contorno" type="button" data-aviso="No app, isso abre a conversa com a Ana, da sua órbita.">Avisar a Ana</button>
+            <button class="botao contorno" type="button" data-ir="ajuda">Falar com um profissional</button>
+          </div>
+        </section>
+
+        <!-- AJUDA -->
+        <section class="tela simples" id="tela-ajuda" data-tela="ajuda" aria-label="Ajuda" hidden>
+          <div class="topo"><p class="marca">Terraforma</p></div>
+          <h2>Ajuda</h2>
+          <p class="sub" style="margin: 0">Agora mesmo, de graça, 24 horas.</p>
+          <div class="grupo">
+            <div><p>CVV, apoio emocional</p><b>188</b><p class="fonte">Ligação gratuita, também por chat em cvv.org.br</p></div>
+            <div><p>SAMU, emergência médica</p><b>192</b></div>
+          </div>
+          <p class="nota">No app completo, esta tela também lista CAPS, Jogadores Anônimos e o bloqueio de apostas.</p>
+          <nav class="nav" aria-label="Menu principal" data-nav></nav>
+        </section>
+
+        <!-- PERFIL (resumido) -->
+        <section class="tela simples" id="tela-perfil" data-tela="perfil" aria-label="Perfil" hidden>
+          <button class="voltar" type="button" data-ir="inicio"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"></path></svg>Início</button>
+          <div><h2>Rafael</h2><p class="sub">"Para voltar a dormir em paz."</p></div>
+          <button class="linha-perfil" type="button" data-ir="orbita"><svg width="36" height="36" viewBox="0 0 36 36" aria-hidden="true"><ellipse cx="18" cy="18" rx="16" ry="6" transform="rotate(-15 18 18)" fill="none" stroke="#5DCAA5" stroke-width="1.4"></ellipse><circle cx="18" cy="18" r="8" fill="#85B7EB" stroke="#185FA5"></circle><rect x="29" y="11" width="5" height="5" rx="1" fill="#5DCAA5" stroke="#0F6E56"></rect></svg><span class="quem"><b>Sua órbita</b><small id="perfil-orbita-sub">Ana e Pedro · Preciso de você · recados</small></span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"></path></svg></button>
+          <p class="nota">No canvas, o Perfil também tem "Sobre você", a pesquisa e os Ajustes.</p>
+        </section>
+
+        <!-- ÓRBITA -->
+        <section class="tela simples" id="tela-orbita" data-tela="orbita" aria-label="Sua órbita" hidden>
+          <button class="voltar" type="button" data-ir="perfil"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"></path></svg>Perfil</button>
+          <div><h2>Sua órbita</h2><p class="sub">Pessoas de confiança giram em volta do seu planeta. A cada volta, um satélite traz um recado.</p></div>
+          <div class="slot" data-slot data-orbita="1" style="height: 206px"></div>
+          <button class="preciso" type="button" data-aviso="No app, você escolhe quem chamar e abre a conversa com: “Estou num momento difícil. Pode me ligar?” Na demo, nada é enviado.">Preciso de você</button>
+          <ul class="lista-orbita" id="lista-orbita"></ul>
+          <div class="caixa"><label for="recados-on">Recados a cada volta<input type="checkbox" id="recados-on" checked></label><p class="nota" style="font-size: 12.5px">Só com o app aberto, nunca durante uma respiração. Os números ficam só neste celular.</p></div>
+        </section>
+
+        <!-- ESCREVER RECADO -->
+        <section class="tela simples" id="tela-recado" data-tela="recado" aria-label="Deixar um recado" hidden>
+          <button class="voltar" type="button" data-ir="orbita"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"></path></svg>Sua órbita</button>
+          <h2 id="recado-titulo" style="font-size: 26px; line-height: 1.15">Ana, deixe um recado para o Rafael</h2>
+          <p class="sub" style="margin: 0">Passe o celular para a pessoa. O recado aparece quando o satélite dela der a volta no planeta.</p>
+          <label for="recado-texto" style="font-weight: 700; font-size: 14px">Recado</label>
+          <textarea id="recado-texto" class="recado-area" rows="4" maxlength="140" style="pointer-events: auto"></textarea>
+          <div style="display: flex; flex-wrap: wrap; gap: 6px" id="ideias"><button type="button" class="chip-ideia">Tô aqui.</button><button type="button" class="chip-ideia">Lembrei de você hoje.</button><button type="button" class="chip-ideia">Bora tomar um café essa semana?</button><button type="button" class="chip-ideia">Se apertar, me liga.</button></div>
+          <div class="caixa" style="background: var(--verde-claro); border: 0"><b style="font-size: 14px">Como apoiar sem julgar</b><p class="nota" style="font-size: 13px">Fale do carinho, não das apostas. Sem cobrar dias ou dinheiro. Convide para algo simples.</p></div>
+          <button class="botao cheio" type="button" id="salvar-recado" style="margin-top: auto; margin-bottom: 20px">Salvar recado</button>
+        </section>
+
+        <!-- LUNETA e FINANÇAS: só referência -->
+        <section class="tela simples" id="tela-luneta" data-tela="luneta" aria-label="Luneta" hidden>
+          <div class="topo"><p class="marca">Terraforma</p></div><h2>Luneta</h2>
+          <p class="nota">A comunidade anônima está desenhada no canvas (tela 10). Este protótipo foca no planeta e nas transições.</p>
+          <nav class="nav" aria-label="Menu principal" data-nav></nav>
+        </section>
+        <section class="tela tela-fin" id="tela-financas" data-tela="financas" aria-label="Finanças" hidden>
+          <div class="cab-fin">
+            <div class="linha-tit"><h2>Finanças</h2><span class="selo-demo">valores fictícios</span></div>
+            <div class="rios-faixa" role="img" id="rios-faixa" aria-label="Rios do seu planeta">
+              <svg viewBox="0 0 350 128" preserveAspectRatio="none" aria-hidden="true">
+                <defs><linearGradient id="grad-agua" x1="0" x2="1"><stop offset="0" stop-color="var(--agua-1)"/><stop offset=".5" stop-color="var(--agua-2)"/><stop offset="1" stop-color="var(--agua-1)"/></linearGradient></defs>
+                <path class="risco" d="M20 50 l14 6 l8 -5 M210 22 l10 8 l12 -3 M120 86 l9 -6 l11 4 M290 112 l12 -7 M60 120 l8 -5 M318 48 l-9 7"/>
+                <g class="rio" data-rio="amazonas"><path class="margem" d="M-10 34 C 40 14, 80 46, 140 28 S 240 12, 290 34 S 360 40, 400 24"/><path class="leito" d="M-10 34 C 40 14, 80 46, 140 28 S 240 12, 290 34 S 360 40, 400 24"/><path class="agua" d="M-10 34 C 40 14, 80 46, 140 28 S 240 12, 290 34 S 360 40, 400 24" pathLength="420"/><path class="brilho" d="M-10 34 C 40 14, 80 46, 140 28 S 240 12, 290 34 S 360 40, 400 24"/></g><g class="rio" data-rio="saoFrancisco"><path class="margem" d="M-10 70 C 50 84, 100 54, 160 68 S 250 86, 300 64 S 370 58, 400 72"/><path class="leito" d="M-10 70 C 50 84, 100 54, 160 68 S 250 86, 300 64 S 370 58, 400 72"/><path class="agua" d="M-10 70 C 50 84, 100 54, 160 68 S 250 86, 300 64 S 370 58, 400 72" pathLength="420"/><path class="brilho" d="M-10 70 C 50 84, 100 54, 160 68 S 250 86, 300 64 S 370 58, 400 72"/></g><g class="rio" data-rio="parana"><path class="margem" d="M-10 100 C 30 112, 90 92, 150 106 S 230 120, 280 98 S 360 94, 400 108"/><path class="leito" d="M-10 100 C 30 112, 90 92, 150 106 S 230 120, 280 98 S 360 94, 400 108"/><path class="agua" d="M-10 100 C 30 112, 90 92, 150 106 S 230 120, 280 98 S 360 94, 400 108" pathLength="420"/><path class="brilho" d="M-10 100 C 30 112, 90 92, 150 106 S 230 120, 280 98 S 360 94, 400 108"/></g>
+              </svg>
+              <div class="rotulos" aria-hidden="true"><span class="rot" data-rot="amazonas" style="top: 30px"><b>Amazonas</b><small>1º passo numa dívida</small></span><span class="rot" data-rot="saoFrancisco" style="top: 66px"><b>São Francisco</b><small>1ª Barreira</small></span><span class="rot" data-rot="parana" style="top: 102px"><b>Paraná</b><small>1ª renegociação</small></span></div>
+            </div>
+            <div class="seg" role="tablist" aria-label="Partes das finanças" style="--n: 3">
+              <span class="ind" id="ind-abas" aria-hidden="true"></span>
+              <button type="button" role="tab" id="aba-basico" aria-selected="false" aria-controls="painel-fin" data-aba="basico">Básico</button>
+              <button type="button" role="tab" id="aba-dividas" aria-selected="true" aria-controls="painel-fin" data-aba="dividas">Dívidas</button>
+              <button type="button" role="tab" id="aba-barreiras" aria-selected="false" aria-controls="painel-fin" data-aba="barreiras">Barreiras</button>
+            </div>
+          </div>
+          <div class="rol-fin" id="painel-fin" role="tabpanel"></div>
+          <nav class="nav" aria-label="Menu principal" data-nav style="margin: 0"></nav>
+        </section>
+
+        <section class="tela tela-troca" id="tela-troca" data-tela="troca" aria-label="Hábitos saudáveis" hidden>
+          <div class="cab-troca">
+            <button class="voltar" type="button" data-ir="inicio"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"></path></svg>Início</button>
+            <h2>Hábitos saudáveis</h2>
+            <p class="lead">Quando a vontade aparece, troque a aposta por outra coisa. Ela passa mais rápido.</p>
+            <p class="rotulo-fin" id="rot-tempo" style="margin-top: 4px">Quanto tempo você tem agora?</p>
+            <div class="seg" role="group" aria-labelledby="rot-tempo" style="--n: 3"><span class="ind" id="ind-tempo" aria-hidden="true"></span><button type="button" data-tempo="0" aria-pressed="true">2 min</button><button type="button" data-tempo="1" aria-pressed="false">15 min</button><button type="button" data-tempo="2" aria-pressed="false">1 hora ou mais</button></div>
+          </div>
+          <div class="rol-fin" id="painel-troca" aria-live="polite"></div>
+          <div class="passou" id="passou" role="dialog" aria-labelledby="passou-tit">
+            <h3 id="passou-tit">Como está a vontade agora?</h3>
+            <div class="notas" role="group" aria-label="Vontade de 0 a 10" id="notas-troca"></div>
+            <div class="legenda-notas"><span>0 · passou</span><span>10 · muito forte</span></div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px"><button class="botao contorno" type="button" id="passou-depois" style="text-align: center">Ainda não sei</button><button class="botao cheio" type="button" id="passou-ok" disabled style="background: #0F6E56; color: #FFFFFF">Registrar</button></div>
+          </div>
+        </section>
+
+        <section class="tela simples" id="tela-divida" data-tela="divida" aria-label="Dívida" hidden style="padding: 16px 0 0; gap: 0">
+          <div style="padding: 0 20px 4px"><button class="voltar" type="button" data-ir="financas"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"></path></svg>Finanças</button></div>
+          <div class="rol-fin" id="painel-divida"></div>
+        </section>
+      </div>
+
+      <div class="veu" id="veu"></div>
+      <div class="info" id="info" role="dialog" aria-modal="true" aria-labelledby="info-titulo" aria-hidden="true" inert>
+        <div class="alca" aria-hidden="true" style="width: 40px; height: 4px; border-radius: 2px; background: var(--borda); margin: 4px auto 8px"></div>
+        <h2 id="info-titulo">Por que o planeta começa seco</h2>
+        <p class="sub" style="margin: 0 0 12px">As apostas tiraram dinheiro e tranquilidade de muitas famílias. Isso tem tratamento.</p>
+        <div class="grupo">
+          <div><b>1,2%</b><p>dos adultos no mundo têm transtorno do jogo.</p><p class="fonte">OMS, 2024</p></div>
+          <div><b>R$ 62,5 bilhões</b><p>perdidos pelas famílias brasileiras em apostas em 2025.</p><p class="fonte">Comsefaz, via Agência Brasil</p></div>
+          <div><b>925 mil</b><p>pessoas bloquearam o próprio CPF nas casas de aposta até julho de 2026.</p><p class="fonte">Ministério da Fazenda</p></div>
+        </div>
+        <div class="pilha" style="margin-top: 14px"><button class="botao cheio" type="button" id="fechar-info">Entendi</button></div>
+      </div>
+      <div class="aviso" id="aviso" role="status"></div>
+      <div class="recado" id="recado" role="status" aria-live="polite">
+        <div class="cab"><span class="ini" id="recado-ini">A</span><span class="quem"><b id="recado-quem">Ana passou pela sua órbita</b><small id="recado-quando">Recado que ela escreveu</small></span><button class="fechar" type="button" id="recado-fechar" aria-label="Fechar recado">×</button></div>
+        <blockquote id="recado-txt"></blockquote>
+        <div class="botoes"><button class="botao cheio" type="button" id="recado-responder">Responder</button><button class="botao contorno" type="button" id="recado-ok" style="text-align: center">Obrigado</button></div>
+      </div>
+      <div class="nevoa" id="nevoa" aria-hidden="true"></div>
+      <div class="recado" id="rio-volta" role="status" aria-live="polite" style="border-color: #85B7EB">
+        <div class="cab"><span class="ini" style="background: #E6F1FB; border-color: #185FA5; color: #185FA5">≈</span><span class="quem"><b id="rio-titulo">O Amazonas voltou a correr</b><small id="rio-sub">Você deu o primeiro passo numa dívida.</small></span><button class="fechar" type="button" id="rio-fechar" aria-label="Fechar">×</button></div>
+        <div class="botoes"><button class="botao cheio" type="button" id="rio-ver">Ver no planeta</button><button class="botao contorno" type="button" id="rio-ok" style="text-align: center">Continuar aqui</button></div>
+      </div>
+    </div>
+  </div>
+
+  <aside class="painel" aria-label="Painel da demo">
+    <section>
+      <h2>Linha do tempo</h2>
+      <div class="controle"><label for="c-dias">Dias de recomeço</label><output id="o-dias" for="c-dias">21</output><input type="range" id="c-dias" min="1" max="90" value="21"></div>
+      <div class="marcas"><button type="button" id="mais-dia">+1 dia</button><button type="button" id="prox-regiao">Pular para a próxima região</button></div>
+      <div class="controle"><label for="c-mares">Marés feitas</label><output id="o-mares" for="c-mares">9</output><input type="range" id="c-mares" min="0" max="10" value="9"></div>
+      <p class="legenda">O mar começa a limpar com 3 Marés e fica limpo com 10. Nada regride: no app real estes números só sobem.</p>
+    </section>
+    <section>
+      <h2>Marcos que trazem os rios</h2>
+      <label class="check"><input type="checkbox" id="r-amazonas"><span>Amazonas <small>· 1º passo no plano de dívidas</small></span></label>
+      <label class="check"><input type="checkbox" id="r-sf"><span>São Francisco <small>· 1ª Barreira ativada</small></span></label>
+      <label class="check"><input type="checkbox" id="r-parana"><span>Paraná <small>· 1ª renegociação</small></span></label>
+    </section>
+    <section>
+      <h2>Órbita</h2>
+      <div class="controle"><label for="c-volta">Uma volta do satélite</label><span></span><select id="c-volta" style="grid-column: 1 / -1; min-height: 40px; border-radius: 10px; border: 1px solid var(--pagina-borda); background: var(--pagina-cartao); color: var(--pagina-texto); padding: 0 10px"><option value="25">25 s (para a demo)</option><option value="600">10 min (como no app)</option></select></div>
+      <p class="legenda">Cada volta completa traz um recado no Início ou no Mapa-Mundi, nunca durante a respiração ou a tempestade.</p>
+    </section>
+    <section>
+      <h2>Acessibilidade</h2>
+      <label class="check"><input type="checkbox" id="a-dalt"><span>Modo daltonismo <small>· seco listrado e escuro, verde claro</small></span></label>
+      <label class="check"><input type="checkbox" id="a-escuro"><span>Tema escuro no app</span></label>
+      <label class="check"><input type="checkbox" id="a-mov"><span>Movimento reduzido <small>· sem giro, nuvens paradas, sem transições</small></span></label>
+      <div class="controle"><label for="c-ceu">Céu do oceano</label><span></span><select id="c-ceu" style="grid-column: 1 / -1; min-height: 40px; border-radius: 10px; border: 1px solid var(--pagina-borda); background: var(--pagina-cartao); color: var(--pagina-texto); padding: 0 10px"><option value="auto">Pela hora do dia</option><option value="dia">Dia</option><option value="entardecer">Entardecer</option><option value="noite">Noite</option></select></div>
+      <div class="marcas"><button type="button" class="acao" id="resetar">Voltar ao estado inicial</button><button type="button" class="acao" id="abrir-boas">Abrir as Boas-vindas</button></div>
+    </section>
+    <p class="creditos">Textura da Terra: NASA Blue Marble (domínio público). Fronteiras e rios: Natural Earth (domínio público). Ruído simplex: Ashima Arts (MIT). three.js (MIT).</p>
+  </aside>
+</div>
+
+<link rel="preload" href="./assets/terra-dia-baixa.webp" as="image" type="image/webp">
+<link rel="preload" href="./assets/terra-agua.png" as="image">
+<link rel="preload" href="./assets/brasil-regioes.png" as="image">
+<link rel="preload" href="./assets/brasil-linhas.png" as="image">
+<script type="importmap">{ "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.js" } }</script>
+<!-- o mapa de imports precisa vir antes de qualquer carga de módulo -->
+<link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.js">
+<link rel="modulepreload" href="./globo.js">
+<script type="module">
+import { criarGlobo, estadoDoPlaneta, REGIOES, LIMIARES, RIOS } from './globo.js';
+import { criarOceano, criarSomDoMar, ceuDaHora, corDaNevoa } from './oceano.js';
+
+const $ = (s, el = document) => el.querySelector(s);
+const $$ = (s, el = document) => [...el.querySelectorAll(s)];
+const app = $('#app');
+const telas = ['boas', 'troca', 'inicio', 'mapa', 'mare', 'tempestade', 'ajuda', 'luneta', 'financas', 'perfil', 'orbita', 'recado', 'divida'];
+const mq = (q) => { try { return matchMedia(q).matches; } catch { return false; } };
+
+// ---------- estado da demo ----------
+const PADRAO = { dias: 21, mares: 9, rios: { amazonas: false, saoFrancisco: false, parana: false }, dalt: false, escuro: mq('(prefers-color-scheme: dark)'), mov: mq('(prefers-reduced-motion: reduce)') };
+const s = JSON.parse(JSON.stringify(PADRAO));
+let tempestade = false, regiaoSel = -1, telaAtual = null, globo = null;
+
+// ---------- menu ----------
+const ICONES = {
+  mapa: ['Mapa-Mundi', '#3B6D11', '#EAF3DE', '#C0DD97', '#27500A', '<path d="M3 6l6-2 6 2 6-2v14l-6 2-6-2-6 2z"/><path d="M9 4v14M15 6v14" fill="none"/>'],
+  luneta: ['Luneta', '#3C3489', '#EEEDFE', '#CECBF6', '#3C3489', '<path d="M3 13l11-5 2.2 4.5-11 5z"/><path d="M14 8l3.5-1.6 2.2 4.5-3.5 1.6"/><path d="M10 15.5l-3 6M11.5 15l3 6.5" fill="none"/>'],
+  ajuda: ['Ajuda', '#185FA5', '#E6F1FB', '#B5D4F4', '#185FA5', '<circle cx="12" cy="12" r="9"/><circle class="miolo" cx="12" cy="12" r="4" style="fill:var(--nav)"/><path d="M5.6 5.6l3.6 3.6M14.8 14.8l3.6 3.6M18.4 5.6l-3.6 3.6M9.2 14.8l-3.6 3.6" fill="none"/>'],
+  financas: ['Finanças', '#854F0B', '#FAEEDA', '#FAC775', '#854F0B', '<path d="M4 7h14a2 2 0 0 1 2 2v9H4z"/><path d="M4 7l11-3v3" fill="none"/><circle cx="16" cy="13" r="1.2"/>'],
+};
+const CORES_PLANETA = ['Planeta', '#0F6E56', '#E1F5EE', '#9FE1CB', '#0F6E56'];
+const ORDEM_NAV = ['mapa', 'luneta', 'inicio', 'ajuda', 'financas'];
+const GLOBO_ICONE = `<svg viewBox="0 0 24 24" aria-hidden="true"><defs><clipPath id="terra-menu-ID"><circle cx="12" cy="12" r="10"/></clipPath></defs>
+<g class="linha" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><ellipse cx="12" cy="12" rx="4" ry="9"/><path d="M3 12h18M4.5 7.5h15M4.5 16.5h15"/></g>
+<g class="cor"><circle cx="12" cy="12" r="10" fill="#85B7EB"/><g clip-path="url(#terra-menu-ID)" fill="#3B6D11"><path d="M1.6 7.4c1.4-2 3.6-3.4 6.1-3.6 1.1-.1 1.4 1 .7 1.6-.6.5-.5 1.5.3 1.8.9.3 1.5 1.3 1 2.1-.5.8-1.6.7-2.3 1.2-.9.6-.8 1.9-1.7 2.4-1 .5-2.1-.1-2.8-.9-.7-.8-1.1-1.9-1.3-3-.1-.6-.2-1.1 0-1.6z"/><path d="M7.3 12.9c1.1-.4 2.4-.1 3.3.6.9.7 2.1.9 2.5 2 .4 1.1-.3 2.2-1.1 3-.8.9-1.1 2.1-1.8 3.1-.5.7-1.4 1.2-1.8.4-.4-.8.1-1.6 0-2.5-.1-1.1-1-1.7-1.4-2.7-.4-1-.6-2.3.3-3.9z"/><path d="M15.1 5.6c1-.7 2.4-.8 3.4-.2.7.4.5 1.3-.2 1.6-.8.3-1.6 0-2.2.5-.6.4-.7 1.3-1.3 1.4-.8.1-1.1-.9-.7-1.6.3-.6.6-1.2 1-1.7z"/><path d="M16.2 10.3c1.4-.6 3.1-.4 4.3.3 1.1.6 1.6 1.9 1.4 3.1-.2 1.3-1.1 2.3-1.5 3.5-.4 1.1-.7 2.3-1.5 3.1-.7.6-1.7.3-1.9-.6-.3-1.3.2-2.6-.3-3.8-.4-.9-1.5-1.2-2-2.2-.5-1.3.2-2.8 1.5-3.4z"/></g><circle cx="12" cy="12" r="10" fill="none" stroke="#185FA5" stroke-width=".8"/></g></svg>`;
+$$('[data-nav]').forEach((nav, n) => {
+  const item = (id) => { const [nome, c, f, ce, fe, svg] = ICONES[id];
+    return `<button type="button" data-ir="${id}" data-item="${id}" style="--c:${c};--f:${f};--ce:${ce};--fe:${fe}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" aria-hidden="true">${svg}</svg>${nome}<span class="ponto"></span></button>`; };
+  const [, pc, pf, pce, pfe] = CORES_PLANETA;
+  nav.innerHTML = '<span class="indicador" aria-hidden="true"></span>' + item('mapa') + item('luneta') + `<button type="button" class="centro" data-ir="inicio" data-item="inicio" style="--c:${pc};--f:${pf};--ce:${pce};--fe:${pfe}">${GLOBO_ICONE.replaceAll('ID', n)}Planeta<span class="ponto"></span></button>` + item('ajuda') + item('financas');
+});
+function corNav() {
+  const esc = s.escuro;
+  $$('[data-nav] button[data-item]').forEach((b) => {
+    // menu cinza-claro fosco: a aba ativa vira uma pílula branca com a cor da seção
+    b.style.setProperty('--cor-ativa', 'var(--c)');
+    b.style.setProperty('--fundo-ativo', 'var(--ce)');
+    b.style.setProperty('--pilula', '#FFFFFF');
+    b.style.setProperty('--pilula-borda', esc ? '#FFFFFF' : '#DDE2E8');
+  });
+  $$('[data-nav]').forEach((nav) => pintarIndicador(nav, telaAtual));
+}
+let navIdx = -1;
+function corDoIndicador(ind, b) {
+  const cs = getComputedStyle(b);
+  ind.style.setProperty('--ind-fundo', cs.getPropertyValue('--pilula').trim());
+  ind.style.setProperty('--ind-borda', cs.getPropertyValue('--pilula-borda').trim());
+}
+function pintarIndicador(nav, tela) {
+  const k = ORDEM_NAV.indexOf(tela), ind = nav.querySelector('.indicador'); if (!ind) return;
+  if (k < 0) { ind.style.setProperty('--ind-op', 0); return; }
+  const b = nav.querySelectorAll('button[data-item]')[k];
+  ind.style.setProperty('--ind-op', 1); ind.style.setProperty('--i', k); corDoIndicador(ind, b);
+}
+// a pílula sai de onde estava na tela anterior e desliza até a aba nova
+function deslizarIndicador(tela) {
+  const k = ORDEM_NAV.indexOf(tela), nav = $(`#tela-${tela} [data-nav]`);
+  if (nav && k >= 0 && navIdx >= 0 && navIdx !== k && !s.mov) {
+    const ind = nav.querySelector('.indicador'), b0 = nav.querySelectorAll('button[data-item]')[navIdx];
+    ind.classList.add('sem-anim'); ind.style.setProperty('--i', navIdx);
+    corDoIndicador(ind, b0);
+    void ind.offsetWidth; ind.classList.remove('sem-anim');
+    requestAnimationFrame(() => pintarIndicador(nav, tela));
+  } else if (nav) pintarIndicador(nav, tela);
+  if (k >= 0) navIdx = k;
+}
+
+// ---------- derivados ----------
+let estadoBoas = null;   // nas Boas-vindas o planeta conta a própria história, sem mexer no estado da pessoa
+const estado = () => (telaAtual === 'boas' && estadoBoas) ? estadoBoas : estadoDoPlaneta({ dias: s.dias, mares: s.mares, rios: s.rios, tempestade });
+const proxima = () => LIMIARES.findIndex((l) => s.dias < l);
+function atualizarTextos() {
+  const e = estado(), i = proxima();
+  const h = new Date().getHours();
+  $('#saudacao').textContent = (h < 12 ? 'Bom dia' : h < 18 ? 'Boa tarde' : 'Boa noite') + `, ${typeof perfil !== 'undefined' ? perfil.nome : 'Rafael'}.`;
+  if (typeof perfil !== 'undefined') { $('#saudacao').nextElementSibling.textContent = perfil.motivo + '.'; $('#tela-inicio .avatar span').textContent = (perfil.nome[0] || 'V').toUpperCase(); }
+  if (i === -1) {
+    $('#prox-nome').textContent = 'o Brasil inteiro está verde'; $('#prox-falta').textContent = '';
+    setBarra($('#prox-barra'), 100);
+  } else {
+    const ant = i ? LIMIARES[i - 1] : 0, pct = Math.round(100 * (s.dias - ant) / (LIMIARES[i] - ant));
+    $('#prox-nome').textContent = REGIOES[i];
+    const f = LIMIARES[i] - s.dias; $('#prox-falta').textContent = `falta${f > 1 ? 'm' : ''} ${f} dia${f > 1 ? 's' : ''}`;
+    setBarra($('#prox-barra'), pct);
+  }
+  $('#n-dias').textContent = s.dias; $('#n-dias-txt').textContent = s.dias === 1 ? 'dia de recomeço' : 'dias de recomeço'; $('#t-dias').textContent = s.dias;
+  $('#n-reais').textContent = 'R$ ' + (s.dias * 120 / 7).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+  const verdes = e.rec.map((r, k) => r >= 1 ? REGIOES[k] : null).filter(Boolean);
+  $('#t-verdes').textContent = `${verdes.length} de 5`;
+  $('#t-verdes-nomes').textContent = verdes.length ? (verdes.length > 2 ? verdes.slice(0, -1).join(', ') + ' e ' + verdes.at(-1) : verdes.join(' e ')) : 'a primeira vem logo';
+  // lista do mapa
+  $('#lista-regioes').innerHTML = REGIOES.map((nome, k) => {
+    const ok = s.dias >= LIMIARES[k], andando = k === i;
+    const ant = k ? LIMIARES[k - 1] : 0, pct = Math.round(100 * Math.max(0, s.dias - ant) / (LIMIARES[k] - ant));
+    const selo = ok ? '<span class="selo ok" aria-label="Recuperada">✓</span>' : andando ? '<span class="selo andando" aria-label="Em andamento"></span>' : '<span class="selo depois" aria-label="Ainda não"></span>';
+    const dias = ok ? `${LIMIARES[k]} dias` : andando ? `${s.dias} de ${LIMIARES[k]}` : `${LIMIARES[k]} dias`;
+    return `<li><button type="button" data-regiao="${k}" aria-pressed="${k === regiaoSel}">${selo}<span style="font-weight:${andando ? 700 : 400}">${nome === 'Norte' ? 'Norte, o Brasil inteiro' : nome}</span><span class="dias">${dias}</span>${andando ? `<span class="barra" aria-hidden="true"><div style="width:${pct}%"></div></span>` : ''}</button></li>`;
+  }).join('');
+  const sel = regiaoSel >= 0 ? regiaoSel : (i === -1 ? 4 : i);
+  const okSel = s.dias >= LIMIARES[sel];
+  $('#nota-regiao').textContent = okSel ? `${REGIOES[sel]} recuperado no dia ${LIMIARES[sel]}. Fica verde para sempre.`
+    : sel === i ? `${REGIOES[sel]} está brotando: faltam ${LIMIARES[sel] - s.dias} dias. A cor avança aos poucos, a partir de pontos espalhados.`
+    : `${REGIOES[sel]} começa depois de ${REGIOES[sel - 1]}. Cada região espera a anterior.`;
+  $('#chip-mar').textContent = e.mar >= 1 ? 'Limpo' : e.mar > 0 ? 'Limpando' : 'Poluído';
+  $('#chip-mar-s').textContent = `${s.mares} de 10 Marés`;
+  const rios = RIOS.filter((_, k) => e.rios[k]);
+  $('#chip-rios').textContent = `${rios.length} de 3`; $('#chip-rios-s').textContent = rios.join(', ') || 'nenhum ainda';
+  const prox = [['São Francisco', 'a primeira Barreira', s.rios.saoFrancisco], ['Paraná', 'a primeira renegociação', s.rios.parana], ['Amazonas', 'o primeiro passo no plano de dívidas', s.rios.amazonas]].find((r) => !r[2]);
+  $('#nota-rio').textContent = prox ? `Próximo rio: o ${prox[0]} volta quando você fizer ${prox[1]}.` : 'Os três rios estão correndo.';
+}
+function setBarra(el, pct) { el.setAttribute('aria-valuenow', pct); el.firstElementChild.style.width = pct + '%'; }
+
+// ---------- navegação com continuidade ----------
+function lugarDo(tela) {
+  const sec = $(`#tela-${tela}`), slot = sec && $('[data-slot]', sec);
+  const base = app.getBoundingClientRect();
+  if (!slot) return { opacidade: 0, r: 70, cx: base.width / 2, cy: 120 };
+  const r = slot.getBoundingClientRect();
+  const cx = r.left - base.left + r.width / 2, cy = r.top - base.top + r.height / 2;
+  if (slot.dataset.zoom) return { cx, cy: cy + 4, r: r.width * 1.02, opacidade: 1 };
+  if (slot.dataset.orbita) return { cx, cy, r: 64, opacidade: 1 };
+  return { cx, cy, r: Math.min(r.width, r.height) / 2 - 8, opacidade: 1 };
+}
+let pararMare = null, oceano = null, mergulhando = false;
+function irPara(tela, { sem = false, jaSaiu = false } = {}) {
+  if (!telas.includes(tela)) tela = 'inicio';
+  if (tela === telaAtual || mergulhando) return;
+  // sair do mar: a câmera sobe pelas nuvens antes de voltar ao planeta
+  if (telaAtual === 'mare' && !jaSaiu) { sairDoMar().then(() => irPara(tela, { sem, jaSaiu: true })); return; }
+  const antes = telaAtual && $(`#tela-${telaAtual}`), depois = $(`#tela-${tela}`);
+  const reduzido = s.mov || sem;
+  // saída rápida, entrada mais lenta com escalonamento
+  if (antes) {
+    antes.classList.add('saindo');
+    setTimeout(() => { antes.hidden = true; antes.classList.remove('saindo'); }, reduzido ? 0 : 180);
+  }
+  if (!antes) $$('.tela').forEach((t) => { if (t !== depois) t.hidden = true; });   // abertura direta por link (#orbita, #mapa…)
+  setTimeout(() => {
+    depois.hidden = false; depois.classList.add('entrando'); deslizarIndicador(tela);
+    [...depois.children].forEach((c, k) => { c.style.transitionDelay = reduzido ? '0ms' : `${k * 40}ms`; });
+    requestAnimationFrame(() => requestAnimationFrame(() => depois.classList.remove('entrando')));
+    if (globo && tela !== 'mare') moverGlobo(tela, reduzido ? 0 : 850);
+  }, reduzido || !antes ? 0 : 120);
+  if (telaAtual === 'mare' && pararMare) pararMare();
+  if (telaAtual === 'tempestade' && tempestade) { tempestade = false; aplicar(); } // as nuvens passam
+  telaAtual = tela; app.dataset.tela = tela;
+  $$('[data-nav] button[data-item]').forEach((b) => b.setAttribute('aria-current', b.dataset.item === tela ? 'page' : 'false'));
+  if (tela === 'tempestade') { tempestade = true; aplicar(); }
+  if (tela === 'mare') entrarNoMar(reduzido);
+  if (tela === 'orbita') desenharOrbita();
+  app.classList.toggle('no-boas', tela === 'boas');
+  if (tela === 'boas') abrirBoas(); else pararLapso();
+  if (tela === 'financas') desenharFin();
+  if (tela === 'troca') desenharTroca(); else $('#passou')?.classList.remove('on');
+  if (tela === 'divida') desenharDivida();
+  if (tela === 'mare' || tela === 'tempestade' || tela === 'ajuda') fecharRecado();
+  if (tela !== 'financas' && tela !== 'divida') $('#rio-volta').classList.remove('on');
+  if (tela !== 'mapa' && globo) globo.focarRegiao(-1);
+  if (tela === 'mapa' && globo) globo.focarRegiao(regiaoSel);
+  if (tela === 'mapa' && regiaoSel >= 0) setTimeout(() => $(`[data-regiao="${regiaoSel}"]`)?.scrollIntoView({ block: 'nearest' }), 400);
+  try { if (location.hash !== '#' + tela) history.replaceState(null, '', '#' + tela); } catch {}
+}
+function moverGlobo(tela, ms) {
+  const lugar = lugarDo(tela);
+  globo.nuvens(tela === 'mapa' ? 0.2 : 1);
+  globo.mostrarSatelites(tela === 'orbita');
+  if (tela === 'mapa') { if (regiaoSel < 0) globo.focar({ lon: -53, lat: -15 }); }
+  else globo.focar(globo.centroBrasil, tela === 'inicio' || tela === 'boas');
+  if (saidaDoMar && ms > 0) { saidaDoMar = false; globo.irPara(lugar, 1700, 'subida'); }
+  else globo.irPara(lugar, ms);
+  posicionarSombra(lugar, tela === 'inicio' || tela === 'tempestade');
+}
+function posicionarSombra(l, visivel) {
+  const el = $('#sombra');
+  el.style.width = l.r * 1.6 + 'px'; el.style.height = l.r * 0.28 + 'px';
+  el.style.transform = `translate(${l.cx - l.r * 0.8}px, ${l.cy + l.r * 0.98}px)`;
+  el.style.opacity = visivel && l.opacidade ? 1 : 0;
+  el.style.transition = s.mov ? 'none' : 'transform 850ms cubic-bezier(.65,0,.35,1), width 850ms, height 850ms, opacity 400ms';
+}
+
+// ---------- Respire com a Terra ----------
+// Ritmos: cada passo tem rótulo, dica, segundos e para onde vai o fôlego (0 = vazio, 1 = cheio)
+const TECNICAS = {
+  lenta: { nome: 'Respiração lenta', ritmo: '4 s · 6 s', desc: 'Seis respirações por minuto, soltando mais devagar do que puxa.',
+    passos: [['Inspire', 'pelo nariz', 4, 1], ['Solte', 'devagar, pela boca ou nariz', 6, 0]] },
+  suspiro: { nome: 'Suspiro cíclico', ritmo: '2 + 1 s · 6 s', desc: 'Duas puxadas pelo nariz e uma soltada longa pela boca.',
+    passos: [['Inspire', 'pelo nariz', 2.5, 0.78], ['Mais um pouco', 'encha o peito', 1, 1], ['Solte', 'pela boca, bem devagar', 6, 0]] },
+  surfar: { nome: 'Surfar a vontade', ritmo: '4 s · 6 s', desc: 'Observe a vontade como uma onda, sem agir sobre ela.',
+    passos: [['Inspire', 'pelo nariz', 4, 1], ['Solte', 'devagar', 6, 0]],
+    falas: ['Note onde a vontade aparece no corpo: peito, mãos, estômago.', 'Dê uma nota para ela agora, só na sua cabeça.',
+      'Ela é uma onda: sobe, chega ao pico e desce.', 'Você não precisa fazer nada com ela. Só observe.',
+      'Perceba se ela mudou de tamanho desde o começo.', 'Cada vez que você solta o ar, deixe a onda passar por baixo.',
+      'Se a mente for para longe, volte para a respiração. Isso faz parte.', 'Você surfou essa onda até aqui.'] },
+};
+let tecnica = 'lenta', minutos = 3, som = null, somLigado = true;
+try { somLigado = localStorage.getItem('terraforma:som') !== 'desligado'; } catch {}
+function botaoSom() {
+  $('#som').setAttribute('aria-pressed', String(somLigado));
+  $('#som-texto').textContent = somLigado ? 'Som ligado' : 'Som desligado';
+  $('#som-ondas').toggleAttribute('hidden', !somLigado); $('#som-x').toggleAttribute('hidden', somLigado);
+}
+const VOLUME_MAR = 0.28;
+// abre o áudio dentro do toque (o navegador exige), mas em silêncio; o volume sobe só perto do mar
+function abrirSom() { som ??= criarSomDoMar('assets/mar.mp3'); som?.abrir(); }
+botaoSom();
+$('#tecnicas').innerHTML = Object.entries(TECNICAS).map(([id, t]) =>
+  `<button type="button" class="tecnica" data-tecnica="${id}" aria-pressed="${id === tecnica}"><b>${t.nome}</b><span class="ritmo">${t.ritmo}</span><small>${t.desc}</small></button>`).join('');
+$('#tecnicas').onclick = (e) => { const b = e.target.closest('[data-tecnica]'); if (!b) return; tecnica = b.dataset.tecnica; $$('#tecnicas [data-tecnica]').forEach((x) => x.setAttribute('aria-pressed', String(x === b))); };
+$('#duracoes').onclick = (e) => { const b = e.target.closest('[data-min]'); if (!b) return; minutos = +b.dataset.min; $$('#duracoes [data-min]').forEach((x) => x.setAttribute('aria-pressed', String(x === b))); };
+$('#vontade-antes').oninput = (e) => { $('#o-antes').textContent = e.target.value; };
+$('#vontade-depois').oninput = (e) => { $('#o-depois').textContent = e.target.value; mostrarResultado(); };
+$('#som').onclick = () => {
+  somLigado = !somLigado;
+  try { localStorage.setItem('terraforma:som', somLigado ? 'ligado' : 'desligado'); } catch {}
+  if (somLigado) { abrirSom(); if (telaAtual === 'mare') som?.volume(VOLUME_MAR, 1.5); } else som?.volume(0, 0.6);
+  botaoSom();
+};
+$('#mare-voltar').onclick = () => irPara('inicio');
+$('#fim-voltar').onclick = () => irPara('inicio');
+$('#fim-mais').onclick = () => etapa('escolha');
+$('#comecar').onclick = () => comecarSessao();
+$('#encerrar').onclick = () => { pararMare?.(); terminarSessao(false); };
+
+const ceuEscolhido = () => ($('#c-ceu').value === 'auto' ? ceuDaHora() : $('#c-ceu').value);
+$('#c-ceu').onchange = () => { oceano?.setCeu(ceuEscolhido()); pintarNevoa(ceuEscolhido()); };
+
+let nevoaIntro = 0, nevoaMar = 0, mostrandoMar = false;
+// a névoa do oceano só vale quando ele está na tela (antes disso o planeta ainda aparece)
+function nevoa(v) { nevoaMar = mostrandoMar ? v : 0; $('#nevoa').style.opacity = Math.max(nevoaMar * 0.96, nevoaIntro).toFixed(3); }
+function pintarNevoa(ceu) { const [c0, c1] = corDaNevoa(ceu); $('#nevoa').style.background = `radial-gradient(120% 90% at 50% 40%, ${c0} 0%, ${c1} 100%)`; }
+const esperar = (ms) => new Promise((ok) => setTimeout(ok, ms));
+const suaveT = (t) => t * t * (3 - 2 * t);
+function animarNevoaIntro(de, para, ms) {
+  return new Promise((ok) => {
+    const t0 = performance.now();
+    const f = (agora) => { const t = Math.min(1, (agora - t0) / ms); nevoaIntro = de + (para - de) * suaveT(t); nevoa(nevoaMar); if (t < 1) requestAnimationFrame(f); else ok(); };
+    requestAnimationFrame(f);
+  });
+}
+function garantirOceano() {
+  oceano ??= criarOceano($('#camada-oceano'), { ceu: ceuEscolhido(), movimentoReduzido: s.mov, aoNevoa: nevoa, pausado: true });
+  return oceano;
+}
+
+const PAINEIS = { escolha: ['#mare-escolha'], sessao: ['#mare-sessao', '#mare-rodape'], fim: ['#mare-fim'] };
+function mostrarPainel(el, atraso = 0) {
+  clearTimeout(el._t); el.classList.remove('sumindo');
+  if (!el.hidden && !el.classList.contains('surgindo')) return;
+  el.hidden = false; el.classList.add('surgindo');
+  el._t = setTimeout(() => requestAnimationFrame(() => requestAnimationFrame(() => el.classList.remove('surgindo'))), atraso);
+}
+function esconderPainel(el) {
+  if (el.hidden) return;
+  clearTimeout(el._t); el.classList.remove('surgindo'); el.classList.add('sumindo');
+  el._t = setTimeout(() => { el.hidden = true; el.classList.remove('sumindo'); }, s.mov ? 0 : 270);
+}
+// troca de etapa: o painel atual sai, o próximo entra logo depois (sem os dois ao mesmo tempo)
+function etapa(nome) {
+  let saiu = false;
+  Object.entries(PAINEIS).forEach(([k, qs]) => { if (k !== nome) qs.forEach((q) => { if (!$(q).hidden) saiu = true; esconderPainel($(q)); }); });
+  if (nome) (PAINEIS[nome] || []).forEach((q, i) => mostrarPainel($(q), (saiu && !s.mov ? 280 : 0) + i * 80));
+  if (nome === 'escolha') respirarOcioso();
+}
+let ocioso = null;
+function respirarOcioso() {
+  cancelAnimationFrame(ocioso);
+  const t0 = performance.now();
+  const f = (agora) => { const v = 0.5 - 0.5 * Math.cos((agora - t0) / 1000 * Math.PI * 2 / 10); oceano?.setFolego(v * 0.6); ocioso = requestAnimationFrame(f); };
+  ocioso = requestAnimationFrame(f);
+}
+
+// Entrada: uma queda contínua. O planeta aproxima cada vez mais rápido em direção ao mar ao lado do Brasil;
+// no meio do zoom, a vista do alto do oceano (com as mesmas nuvens por cima) se mistura com o planeta;
+// a câmera continua caindo olhando para baixo, atravessa as nuvens como véus e levanta o olhar até o horizonte.
+const PONTO_MAR = { lon: -31, lat: -9 };
+let saidaDoMar = false;
+async function entrarNoMar(reduzido) {
+  mergulhando = true;
+  abrirSom();                                  // ainda dentro do toque
+  etapa(null);
+  const o = garantirOceano(), ceu = ceuEscolhido();
+  o.setCeu(ceu); o.setOpcoes({ movimentoReduzido: s.mov });
+  if (!reduzido && globo) {
+    o.preparar();
+    const base = app.getBoundingClientRect();
+    globo.focar(PONTO_MAR); globo.nuvens(1.6);
+    globo.irPara({ cx: base.width / 2, cy: base.height / 2, r: 1600, opacidade: 1 }, 1800, 'queda');
+    posicionarSombra({ cx: 0, cy: 0, r: 0, opacidade: 0 }, false);
+    await esperar(1300);
+    o.ligar();
+    $('#camada-oceano').classList.add('on'); mostrandoMar = true; app.classList.add('no-mar');   // mistura de 650 ms enquanto o planeta ainda aproxima
+    const descida = o.descer(4200);
+    setTimeout(() => { if (somLigado) som?.volume(VOLUME_MAR, 3.5); }, 1600);
+    await esperar(950);
+    globo.irPara({ opacidade: 0 }, 0); globo.nuvens(1);
+    await descida;
+  } else {
+    if (globo) globo.irPara({ opacidade: 0 }, 0);
+    o.pousar(); o.ligar();
+    $('#camada-oceano').classList.add('on'); mostrandoMar = true; app.classList.add('no-mar');
+    if (somLigado) som?.volume(VOLUME_MAR, 2);
+  }
+  etapa('escolha');
+  mergulhando = false;
+}
+
+// Saída: o caminho inverso. A câmera sobe olhando para baixo, a vista do alto se mistura com o planeta
+// bem de perto, e o planeta se afasta desacelerando até o lugar dele na tela.
+async function sairDoMar() {
+  mergulhando = true;
+  pararMare?.(); cancelAnimationFrame(ocioso);
+  som?.volume(0, 1.4);
+  const reduzido = s.mov;
+  etapa(null);
+  const base = app.getBoundingClientRect();
+  if (!reduzido && oceano) {
+    oceano.setFolego(0);
+    await oceano.subir(1900);
+    if (globo) { globo.focar(PONTO_MAR); globo.nuvens(1); globo.irPara({ cx: base.width / 2, cy: base.height / 2, r: 1600, opacidade: 1 }, 0); }
+    $('#camada-oceano').classList.remove('on'); mostrandoMar = false; app.classList.remove('no-mar');
+    saidaDoMar = true;
+    mergulhando = false;
+    setTimeout(() => oceano?.desligar(), 700);
+  } else {
+    oceano?.desligar();
+    $('#camada-oceano').classList.remove('on'); mostrandoMar = false; app.classList.remove('no-mar');
+    if (globo) { globo.focar(PONTO_MAR); globo.irPara({ cx: base.width / 2, cy: base.height / 2, r: 140, opacidade: 1 }, 0); }
+    mergulhando = false;
+  }
+}
+
+let sessao = null;
+function comecarSessao() {
+  cancelAnimationFrame(ocioso);
+  const t = TECNICAS[tecnica];
+  const ciclo = t.passos.reduce((a, p) => a + p[2], 0);
+  const total = minutos * 60;
+  sessao = { t, ciclo, total, decorrido: 0, pausado: false, ultimo: performance.now(), fala: -1, antes: +$('#vontade-antes').value };
+  $('#tecnica-nome').textContent = t.nome;
+  $('#prompt').textContent = ''; $('#fase').textContent = '';
+  $('#pausa-sessao').textContent = 'Pausar';
+  etapa('sessao');
+  const anel = $('#anel-prog'), bolha = $('#bolha');
+  let raf;
+  const passo = (agora) => {
+    const dt = (agora - sessao.ultimo) / 1000; sessao.ultimo = agora;
+    if (!sessao.pausado) sessao.decorrido += dt;
+    const e = sessao.decorrido;
+    // em que ponto do ciclo estamos
+    let x = e % ciclo, ant = 0, v = 0, rot = t.passos[0];
+    for (const p of t.passos) {
+      if (x < p[2]) {
+        const k = x / p[2], sk = 0.5 - 0.5 * Math.cos(Math.PI * k);
+        v = ant + (p[3] - ant) * sk; rot = [...p, Math.ceil(p[2] - x)]; break;
+      }
+      x -= p[2]; ant = p[3];
+    }
+    if ($('#fase').textContent !== rot[0]) {
+      const f = rot[0] === 'Solte' ? 'solte' : rot[0] === 'Inspire' ? 'inspire' : 'mais';
+      $('#fase').textContent = rot[0]; $('#fase').dataset.fase = f; bolha.dataset.fase = f;
+    }
+    $('#dica').textContent = `${rot[1]} · ${rot[4]}`;
+    bolha.style.transform = `scale(${0.42 + 0.58 * v})`; // cheio = encosta no anel
+    oceano?.setFolego(v);
+    const resta = Math.max(0, Math.ceil(sessao.total - e));
+    $('#tempo').firstChild.textContent = `${Math.floor(resta / 60)}:${String(resta % 60).padStart(2, '0')}`;
+    anel.setAttribute('stroke-dashoffset', (653.5 * (1 - Math.min(1, e / sessao.total))).toFixed(1));
+    if (t.falas) {
+      const i = Math.min(t.falas.length - 1, Math.floor(e / (sessao.total / t.falas.length)));
+      if (i !== sessao.fala) { sessao.fala = i; $('#prompt').textContent = t.falas[i]; }
+    }
+    if (e >= sessao.total) { terminarSessao(true); return; }
+    raf = requestAnimationFrame(passo);
+  };
+  raf = requestAnimationFrame(passo);
+  pararMare = () => { cancelAnimationFrame(raf); pararMare = null; };
+  $('#pausa-sessao').onclick = () => { sessao.pausado = !sessao.pausado; $('#pausa-sessao').textContent = sessao.pausado ? 'Continuar' : 'Pausar'; };
+}
+
+function terminarSessao(completa) {
+  pararMare?.();
+  const feita = sessao && sessao.decorrido >= 60;
+  if (feita) { s.mares = Math.min(10, s.mares + 1); sincronizarPainel(); aplicar(); }
+  $('#fim-titulo').textContent = completa ? 'Passou?' : 'Tudo bem parar aqui.';
+  $('#vontade-depois').value = sessao ? sessao.antes : 5; $('#o-depois').textContent = $('#vontade-depois').value;
+  $('#fim-mare').textContent = feita ? `Maré ${s.mares} de 10. O mar sente cada uma.` : 'Com 1 minuto ou mais, a sessão conta como uma Maré.';
+  mostrarResultado();
+  etapa('fim');
+  oceano?.setFolego(0.3);
+}
+function mostrarResultado() {
+  if (!sessao) return;
+  const a = sessao.antes, d = +$('#vontade-depois').value;
+  $('#resultado').innerHTML = d < a ? `A vontade foi de <b>${a}</b> para <b>${d}</b>. Você deixou a onda passar.`
+    : d === a ? `A vontade continua em <b>${d}</b>. Às vezes ela demora mais. Mais uma rodada pode ajudar.`
+    : `A vontade subiu para <b>${d}</b>. Se ela continuar forte, chame alguém da sua órbita ou ligue 188 (CVV).`;
+}
+
+// ---------- informação ----------
+function abrirInfo(abrir) {
+  $('#info').classList.toggle('aberta', abrir); $('#veu').classList.toggle('on', abrir);
+  $('#info').setAttribute('aria-hidden', String(!abrir)); $('#info').inert = !abrir;
+  if (abrir) $('#fechar-info').focus(); else $('#abrir-info').focus();
+}
+$('#abrir-info').onclick = () => abrirInfo(true);
+$('#fechar-info').onclick = () => abrirInfo(false);
+$('#veu').onclick = () => abrirInfo(false);
+app.addEventListener('keydown', (e) => { if (e.key === 'Escape' && $('#info').classList.contains('aberta')) abrirInfo(false); });
+
+let avisoT;
+function aviso(txt) { const a = $('#aviso'); a.textContent = txt; a.classList.add('on'); clearTimeout(avisoT); avisoT = setTimeout(() => a.classList.remove('on'), 2600); }
+
+// cliques delegados
+app.addEventListener('click', (e) => {
+  const ir = e.target.closest('[data-ir]'); if (ir) { irPara(ir.dataset.ir); return; }
+  const av = e.target.closest('[data-aviso]'); if (av) { aviso(av.dataset.aviso); return; }
+  const rg = e.target.closest('[data-regiao]'); if (rg) { selecionarRegiao(+rg.dataset.regiao); }
+});
+function selecionarRegiao(k) {
+  regiaoSel = k; if (globo) globo.focarRegiao(k); atualizarTextos();
+  const b = $(`[data-regiao="${k}"]`); if (b) { b.focus({ preventScroll: true }); b.scrollIntoView({ block: 'nearest', behavior: s.mov ? 'auto' : 'smooth' }); }
+}
+$('#pausar').onclick = () => {
+  if (!globo) return; const p = !globo.pausado; globo.pausar(p);
+  $('#pausar').setAttribute('aria-pressed', String(p));
+  $('#pausar').setAttribute('aria-label', p ? 'Retomar o movimento do planeta' : 'Pausar o movimento do planeta');
+  $('#icone-pausa').setAttribute('d', p ? 'M3 2l7 4-7 4z' : 'M3 2h2v8H3zM7 2h2v8H7z');
+};
+
+// ---------- Órbita ----------
+// Pessoas fictícias da demo. Os recados são escritos pela própria pessoa (tela Escrever); o app nunca inventa um.
+const ORBITA = [
+  { nome: 'Ana', relacao: 'irmã', cor: '#5DCAA5', borda: '#0F6E56', fundo: '#E1F5EE', recados: [{ txt: 'Um dia de cada vez. Tô orgulhosa de você e tô aqui.', quando: '12/10' }, { txt: 'Lembrei de você hoje. Bora tomar um café no sábado?', quando: '20/10' }], prox: 0 },
+  { nome: 'Pedro', relacao: 'amigo', cor: '#AFA9EC', borda: '#3C3489', fundo: '#EEEDFE', recados: [{ txt: 'Se apertar, me liga. Qualquer hora.', quando: '15/10' }], prox: 0 },
+];
+let escrevendo = 0, recadoT = null;
+function desenharOrbita() {
+  $('#lista-orbita').innerHTML = ORBITA.map((p, i) => {
+    const t = globo?.proximaVolta(i), m = t == null ? '' : t >= 60 ? `${Math.ceil(t / 60)} min` : `${Math.ceil(t)} s`;
+    return `<li><span class="ini" style="background:${p.fundo};border-color:${p.borda};color:${p.borda}">${p.nome[0]}</span><span class="quem"><b>${p.nome} · ${p.relacao}</b><small>${p.recados.length} recado${p.recados.length === 1 ? '' : 's'}${m ? ` · próxima volta em ${m}` : ''}</small></span><button class="acao-lin" type="button" data-escrever="${i}">Escrever</button></li>`;
+  }).join('') + '<li style="border-style: dashed; justify-content: center"><button class="acao-lin" type="button" data-aviso="No app: nome, relação e telefone, que ficam só neste celular. Até 3 pessoas.">+ Colocar alguém na órbita</button></li>';
+}
+setInterval(() => { if (telaAtual === 'orbita') desenharOrbita(); }, 1000);
+app.addEventListener('click', (e) => {
+  const b = e.target.closest('[data-escrever]'); if (!b) return;
+  escrevendo = +b.dataset.escrever;
+  $('#recado-titulo').textContent = `${ORBITA[escrevendo].nome}, deixe um recado para o Rafael`;
+  $('#recado-texto').value = '';
+  irPara('recado');
+});
+$('#ideias').onclick = (e) => { const c = e.target.closest('.chip-ideia'); if (c) { const t = $('#recado-texto'); t.value = (t.value ? t.value + ' ' : '') + c.textContent; t.focus(); } };
+$('#salvar-recado').onclick = () => {
+  const txt = $('#recado-texto').value.trim();
+  if (!txt) { aviso('Escreva um recado antes de salvar.'); return; }
+  const d = new Date(); ORBITA[escrevendo].recados.push({ txt, quando: `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}` });
+  ORBITA[escrevendo].prox = ORBITA[escrevendo].recados.length - 1;   // o novo recado é o próximo a aparecer
+  aviso('Recado salvo. Ele chega na próxima volta do satélite.');
+  irPara('orbita');
+};
+function mostrarRecado(i) {
+  const p = ORBITA[i];
+  if (!$('#recados-on').checked || !p || !p.recados.length) return;
+  if (!['inicio', 'mapa', 'orbita', 'perfil'].includes(telaAtual) || mergulhando) return;   // nunca na respiração, tempestade ou Ajuda
+  const r = p.recados[p.prox % p.recados.length]; p.prox++;
+  const ini = $('#recado-ini'); ini.textContent = p.nome[0]; ini.style.background = p.fundo; ini.style.borderColor = p.borda; ini.style.color = p.borda;
+  $('#recado-quem').textContent = `${p.nome} passou pela sua órbita`;
+  $('#recado-quando').textContent = `Recado que ${p.relacao === 'irmã' ? 'ela' : 'ele'} escreveu em ${r.quando}`;
+  $('#recado-txt').textContent = `“${r.txt}”`;
+  $('#recado-responder').textContent = `Responder ${p.relacao === 'irmã' ? 'à' : 'ao'} ${p.nome}`;
+  $('#recado-responder').dataset.aviso = `No app, abre a conversa com ${p.nome}. Na demo, nada é enviado.`;
+  $('#recado').classList.add('on');
+  clearTimeout(recadoT); recadoT = setTimeout(fecharRecado, 15000);
+}
+function fecharRecado() { $('#recado').classList.remove('on'); clearTimeout(recadoT); }
+$('#recado-fechar').onclick = fecharRecado;
+$('#recado-ok').onclick = fecharRecado;
+$('#recado-responder').addEventListener('click', () => setTimeout(fecharRecado, 50));
+$('#c-volta').onchange = (e) => { globo?.setPeriodoVolta(+e.target.value); desenharOrbita(); };
+
+// ---------- Finanças ----------
+// Regras: nada de dinheiro real nem conexão com banco (edital 8.4/8.5); valores fictícios só na demo;
+// o rio volta pelo PASSO dado, nunca pelo valor pago; nunca mostrar "quanto perdeu".
+const PASSOS = ['Listei', 'Abri a negociação', 'Renegociei', 'Paguei a 1ª parcela', 'Quitei'];
+const PASSOS_FAMILIA = ['Listei', 'Conversei com calma', 'Combinamos um valor por mês', 'Paguei a 1ª parte', 'Quitei'];
+const FAZER = ['Listar', 'Abrir a negociação', 'Renegociar', 'Pagar a 1ª parcela', 'Quitar'];
+const FAZER_FAMILIA = ['Listar', 'Conversar com calma', 'Combinar um valor por mês', 'Pagar a 1ª parte', 'Quitar'];
+const JUROS = { 'muito alto': 3, alto: 2, 'sem juros': 0 };
+const FIN_PADRAO = {
+  aba: 'dividas', estrategia: 'cara',
+  basico: { Moradia: true, Comida: true, 'Luz e água': false, Transporte: true, Remédios: true },
+  dividas: [
+    { id: 'cartao', tipo: 'Cartão de crédito', det: 'rotativo', valor: 2400, juros: 'muito alto', passo: 1, plano: null },
+    { id: 'cheque', tipo: 'Cheque especial', valor: 800, juros: 'muito alto', passo: 1, plano: null },
+    { id: 'emprestimo', tipo: 'Empréstimo pessoal', valor: 3500, juros: 'alto', passo: 1, plano: null },
+    { id: 'ana', tipo: 'Ana', det: 'irmã', valor: 500, juros: 'sem juros', passo: 1, plano: null, familia: true },
+  ],
+  barreiras: { pix: false, bloqueador: false, combinado: false },
+};
+let fin = JSON.parse(JSON.stringify(FIN_PADRAO)), dividaAberta = 'cartao', planoTmp = { quando: null, onde: null };
+const reais = (v) => 'R$ ' + v.toLocaleString('pt-BR');
+const passosDe = (d) => (d.familia ? PASSOS_FAMILIA : PASSOS);
+const fazerDe = (d) => (d.familia ? FAZER_FAMILIA : FAZER);
+function ordemDividas() {
+  const abertas = fin.dividas.filter((d) => d.passo < 5), quitadas = fin.dividas.filter((d) => d.passo >= 5);
+  abertas.sort(fin.estrategia === 'cara' ? (a, b) => (JUROS[b.juros] - JUROS[a.juros]) || (b.valor - a.valor) : (a, b) => a.valor - b.valor);
+  return [...abertas, ...quitadas];
+}
+function desenharRiosFin() {
+  const nomes = { amazonas: 'Amazonas', saoFrancisco: 'São Francisco', parana: 'Paraná' };
+  const dica = { amazonas: '1º passo numa dívida', saoFrancisco: '1ª Barreira', parana: '1ª renegociação' };
+  Object.keys(nomes).forEach((k) => {
+    const on = !!s.rios[k];
+    $(`#rios-faixa [data-rio="${k}"]`).classList.toggle('on', on);
+    const r = $(`#rios-faixa [data-rot="${k}"]`); r.classList.toggle('on', on);
+    r.querySelector('small').textContent = on ? 'correndo' : dica[k];
+  });
+  const n = Object.values(s.rios).filter(Boolean).length;
+  $('#rios-faixa').setAttribute('aria-label', `Rios do planeta: ${n} de 3 correndo. ` + Object.keys(nomes).map((k) => `${nomes[k]} ${s.rios[k] ? 'correndo' : 'seco, volta com ' + dica[k]}`).join('; '));
+}
+const pontos = (d) => { const n = d.passo; return `<div class="pontos5" aria-hidden="true"><span class="barra" style="width: ${Math.max(0, Math.min(n, 5) - 1) * 20}%"></span>${[0, 1, 2, 3, 4].map((k) => `<i class="${k < n ? 'feito' : k === n ? 'agora' : ''}"></i>`).join('')}</div>`; };
+const escalonar = (el) => [...el.children].forEach((c, k) => c.style.setProperty('--k', k));
+const ICO = {
+  pix: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M12 3a9 9 0 1 0 0 18a9 9 0 1 0 0-18M12 7v5l3 2"/></svg>',
+  bloqueador: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M12 3l7 3v5c0 4.5-3 8-7 10c-4-2-7-5.5-7-10V6z"/></svg>',
+  combinado: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="8" cy="9" r="3"/><circle cx="16" cy="9" r="3"/><path d="M3 19c1-3 3-4.5 5-4.5s4 1.5 5 4.5M11 19c1-3 3-4.5 5-4.5s4 1.5 5 4.5"/></svg>',
+  auto: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M6 6l12 12"/></svg>',
+};
+function desenharFin() {
+  desenharRiosFin();
+  const abas = ['basico', 'dividas', 'barreiras'];
+  $$('#tela-financas [data-aba]').forEach((b) => b.setAttribute('aria-selected', String(b.dataset.aba === fin.aba)));
+  $('#ind-abas').style.setProperty('--i', abas.indexOf(fin.aba));
+  const p = $('#painel-fin'); p.setAttribute('aria-labelledby', 'aba-' + fin.aba);
+  const rodape = '<p class="rodape-fin">Não é consultoria financeira · orientação grátis no Procon ou na Defensoria</p>';
+  if (fin.aba === 'basico') {
+    const falta = Object.entries(fin.basico).filter(([, v]) => !v).map(([k]) => k.toLowerCase());
+    p.innerHTML = `
+      <h3 class="tit-fin">Este mês está garantido?</h3>
+      <div class="basicos">${Object.entries(fin.basico).map(([k, v]) => `<button type="button" data-basico="${k}" aria-pressed="${v}">${k}</button>`).join('')}</div>
+      ${falta.length ? `<p class="alerta-fin">Primeiro ${falta.join(', ')}, depois as dívidas. O CRAS da sua cidade orienta sobre ajuda.</p>` : '<p class="alerta-fin bom">O básico está garantido. Dá para olhar as dívidas com calma.</p>'}
+      <details class="saber"><summary>A lei protege o seu mínimo</summary><div class="corpo"><p>Pela Lei do Superendividamento, dá para renegociar todas as dívidas juntas no Procon ou na Justiça, preservando R$ 600 por mês para viver. O STF manteve esse valor em abril de 2026.</p><p class="fonte">Lei 14.181/2021 · Decreto 11.150/2022 · STF, ADPFs 1.005, 1.006 e 1.097</p></div></details>
+      <details class="saber"><summary>Não lembra de todas as dívidas?</summary><div class="corpo"><p>O Registrato, do Banco Central, mostra de graça as dívidas no seu CPF. Precisa de conta gov.br prata ou ouro.</p></div></details>
+      ${rodape}`;
+  } else if (fin.aba === 'dividas') {
+    const ordem = ordemDividas(), foco = ordem.find((d) => d.passo < 5), resto = ordem.filter((d) => d !== foco);
+    const est = fin.estrategia === 'cara';
+    p.innerHTML = `
+      <div class="estrat"><span class="rotulo-fin" id="rot-estrat">Começar pela</span><div class="seg mini" role="group" aria-labelledby="rot-estrat" style="--n: 2"><span class="ind" aria-hidden="true" style="--i: ${est ? 0 : 1}"></span><button type="button" data-estrategia="cara" aria-pressed="${est}">mais cara</button><button type="button" data-estrategia="menor" aria-pressed="${!est}">menor</button></div></div>
+      <p class="dica-fin">${est ? 'Paga menos juros no total.' : 'Quitar uma logo dá fôlego.'} Uma de cada vez.</p>
+      ${foco ? `<article class="foco" aria-label="Foco agora: ${foco.tipo}">
+        <span class="etq">Foco agora</span>
+        <div class="topo-foco"><h3>${foco.tipo}</h3><span class="val">${reais(foco.valor)}</span></div>
+        ${pontos(foco)}
+        <p class="passo-txt">Passo ${foco.passo + 1} de 5${foco.plano ? ` · plano: ${foco.plano}` : ''}</p>
+        <button class="botao fin" type="button" data-divida="${foco.id}">${fazerDe(foco)[foco.passo]} <span aria-hidden="true">→</span></button>
+      </article>` : '<p class="alerta-fin bom">Todas quitadas. Isso fica para sempre.</p>'}
+      ${resto.length ? `<p class="mini-tit">Depois</p><ul class="lista-curta">${resto.map((d) => `<li><button type="button" data-divida="${d.id}"><span>${d.tipo}</span>${d.passo >= 5 ? '<span class="ok">✓ quitada</span>' : `<span class="val">${reais(d.valor)}</span>`}<span class="mini" aria-hidden="true">${[0, 1, 2, 3, 4].map((k) => `<i class="${k < d.passo ? 'feito' : ''}"></i>`).join('')}</span></button></li>`).join('')}</ul>` : ''}
+      <p class="rodape-fin">Os rios voltam pelos passos, nunca pelo valor.</p>`;
+  } else {
+    const b = fin.barreiras;
+    const item = (id, tit, corpo, ok) => `<details class="saber ${ok ? 'ativa' : ''}"><summary><span class="lado"><span class="ico">${ICO[id]}</span>${tit}</span><span class="est">${ok ? '✓ ativa' : ''}</span></summary><div class="corpo">${corpo}${ok ? '' : `<button class="botao fin" type="button" data-barreira="${id}">${id === 'combinado' ? 'Combinei' : 'Fiz isso'}</button>`}</div></details>`;
+    p.innerHTML = `
+      ${item('pix', 'Pix menor à noite', '<p>Baixar o limite vale na hora; aumentar leva 24 horas. A espera protege de madrugada.</p><ol><li>No app do banco, abra o Pix.</li><li>Entre em "Meus limites".</li><li>Baixe o valor do período noturno.</li></ol><p class="fonte">Banco Central: noite das 20h às 6h, limite padrão de R$ 1.000.</p>', b.pix)}
+      ${item('bloqueador', 'Bloqueador de sites', '<p>Sites ilegais continuam no ar. Um bloqueador no celular fecha a porta antes da vontade. Há opções gratuitas.</p>', b.bloqueador)}
+      ${item('combinado', 'Combinar com alguém da Órbita', '<p>Por exemplo: "Se eu quiser aumentar o limite do Pix, te aviso antes." O app não toca no seu dinheiro.</p>', b.combinado)}
+      <details class="saber conferir"><summary><span class="lado"><span class="ico">${ICO.auto}</span>Autoexclusão</span><span class="est">a conferir</span></summary><div class="corpo"><p>As apostas estão proibidas pela MP 1.394/2026 e o STF discute a medida. Se voltarem, bloquear o próprio CPF pelo gov.br é uma barreira forte.</p><p class="fonte">Reconferir após a audiência do STF de 3/11.</p></div></details>
+      <p class="dica-fin" style="margin: 0 2px">A primeira Barreira traz o São Francisco de volta.</p>
+      ${rodape}`;
+  }
+  escalonar(p);
+}
+const ONDE = { padrao: ['consumidor.gov.br', 'Procon', 'Canal do credor', 'Defensoria'], familia: ['Pessoalmente', 'Por mensagem', 'Por ligação'] };
+function desenharDivida() {
+  const d = fin.dividas.find((x) => x.id === dividaAberta); if (!d) return;
+  const pss = passosDe(d), prox = fazerDe(d)[d.passo] || '', onde = d.familia ? ONDE.familia : ONDE.padrao;
+  const roteiro = d.familia
+    ? `“${d.tipo}, quero te devolver o que você me emprestou. Consigo R$ __ por mês sem faltar o básico. Pode ser assim?”`
+    : '“Quero negociar esta dívida. Consigo pagar R$ __ por mês sem faltar o básico. Quais condições vocês oferecem? Pode mandar por escrito?”';
+  const p = $('#painel-divida');
+  p.innerHTML = `
+    <div class="topo-foco" style="display: flex; justify-content: space-between; align-items: baseline; gap: 10px"><h2 style="margin: 0; font-family: var(--f-titulo); font-weight: 400; font-size: 28px; color: var(--texto)">${d.tipo}${d.det ? `<small style="font-family: var(--f-texto); font-size: 14px; color: var(--neutro)"> · ${d.det}</small>` : ''}</h2><b style="font-variant-numeric: tabular-nums; white-space: nowrap">${reais(d.valor)}</b></div>
+    <div style="display: flex; flex-direction: column; gap: 8px">${pontos(d)}<p class="passo-txt">${d.passo >= 5 ? 'Quitada' : `Passo ${d.passo + 1} de 5 · ${pss.slice(0, d.passo).length ? 'feito: ' + pss[d.passo - 1].toLowerCase() : ''}`}</p></div>
+    ${d.passo >= 5 ? '<p class="alerta-fin bom">Quitada. Isso fica para sempre.</p>' : `
+    <div class="cartao-fin">
+      <h3 class="tit-fin">${prox}</h3>
+      <p class="rotulo-fin">Quando?</p>
+      <div class="escolhas">${['Hoje', 'Amanhã', 'No fim de semana'].map((q) => `<button type="button" data-quando="${q}" aria-pressed="${planoTmp.quando === q}">${q}</button>`).join('')}</div>
+      <p class="rotulo-fin">Onde?</p>
+      <div class="escolhas">${onde.map((o) => `<button type="button" data-onde="${o}" aria-pressed="${planoTmp.onde === o}">${o}</button>`).join('')}</div>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 4px"><button class="botao contorno" type="button" id="guardar-plano" style="text-align: center; white-space: nowrap">Guardar plano</button><button class="botao fin" type="button" id="fiz-passo">Fiz este passo</button></div>
+    </div>
+    <details class="saber"><summary>${d.familia ? 'Para a conversa' : 'O que falar'}</summary><div class="corpo"><p class="roteiro" id="roteiro">${roteiro}</p><button class="botao contorno" type="button" id="copiar-roteiro" style="text-align: center">Copiar texto</button></div></details>
+    ${d.familia ? '<details class="saber"><summary>Por que combinar</summary><div class="corpo"><p>Sem juros, o cuidado é a relação. Combinar um valor por mês, sem pedir que paguem outras dívidas por você.</p></div></details>' : '<details class="saber"><summary>Onde negociar sem custo</summary><div class="corpo"><p><b>consumidor.gov.br</b>: plataforma pública do Ministério da Justiça. <b>Procon</b> e <b>Defensoria</b>: orientação gratuita e conciliação no superendividamento.</p><p class="fonte">Senacon/Ministério da Justiça · Lei 14.181/2021</p></div></details>'}`}
+    <p class="rodape-fin">Valor fictício · não é consultoria financeira</p>`;
+  escalonar(p);
+}
+function verificarRios() {
+  const antes = { ...s.rios };
+  const maxPasso = Math.max(...fin.dividas.map((d) => d.passo));
+  if (maxPasso >= 2) s.rios.amazonas = true;          // 1º passo depois de listar
+  if (maxPasso >= 3) s.rios.parana = true;            // 1ª renegociação (ou combinado com a família)
+  if (Object.values(fin.barreiras).some(Boolean)) s.rios.saoFrancisco = true;
+  const novo = ['amazonas', 'saoFrancisco', 'parana'].find((k) => s.rios[k] && !antes[k]);
+  sincronizarPainel(); aplicar(); desenharRiosFin();
+  if (novo) {
+    const txt = { amazonas: ['O Amazonas voltou a correr', 'Você deu o primeiro passo numa dívida.'], saoFrancisco: ['O São Francisco voltou a correr', 'Você ativou sua primeira Barreira.'], parana: ['O Paraná voltou a correr', 'Você renegociou sua primeira dívida.'] }[novo];
+    $('#rio-titulo').textContent = txt[0]; $('#rio-sub').textContent = txt[1];
+    $('#rio-volta').classList.add('on');
+  }
+}
+const fecharRio = () => $('#rio-volta').classList.remove('on');
+$('#rio-fechar').onclick = fecharRio; $('#rio-ok').onclick = fecharRio;
+$('#rio-ver').onclick = () => { fecharRio(); regiaoSel = -1; irPara('mapa'); };
+app.addEventListener('click', (e) => {
+  const t = e.target;
+  const aba = t.closest('[data-aba]'); if (aba) { fin.aba = aba.dataset.aba; desenharFin(); return; }
+  const bas = t.closest('[data-basico]'); if (bas) { fin.basico[bas.dataset.basico] = !fin.basico[bas.dataset.basico]; desenharFin(); return; }
+  const est = t.closest('[data-estrategia]'); if (est) { fin.estrategia = est.dataset.estrategia; desenharFin(); return; }
+  const dv = t.closest('[data-divida]'); if (dv) { dividaAberta = dv.dataset.divida; planoTmp = { quando: null, onde: null }; irPara('divida'); return; }
+  const bar = t.closest('[data-barreira]'); if (bar) { if (!fin.barreiras[bar.dataset.barreira]) { fin.barreiras[bar.dataset.barreira] = true; desenharFin(); verificarRios(); } return; }
+  const q = t.closest('[data-quando]'); if (q) { planoTmp.quando = q.dataset.quando; desenharDivida(); return; }
+  const o = t.closest('[data-onde]'); if (o) { planoTmp.onde = o.dataset.onde; desenharDivida(); return; }
+  if (t.closest('#guardar-plano')) {
+    const d = fin.dividas.find((x) => x.id === dividaAberta);
+    if (!planoTmp.quando || !planoTmp.onde) { aviso('Escolha quando e onde.'); return; }
+    d.plano = `${planoTmp.quando.toLowerCase()}, ${d.familia ? planoTmp.onde.toLowerCase() : planoTmp.onde}`; aviso('Plano guardado. Ele aparece na lista de dívidas.'); irPara('financas'); return;
+  }
+  if (t.closest('#fiz-passo')) {
+    const d = fin.dividas.find((x) => x.id === dividaAberta);
+    d.passo = Math.min(5, d.passo + 1); d.plano = null; planoTmp = { quando: null, onde: null };
+    desenharDivida(); verificarRios();
+    if (d.passo >= 5) aviso('Dívida quitada. Isso fica para sempre.');
+    return;
+  }
+  if (t.closest('#copiar-roteiro')) {
+    const txt = $('#roteiro').textContent;
+    try { navigator.clipboard.writeText(txt).then(() => aviso('Texto copiado.'), () => aviso('Selecione o texto para copiar.')); } catch { aviso('Selecione o texto para copiar.'); }
+  }
+});
+
+// ---------- Boas-vindas ----------
+// 1. o problema (as apostas secaram a terra) · 2. o que troca a aposta (o planeta revive em lapso de tempo) · 3. a pessoa começa
+let boasPasso = 0, lapso = null;
+var perfil = { nome: 'Rafael', motivo: 'Para voltar a dormir em paz' };
+const MOTIVOS = ['Para voltar a dormir em paz', 'Pela minha família', 'Para ter dinheiro de novo', 'Para voltar a ser eu'];
+const DIA1 = () => estadoDoPlaneta({ dias: 1, mares: 0, rios: {} });
+const palavras = (txt, d = 0) => txt.split(' ').map((w, k, a) => `<span class="palavra" style="--k:${k};--d:${d}ms">${w}${k < a.length - 1 ? ' ' : ''}</span>`).join('');
+const ICO_H = {
+  dias: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M12 21c-4-3-7-6.5-7-10.5a7 7 0 0 1 14 0C19 14.5 16 18 12 21z"/><path d="M12 8v6M9 11h6"/></svg>',
+  mar: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M3 10c3-3 6 3 9 0s6 3 9 0M3 15c3-3 6 3 9 0s6 3 9 0"/></svg>',
+  rio: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h14a2 2 0 0 1 2 2v9H4z"/><path d="M4 7l11-3v3"/><circle cx="16" cy="13" r="1.2" fill="currentColor"/></svg>',
+};
+function pararLapso() { if (lapso) { clearInterval(lapso); lapso = null; } }
+function planetaBoas(e) { estadoBoas = e; if (globo) globo.setEstado(e); }
+function abrirBoas() { boasPasso = 0; desenharBoas(); }
+function passoBoas(n) {
+  boasPasso = n; pararLapso();
+  $('#boas-slot').style.height = n === 0 ? '400px' : n === 1 ? '250px' : '200px';
+  requestAnimationFrame(() => { if (globo && telaAtual === 'boas') moverGlobo('boas', s.mov ? 0 : 900); });
+  desenharBoas();
+}
+function desenharBoas() {
+  $$('.pontos-boas i').forEach((i, k) => i.classList.toggle('on', k === boasPasso));
+  $('#boas-pular').hidden = boasPasso === 2;
+  const c = $('#boas-corpo');
+  if (boasPasso === 0) {
+    planetaBoas(DIA1());
+    c.innerHTML = `
+      <h2 class="boas-tit">${palavras('As apostas secaram esta terra.')}</h2>
+      <p class="boas-sub">${palavras('O Brasil rachou, os rios sumiram e o mar ficou turvo. É assim que o vício deixa a vida por dentro.', 450)}</p>
+      <button class="boas-botao surgir" style="--d: 1500ms" type="button" id="boas-seguir">Continuar <span aria-hidden="true">→</span></button>
+      <p class="sr-only">Passo 1 de 3</p>`;
+  } else if (boasPasso === 1) {
+    c.innerHTML = `
+      <div class="contador surgir" aria-hidden="true"><b id="boas-dia">1</b><span id="boas-dia-txt">dia sem apostar</span></div>
+      <h2 class="boas-tit" style="font-size: 27px">${palavras('Cada dia sem apostar devolve a vida a ela.')}</h2>
+      <ul class="habitos" aria-label="O que coloca algo no lugar da aposta">
+        <li class="surgir" style="--d: 500ms" data-h="0"><span class="ico">${ICO_H.dias}</span><b>Ficar longe das apostas</b><small>o Brasil volta a verdejar</small></li>
+        <li class="surgir" style="--d: 650ms" data-h="1"><span class="ico">${ICO_H.mar}</span><b>Respirar quando a vontade vem</b><small>o mar fica limpo</small></li>
+        <li class="surgir" style="--d: 800ms" data-h="2"><span class="ico">${ICO_H.rio}</span><b>Cuidar do dinheiro</b><small>os rios voltam a correr</small></li>
+      </ul>
+      <button class="boas-botao surgir" style="--d: 1000ms" type="button" id="boas-seguir">Continuar <span aria-hidden="true">→</span></button>
+      <p class="sr-only">Passo 2 de 3. O planeta se recupera em 90 dias: as regiões verdejam, o mar limpa e os rios voltam.</p>`;
+    lapsoDeTempo();
+  } else {
+    planetaBoas(DIA1());   // o planeta volta ao começo: agora é com a pessoa
+    c.innerHTML = `
+      <h2 class="boas-tit" style="font-size: 27px">${palavras('Você não causou isso sozinho. E pode recuperar.')}</h2>
+      <div class="campo-boas surgir" style="--d: 500ms"><label for="boas-nome">Como quer ser chamado?</label><input id="boas-nome" type="text" autocomplete="nickname" maxlength="24" value="${perfil.nome}"></div>
+      <div class="campo-boas surgir" style="--d: 620ms"><span class="rot" id="rot-motivo">Seu motivo para recomeçar</span>
+        <div class="motivos" role="group" aria-labelledby="rot-motivo">${MOTIVOS.map((m) => `<button type="button" data-motivo="${m}" aria-pressed="${perfil.motivo === m}">${m}</button>`).join('')}</div></div>
+      <p class="privado surgir" style="--d: 740ms"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>Tudo fica só neste celular.</p>
+      <button class="boas-botao surgir" style="--d: 860ms" type="button" id="boas-comecar">Começar a missão</button>
+      <p class="sr-only">Passo 3 de 3</p>`;
+  }
+}
+// lapso de tempo: 90 dias em ~5 s; regiões, mar e rios voltam na ordem do app
+function lapsoDeTempo() {
+  const el = $('#boas-dia'), txt = $('#boas-dia-txt');
+  const pintar = (d) => {
+    const rios = { saoFrancisco: d >= 25, parana: d >= 50, amazonas: d >= 70 };
+    planetaBoas(estadoDoPlaneta({ dias: d, mares: Math.min(10, Math.round(d / 9)), rios }));
+    if (el) { el.textContent = d; txt.textContent = d === 1 ? 'dia sem apostar' : 'dias sem apostar'; }
+    $$('#boas-corpo .habitos li').forEach((li, k) => li.classList.toggle('vivo', [d >= 7, d >= 27, d >= 25][k]));
+  };
+  if (s.mov) { pintar(90); return; }
+  let d = 1; pintar(1);
+  setTimeout(() => {
+    if (boasPasso !== 1 || telaAtual !== 'boas') return;
+    lapso = setInterval(() => { d = Math.min(90, d + 1 + Math.floor(d / 30)); pintar(d); if (d >= 90) pararLapso(); }, 95);
+  }, 900);
+}
+function comecarMissao() {
+  const n = ($('#boas-nome')?.value || '').trim(); perfil.nome = n || 'você';
+  Object.assign(s, { dias: 1, mares: 0, rios: { amazonas: false, saoFrancisco: false, parana: false } });
+  estadoBoas = null; sincronizarPainel(); irPara('inicio'); aplicar();
+}
+$('#tela-boas').addEventListener('click', (e) => {
+  const t = e.target;
+  if (t.closest('#boas-seguir')) { passoBoas(boasPasso + 1); return; }
+  if (t.closest('#boas-pular')) { passoBoas(2); return; }
+  const m = t.closest('[data-motivo]'); if (m) { perfil.motivo = m.dataset.motivo; $$('#tela-boas [data-motivo]').forEach((b) => b.setAttribute('aria-pressed', String(b === m))); return; }
+  if (t.closest('#boas-comecar')) comecarMissao();
+});
+$('#abrir-boas').onclick = () => { $('#boas-slot').style.height = '400px'; irPara('boas'); };
+
+// ---------- Trocar a aposta ----------
+// Substituição de lazer: o que fazer no lugar da aposta, conforme o tempo que a pessoa tem. Nada custa dinheiro, nada dá prêmio.
+const IT = (d) => `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
+const TROCAS = [
+  [ { t: 'Respirar com a Terra', d: 'Respiração lenta até a onda da vontade baixar.', ico: IT('<path d="M3 10c3-3 6 3 9 0s6 3 9 0M3 15c3-3 6 3 9 0s6 3 9 0"/>'), ir: 'mare', b: 'Respirar' },
+    { t: 'Chamar alguém da Órbita', d: '"Estou num momento difícil. Pode me ligar?"', ico: IT('<circle cx="8" cy="9" r="3"/><circle cx="16" cy="9" r="3"/><path d="M3 19c1-3 3-4.5 5-4.5s4 1.5 5 4.5M11 19c1-3 3-4.5 5-4.5s4 1.5 5 4.5"/>'), ir: 'orbita', b: 'Chamar' },
+    { t: 'Celular em outro cômodo', d: 'Feche o que estiver aberto e se afaste por alguns minutos.', ico: IT('<rect x="7" y="3" width="10" height="18" rx="2"/><path d="M11 18h2"/>'), b: 'Fiz' } ],
+  [ { t: 'Caminhar ou alongar', d: 'Dez minutos de movimento mudam o corpo e a cabeça.', ico: IT('<circle cx="13" cy="4" r="2"/><path d="M9 21l2-6 3 3v4M7 12l3-4 4 1 3 3"/>'), b: 'Fazer agora' },
+    { t: 'Ligar para alguém', d: 'Uma conversa sobre qualquer outra coisa.', ico: IT('<path d="M5 4h4l2 5-3 2a11 11 0 0 0 5 5l2-3 5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2"/>'), b: 'Fazer agora' },
+    { t: 'Um passo nas finanças', d: 'Ativar uma Barreira ou avançar uma dívida traz um rio de volta.', ico: IT('<path d="M4 7h14a2 2 0 0 1 2 2v9H4z"/><path d="M4 7l11-3v3"/><circle cx="16" cy="13" r="1.2" fill="currentColor"/>'), ir: 'financas', b: 'Abrir' } ],
+  [ { t: 'Algo das Minhas trocas', d: 'O que você já sabe que funciona para você.', ico: IT('<path d="M12 21c-4-3-7-6.5-7-10.5a7 7 0 0 1 14 0C19 14.5 16 18 12 21z"/>'), alvo: 'minhas', b: 'Ver' },
+    { t: 'Encontrar alguém', d: 'Um café, um jogo, uma volta. Perto de gente, a vontade perde força.', ico: IT('<circle cx="9" cy="8" r="3"/><path d="M3 20c1-4 3.5-6 6-6s5 2 6 6M17 11a3 3 0 1 0 0-6"/>'), b: 'Fazer agora' },
+    { t: 'Grupo de apoio', d: 'Jogadores Anônimos ou o CAPS da sua cidade, com quem já passou por isso.', ico: IT('<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/>'), ir: 'ajuda', b: 'Ver onde' } ],
+];
+let troca = { tempo: 0, fazendo: null, nota: null, minhas: ['Jogar bola com o Pedro', 'Ouvir um podcast', 'Cozinhar algo'] };
+function desenharTroca() {
+  $('#ind-tempo').style.setProperty('--i', troca.tempo);
+  $$('#tela-troca [data-tempo]').forEach((b) => b.setAttribute('aria-pressed', String(+b.dataset.tempo === troca.tempo)));
+  const p = $('#painel-troca');
+  p.innerHTML = `
+    <ul class="trocas">${TROCAS[troca.tempo].map((x, k) => `<li class="${troca.fazendo === x.t ? 'fazendo' : ''}"><span class="ico">${x.ico}</span><b>${x.t}</b><small>${x.d}</small><button type="button" data-troca="${k}">${troca.fazendo === x.t ? 'Fazendo' : x.b}</button></li>`).join('')}</ul>
+    <p class="mini-tit" id="minhas-trocas">Minhas trocas</p>
+    <div class="minhas">${troca.minhas.map((m) => `<button type="button" data-minha="${m}">${m}</button>`).join('')}
+      <form id="nova-troca"><label class="sr-only" for="nova-troca-txt">Nova troca</label><input id="nova-troca-txt" maxlength="40" placeholder="O que funciona para você?"><button class="botao contorno" type="submit" style="text-align: center">Guardar</button></form></div>
+    <p class="rodape-fin">Nada aqui custa dinheiro. Se a vontade não passar, a Ajuda está a um toque.</p>`;
+  escalonar(p);
+  $('#notas-troca').innerHTML = Array.from({ length: 11 }, (_, n) => `<button type="button" data-nota="${n}" aria-pressed="${troca.nota === n}">${n}</button>`).join('');
+  $('#passou-ok').disabled = troca.nota == null;
+}
+function comecarTroca(t) {
+  troca.fazendo = t; troca.nota = null; desenharTroca();
+  setTimeout(() => { if (telaAtual === 'troca') $('#passou').classList.add('on'); }, s.mov ? 0 : 900);
+}
+$('#tela-troca').addEventListener('click', (e) => {
+  const t = e.target;
+  const tp = t.closest('[data-tempo]'); if (tp) { troca.tempo = +tp.dataset.tempo; desenharTroca(); return; }
+  const tr = t.closest('[data-troca]');
+  if (tr) {
+    const x = TROCAS[troca.tempo][+tr.dataset.troca];
+    if (x.ir) { irPara(x.ir); return; }
+    if (x.alvo) { $('#minhas-trocas').scrollIntoView({ behavior: s.mov ? 'auto' : 'smooth', block: 'start' }); return; }
+    comecarTroca(x.t); return;
+  }
+  const mi = t.closest('[data-minha]'); if (mi) { comecarTroca(mi.dataset.minha); return; }
+  const nt = t.closest('[data-nota]'); if (nt) { troca.nota = +nt.dataset.nota; $$('#notas-troca [data-nota]').forEach((b) => b.setAttribute('aria-pressed', String(b === nt))); $('#passou-ok').disabled = false; return; }
+  if (t.closest('#passou-depois')) { $('#passou').classList.remove('on'); aviso('Tudo bem. A troca continua aqui quando precisar.'); return; }
+  if (t.closest('#passou-ok')) {
+    const nota = troca.nota, feita = troca.fazendo;
+    $('#passou').classList.remove('on'); troca.fazendo = null; troca.nota = null;
+    if (nota <= 3 && feita && !troca.minhas.includes(feita)) { troca.minhas.unshift(feita); aviso(`Vontade em ${nota}. "${feita}" foi para Minhas trocas.`); }
+    else if (nota >= 7) { aviso('A vontade continua forte. Respirar ou chamar alguém pode ajudar agora.'); }
+    else aviso(`Anotado: vontade em ${nota}.`);
+    desenharTroca(); return;
+  }
+});
+$('#tela-troca').addEventListener('submit', (e) => {
+  if (e.target.id !== 'nova-troca') return; e.preventDefault();
+  const v = $('#nova-troca-txt').value.trim(); if (!v) return;
+  if (!troca.minhas.includes(v)) troca.minhas.unshift(v);
+  desenharTroca(); aviso('Guardado em Minhas trocas.');
+});
+
+// ---------- painel ----------
+function sincronizarPainel() {
+  $('#c-dias').value = s.dias; $('#o-dias').textContent = s.dias;
+  $('#c-mares').value = s.mares; $('#o-mares').textContent = s.mares;
+  $('#r-amazonas').checked = s.rios.amazonas; $('#r-sf').checked = s.rios.saoFrancisco; $('#r-parana').checked = s.rios.parana;
+  $('#a-dalt').checked = s.dalt; $('#a-escuro').checked = s.escuro; $('#a-mov').checked = s.mov;
+}
+function aplicar() {
+  app.dataset.tema = s.escuro ? 'escuro' : 'claro';
+  app.classList.toggle('reduzido', s.mov);
+  corNav(); atualizarTextos();
+  if (globo) { globo.setOpcoes({ daltonismo: s.dalt, movimentoReduzido: s.mov, tema: s.escuro ? 'escuro' : 'claro' }); globo.setEstado(estado()); }
+}
+$('#c-dias').oninput = (e) => { s.dias = +e.target.value; sincronizarPainel(); aplicar(); };
+$('#c-mares').oninput = (e) => { s.mares = +e.target.value; sincronizarPainel(); aplicar(); };
+$('#mais-dia').onclick = () => { s.dias = Math.min(90, s.dias + 1); sincronizarPainel(); aplicar(); };
+$('#prox-regiao').onclick = () => { const i = proxima(); if (i >= 0) { s.dias = LIMIARES[i]; regiaoSel = i; if (telaAtual === 'mapa' && globo) globo.focarRegiao(i); } sincronizarPainel(); aplicar(); };
+$('#r-amazonas').onchange = (e) => { s.rios.amazonas = e.target.checked; aplicar(); };
+$('#r-sf').onchange = (e) => { s.rios.saoFrancisco = e.target.checked; aplicar(); };
+$('#r-parana').onchange = (e) => { s.rios.parana = e.target.checked; aplicar(); };
+$('#a-dalt').onchange = (e) => { s.dalt = e.target.checked; aplicar(); };
+$('#a-escuro').onchange = (e) => { s.escuro = e.target.checked; aplicar(); };
+$('#a-mov').onchange = (e) => { s.mov = e.target.checked; aplicar(); };
+$('#resetar').onclick = () => { Object.assign(s, JSON.parse(JSON.stringify(PADRAO))); fin = JSON.parse(JSON.stringify(FIN_PADRAO)); regiaoSel = -1; sincronizarPainel(); aplicar(); irPara('inicio'); };
+
+// ---------- início ----------
+sincronizarPainel(); aplicar();
+const inicial = (location.hash || '#boas').slice(1);   // o app abre pela história
+irPara(telas.includes(inicial) ? inicial : 'inicio', { sem: true });
+addEventListener('hashchange', () => irPara(location.hash.slice(1)));
+
+try {
+  globo = await criarGlobo($('#camada'), {
+    assets: './assets/', estado: estado(), movimentoReduzido: s.mov,
+    periodoVolta: 25, aoVoltaSatelite: (i) => mostrarRecado(i),
+    aoTocarRegiao: (k) => {
+      if (k < 0) return;
+      if (telaAtual === 'inicio') { regiaoSel = k; irPara('mapa'); }
+      else if (telaAtual === 'mapa') selecionarRegiao(k);
+    },
+  });
+  globo.setSatelites(ORBITA);
+  aplicar();
+  moverGlobo(telaAtual, 0);
+  desenharOrbita();
+  if (telaAtual === 'mapa') globo.focarRegiao(regiaoSel);
+  if (telaAtual === 'mare') { globo.irPara({ opacidade: 0 }, 0); }
+  app.classList.add('pronto');
+  setTimeout(() => { try { garantirOceano(); } catch (e) { console.error(e); } }, 1200);
+  addEventListener('resize', () => moverGlobo(telaAtual, 0));
+} catch (err) {
+  console.error(err);
+  aviso('Não foi possível desenhar o planeta em 3D neste aparelho.');
+}
+</script>

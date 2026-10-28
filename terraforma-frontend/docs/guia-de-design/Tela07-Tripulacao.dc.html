@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Sua órbita</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&amp;family=Fraunces:opsz,wght@9..144,400;9..144,600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#185FA5}a:hover{color:#042C53}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; padding: 16px 20px 20px; background: #F4F8FC; color: #0F2340; font-family: 'Atkinson Hyperlegible', system-ui, sans-serif; display: flex; flex-direction: column; gap: 10px">
+<a href="Tela11-Perfil.dc.html" style="align-self: flex-start; min-height: 44px; margin-left: -8px; display: flex; align-items: center; gap: 2px; font-size: 15px; color: #185FA5; text-decoration: none"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"></path></svg>Perfil</a>
+<div style="display: flex; flex-direction: column; gap: 4px">
+<h1 style="margin: 0; font-family: 'Fraunces', Georgia, serif; font-weight: 400; font-size: 28px; color: #042C53">Sua órbita</h1>
+<p style="margin: 0; font-size: 14px; line-height: 1.45; color: #4A5D75">Até 3 pessoas de confiança giram em volta do seu planeta. A cada volta, um satélite traz um recado delas.</p>
+</div>
+
+<img src="/_blob/be0d6e11858788ead4ac79874b276031" alt="Seu planeta com 2 satélites em órbita, Ana e Pedro, passando pela frente e por trás dele" style="width: 350px; height: 221px; align-self: center; object-fit: contain">
+
+<button type="button" style="min-height: 60px; border: 0; border-radius: 18px; background: #042C53; color: #FFFFFF; font: inherit; font-weight: 700; font-size: 18px">Preciso de você</button>
+<p style="margin: -4px 0 0; font-size: 12.5px; color: #4A5D75; text-align: center">Escolha quem chamar. Abre o WhatsApp com: "Estou num momento difícil. Pode me ligar?"</p>
+
+<ul style="margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 8px">
+<li style="display: flex; align-items: center; gap: 12px; background: #FFFFFF; border: 1px solid #D9E3EE; border-radius: 14px; padding: 10px 12px"><span style="width: 36px; height: 36px; border-radius: 50%; background: #E1F5EE; border: 1.5px solid #0F6E56; color: #04342C; display: flex; align-items: center; justify-content: center; font-weight: 700">A</span><span style="flex-grow: 1; display: flex; flex-direction: column"><b>Ana · irmã</b><span style="font-size: 12.5px; color: #4A5D75">2 recados · próxima volta em 6 min</span></span><a href="Tela07c-OrbitaEscrever.dc.html" style="font-size: 13px; font-weight: 700; text-decoration: none; min-height: 44px; display: flex; align-items: center">Recados</a></li>
+<li style="display: flex; align-items: center; gap: 12px; background: #FFFFFF; border: 1px solid #D9E3EE; border-radius: 14px; padding: 10px 12px"><span style="width: 36px; height: 36px; border-radius: 50%; background: #EEEDFE; border: 1.5px solid #3C3489; color: #26215C; display: flex; align-items: center; justify-content: center; font-weight: 700">P</span><span style="flex-grow: 1; display: flex; flex-direction: column"><b>Pedro · amigo</b><span style="font-size: 12.5px; color: #4A5D75">1 recado · próxima volta em 9 min</span></span><a href="Tela07c-OrbitaEscrever.dc.html" style="font-size: 13px; font-weight: 700; text-decoration: none; min-height: 44px; display: flex; align-items: center">Recados</a></li>
+<li><button type="button" style="width: 100%; min-height: 48px; border: 1px dashed #A9B8C9; border-radius: 14px; background: transparent; color: #185FA5; font: inherit; font-weight: 700">+ Colocar alguém na órbita</button></li>
+</ul>
+
+<div style="margin-top: auto; background: #FFFFFF; border: 1px solid #D9E3EE; border-radius: 16px; padding: 12px 14px; display: flex; flex-direction: column; gap: 4px">
+<label style="display: flex; align-items: center; justify-content: space-between; min-height: 40px; font-weight: 700">Recados a cada volta<input type="checkbox" checked style="width: 22px; height: 22px; margin: 0"></label>
+<p style="margin: 0; font-size: 12.5px; line-height: 1.45; color: #4A5D75">Uma volta leva cerca de 10 min. Só com o app aberto, nunca durante uma respiração. Os números ficam só neste celular.</p>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+</body>
+</html>

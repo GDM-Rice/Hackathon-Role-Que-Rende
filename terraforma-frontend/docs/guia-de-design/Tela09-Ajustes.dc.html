@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Ajustes e acessibilidade</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&amp;family=Fraunces:opsz,wght@9..144,400;9..144,600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#185FA5}a:hover{color:#042C53}
+</style>
+</helmet>
+<div style="width: 390px; height: 1100px; box-sizing: border-box; padding: 16px 20px 24px; background: #F4F8FC; color: #0F2340; font-family: 'Atkinson Hyperlegible', system-ui, sans-serif; display: flex; flex-direction: column; gap: 12px">
+<a href="Tela11-Perfil.dc.html" style="align-self: flex-start; min-height: 44px; margin-left: -8px; display: flex; align-items: center; gap: 2px; font-size: 15px; color: #185FA5; text-decoration: none"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"></path></svg>Perfil</a>
+<h1 style="margin: 0; font-family: 'Fraunces', Georgia, serif; font-weight: 400; font-size: 28px; color: #042C53">Ajustes e acessibilidade</h1>
+<p style="margin: 0; font-size: 14px; line-height: 1.45; color: #4A5D75">Tudo muda na hora e vale para o app inteiro.</p>
+
+<h2 style="margin: 4px 0 0; font-size: 15px; color: #042C53">Aparência</h2>
+<div style="background: #FFFFFF; border: 1px solid #D9E3EE; border-radius: 16px; padding: 4px 14px">
+<div style="display: flex; flex-direction: column; gap: 8px; padding: 10px 0; border-bottom: 1px solid #E6EDF5">
+<span style="font-size: 15px">Tema</span>
+<div role="radiogroup" aria-label="Tema" style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; background: #EEF3F8; border-radius: 12px; padding: 4px">
+<button type="button" role="radio" aria-checked="false" style="min-height: 40px; border: 0; border-radius: 9px; background: transparent; font: inherit; font-size: 13px; color: #0F2340">Claro</button>
+<button type="button" role="radio" aria-checked="false" style="min-height: 40px; border: 0; border-radius: 9px; background: transparent; font: inherit; font-size: 13px; color: #0F2340">Escuro</button>
+<button type="button" role="radio" aria-checked="true" style="min-height: 40px; border: 0; border-radius: 9px; background: #FFFFFF; box-shadow: 0 1px 2px rgba(4,44,83,0.15); font: inherit; font-size: 13px; font-weight: 700; color: #042C53">Seguir o celular</button>
+</div>
+</div>
+<label style="display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 52px; border-bottom: 1px solid #E6EDF5"><span style="display: flex; flex-direction: column"><span style="font-size: 15px">Alto contraste</span><span style="font-size: 12px; color: #4A5D75">Bordas mais grossas e texto mais escuro</span></span><input type="checkbox" role="switch" style="width: 22px; height: 22px; margin: 0; flex: none"></label>
+<div style="display: flex; flex-direction: column; gap: 8px; padding: 10px 0">
+<label style="display: flex; align-items: center; justify-content: space-between; gap: 12px"><span style="display: flex; flex-direction: column"><span style="font-size: 15px">Modo para daltonismo</span><span style="font-size: 12px; color: #4A5D75">Regiões secas ficam escuras e listradas; recuperadas, verde bem claro</span></span><input type="checkbox" role="switch" checked style="width: 22px; height: 22px; margin: 0; flex: none"></label>
+<label style="display: flex; align-items: center; justify-content: space-between; min-height: 44px; font-size: 14px; color: #4A5D75">Tipo<select style="font: inherit; color: #0F2340; min-height: 40px; border: 1px solid #D9E3EE; border-radius: 10px; background: #FFFFFF; padding: 0 8px"><option>Vermelho e verde</option><option>Azul e amarelo</option><option>Sem cores (tons de cinza)</option></select></label>
+</div>
+</div>
+
+<h2 style="margin: 4px 0 0; font-size: 15px; color: #042C53">Leitura</h2>
+<div style="background: #FFFFFF; border: 1px solid #D9E3EE; border-radius: 16px; padding: 4px 14px">
+<div style="display: flex; flex-direction: column; gap: 8px; padding: 10px 0; border-bottom: 1px solid #E6EDF5">
+<span style="font-size: 15px">Tamanho do texto</span>
+<div role="radiogroup" aria-label="Tamanho do texto" style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; background: #EEF3F8; border-radius: 12px; padding: 4px">
+<button type="button" role="radio" aria-checked="false" style="min-height: 40px; border: 0; border-radius: 9px; background: transparent; font: inherit; font-size: 13px; color: #0F2340">A</button>
+<button type="button" role="radio" aria-checked="true" style="min-height: 40px; border: 0; border-radius: 9px; background: #FFFFFF; box-shadow: 0 1px 2px rgba(4,44,83,0.15); font: inherit; font-size: 16px; font-weight: 700; color: #042C53">A</button>
+<button type="button" role="radio" aria-checked="false" style="min-height: 40px; border: 0; border-radius: 9px; background: transparent; font: inherit; font-size: 20px; color: #0F2340">A</button>
+</div>
+</div>
+<label style="display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 52px; border-bottom: 1px solid #E6EDF5"><span style="display: flex; flex-direction: column"><span style="font-size: 15px">Ler a tela em voz alta</span><span style="font-size: 12px; color: #4A5D75">Para quem prefere ouvir</span></span><input type="checkbox" role="switch" style="width: 22px; height: 22px; margin: 0; flex: none"></label>
+<label style="display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 52px"><span style="display: flex; flex-direction: column"><span style="font-size: 15px">Mais espaço entre as linhas</span><span style="font-size: 12px; color: #4A5D75">Ajuda na leitura com dislexia</span></span><input type="checkbox" role="switch" style="width: 22px; height: 22px; margin: 0; flex: none"></label>
+</div>
+
+<h2 style="margin: 4px 0 0; font-size: 15px; color: #042C53">Movimento e som</h2>
+<div style="background: #FFFFFF; border: 1px solid #D9E3EE; border-radius: 16px; padding: 4px 14px">
+<label style="display: flex; align-items: center; justify-content: space-between; min-height: 52px; border-bottom: 1px solid #E6EDF5; font-size: 15px">Animações<select style="font: inherit; font-size: 14px; color: #0F2340; min-height: 40px; border: 1px solid #D9E3EE; border-radius: 10px; background: #FFFFFF; padding: 0 8px"><option>Seguir o celular</option><option>Reduzidas</option><option>Normais</option></select></label>
+<label style="display: flex; align-items: center; justify-content: space-between; min-height: 52px; border-bottom: 1px solid #E6EDF5; font-size: 15px">Sons<input type="checkbox" role="switch" checked style="width: 22px; height: 22px; margin: 0"></label>
+<label style="display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 52px"><span style="display: flex; flex-direction: column"><span style="font-size: 15px">Legendas dos sons</span><span style="font-size: 12px; color: #4A5D75">Ex.: [ondas do mar], [chuva]</span></span><input type="checkbox" role="switch" checked style="width: 22px; height: 22px; margin: 0; flex: none"></label>
+</div>
+
+<h2 style="margin: 4px 0 0; font-size: 15px; color: #042C53">Prévia</h2>
+<div style="background: #FFFFFF; border: 1px solid #D9E3EE; border-radius: 16px; padding: 12px 14px; display: flex; gap: 8px; flex-wrap: wrap; font-size: 13px">
+<span style="background: #27500A; color: #FFFFFF; border-radius: 999px; padding: 6px 10px">✓ Recuperada</span>
+<span style="background: #E6F1FB; color: #042C53; border: 2px solid #185FA5; border-radius: 999px; padding: 4px 10px">● Agora</span>
+<span style="border: 1.5px dashed #4A5D75; color: #0F2340; border-radius: 999px; padding: 5px 10px">○ Depois</span>
+</div>
+<p style="margin: 0; font-size: 12px; line-height: 1.45; color: #4A5D75">Toda informação usa ícone e texto, não só cor. Testar com TalkBack e VoiceOver antes da entrega.</p>
+
+<div style="margin-top: auto; display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #D9E3EE; padding-top: 8px">
+<a href="#" style="min-height: 44px; display: flex; align-items: center; font-size: 14px">De onde vêm as informações</a>
+<button type="button" style="min-height: 44px; border: 0; background: transparent; color: #8A2E1A; font: inherit; font-size: 14px">Apagar meus dados</button>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":1100}}'>
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+</body>
+</html>

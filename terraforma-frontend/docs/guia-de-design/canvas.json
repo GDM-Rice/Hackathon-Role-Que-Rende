@@ -1,0 +1,511 @@
+{
+  "v": 3,
+  "attachments": {},
+  "boards": {
+    "Embasamento.dc.html": {
+      "h": 1500,
+      "title": "4 · Embasamento",
+      "w": 1200,
+      "x": 4320,
+      "y": 0
+    },
+    "Estilo.dc.html": {
+      "h": 1500,
+      "title": "3 · Estilo visual e prompt",
+      "w": 1200,
+      "x": 2560,
+      "y": 0
+    },
+    "Main.dc.html": {
+      "h": 1500,
+      "title": "1 · Visão geral",
+      "w": 1200,
+      "x": 0,
+      "y": 0
+    },
+    "Missoes.dc.html": {
+      "h": 1500,
+      "title": "2 · Missões e regras",
+      "w": 1200,
+      "x": 1280,
+      "y": 0
+    },
+    "Nav.dc.html": {
+      "h": 88,
+      "title": "Componente Menu",
+      "w": 390,
+      "x": 3840,
+      "y": 0
+    },
+    "PlanetaMergulho.dc.html": {
+      "h": 1500,
+      "title": "5 · Planeta 3D e mergulho",
+      "w": 1200,
+      "x": 5600,
+      "y": 0
+    },
+    "Tela01-BoasVindas.dc.html": {
+      "h": 844,
+      "title": "Boas-vindas · 1 · o problema",
+      "w": 390,
+      "x": 0,
+      "y": 1950
+    },
+    "Tela01b-BoasVindasLapso.dc.html": {
+      "h": 844,
+      "title": "Boas-vindas · 2 · o que troca a aposta (lapso de 90 dias)",
+      "w": 390,
+      "x": 9870,
+      "y": 1950
+    },
+    "Tela01c-BoasVindasMotivo.dc.html": {
+      "h": 844,
+      "title": "Boas-vindas · 3 · a pessoa começa",
+      "w": 390,
+      "x": 10340,
+      "y": 1950
+    },
+    "Tela02-Inicio-12hk.dc.html": {
+      "h": 844,
+      "title": "Início copy",
+      "w": 390,
+      "x": 8360,
+      "y": 88
+    },
+    "Tela02-Inicio.dc.html": {
+      "h": 844,
+      "title": "Início",
+      "w": 390,
+      "x": 470,
+      "y": 1950
+    },
+    "Tela03-Mare.dc.html": {
+      "h": 844,
+      "title": "Respire com a Terra · escolha",
+      "w": 390,
+      "x": 940,
+      "y": 1950
+    },
+    "Tela03b-RespireSessao.dc.html": {
+      "h": 844,
+      "title": "Respire com a Terra · sessão (fase editável)",
+      "w": 390,
+      "x": 6580,
+      "y": 1950
+    },
+    "Tela03c-RespireFim.dc.html": {
+      "h": 844,
+      "title": "Respire com a Terra · fim",
+      "w": 390,
+      "x": 7050,
+      "y": 1950
+    },
+    "Tela04-Tempestade.dc.html": {
+      "h": 844,
+      "title": "Dia de tempestade",
+      "w": 390,
+      "x": 1410,
+      "y": 1950
+    },
+    "Tela05-Missao.dc.html": {
+      "h": 844,
+      "title": "Mapa-Mundi (missões)",
+      "w": 390,
+      "x": 1880,
+      "y": 1950
+    },
+    "Tela06-Dividas.dc.html": {
+      "h": 844,
+      "title": "Finanças · Dívidas (aba principal)",
+      "w": 390,
+      "x": 2350,
+      "y": 1950
+    },
+    "Tela06b-FinBasico.dc.html": {
+      "h": 844,
+      "title": "Finanças · Básico",
+      "w": 390,
+      "x": 8460,
+      "y": 1950
+    },
+    "Tela06c-DividaPasso.dc.html": {
+      "h": 844,
+      "title": "Finanças · próximo passo de uma dívida",
+      "w": 390,
+      "x": 8930,
+      "y": 1950
+    },
+    "Tela06d-Barreiras.dc.html": {
+      "h": 844,
+      "title": "Finanças · Barreiras",
+      "w": 390,
+      "x": 9400,
+      "y": 1950
+    },
+    "Tela07-Tripulacao.dc.html": {
+      "h": 844,
+      "title": "Órbita (abre pelo Perfil)",
+      "w": 390,
+      "x": 2820,
+      "y": 1950
+    },
+    "Tela07b-OrbitaRecado.dc.html": {
+      "h": 844,
+      "title": "Órbita · recado no Início",
+      "w": 390,
+      "x": 7520,
+      "y": 1950
+    },
+    "Tela07c-OrbitaEscrever.dc.html": {
+      "h": 844,
+      "title": "Órbita · a pessoa escreve o recado",
+      "w": 390,
+      "x": 7990,
+      "y": 1950
+    },
+    "Tela08-Ajuda.dc.html": {
+      "h": 844,
+      "title": "Ajuda",
+      "w": 390,
+      "x": 3290,
+      "y": 1950
+    },
+    "Tela09-Ajustes.dc.html": {
+      "h": 1100,
+      "title": "Ajustes e acessibilidade (rolagem)",
+      "w": 390,
+      "x": 3760,
+      "y": 1950
+    },
+    "Tela10-Comunidade.dc.html": {
+      "h": 844,
+      "title": "Luneta (comunidade)",
+      "w": 390,
+      "x": 4230,
+      "y": 1950
+    },
+    "Tela11-Perfil.dc.html": {
+      "h": 844,
+      "title": "Perfil",
+      "w": 390,
+      "x": 4700,
+      "y": 1950
+    },
+    "Tela12-InfoApostas.dc.html": {
+      "h": 1180,
+      "title": "Info · por que o planeta começa seco (rolagem)",
+      "w": 390,
+      "x": 5170,
+      "y": 1950
+    },
+    "Tela13-InicioEscuro.dc.html": {
+      "h": 844,
+      "title": "Início · modo escuro",
+      "w": 390,
+      "x": 5640,
+      "y": 1950
+    },
+    "Tela14-InicioDaltonismo.dc.html": {
+      "h": 844,
+      "title": "Início · modo para daltonismo",
+      "w": 390,
+      "x": 6110,
+      "y": 1950
+    },
+    "Tela15-Troca.dc.html": {
+      "h": 844,
+      "title": "Hábitos saudáveis (abre pelo Início)",
+      "w": 390,
+      "x": 10810,
+      "y": 1950
+    },
+    "Tela15b-TrocaVontade.dc.html": {
+      "h": 844,
+      "title": "Hábitos saudáveis · a vontade passou?",
+      "w": 390,
+      "x": 11280,
+      "y": 1950
+    },
+    "TesteCores.dc.html": {
+      "h": 1220,
+      "title": "Teste de cores · paleta brasileira (3 opções)",
+      "w": 1400,
+      "x": 6880,
+      "y": 0
+    },
+    "TesteMenu.dc.html": {
+      "h": 1090,
+      "title": "Teste do menu · verde-mata x cinza-claro",
+      "w": 960,
+      "x": 8360,
+      "y": 0
+    }
+  },
+  "createdOnFiles": {
+    "at": "2026-10-27T18:40:00Z",
+    "v": 1
+  },
+  "designSystems": [],
+  "launch": {
+    "view": "canvas"
+  },
+  "noteOrder": [
+    "t-doc",
+    "t-telas",
+    "n01",
+    "n02",
+    "n03",
+    "n04",
+    "n05",
+    "n06",
+    "n07",
+    "n08",
+    "n09",
+    "n10",
+    "n11",
+    "n12",
+    "n13",
+    "n14",
+    "n03b",
+    "n03c",
+    "n07b",
+    "n07c",
+    "n06b",
+    "n06c",
+    "n06d",
+    "n01b",
+    "n01c",
+    "n15",
+    "n15b"
+  ],
+  "notes": {
+    "n01": {
+      "fill": "blue",
+      "text": "BOAS-VINDAS · 1 · o problema · módulo 03\n• Abre o app; fundo de espaço escuro com estrelas, sempre, em qualquer tema\n• Planeta grande no dia 1: Brasil seco e rachado, rios sumidos, mar turvo\n• Texto aparece palavra por palavra, saindo do desfoque: \"As apostas secaram esta terra.\"\n• Apoio: o Brasil rachou, os rios sumiram, o mar ficou turvo\n• 3 pontos de progresso e \"Pular\" (vai ao passo 3)\n• Movimento reduzido: texto já pronto, sem animação",
+      "w": 390,
+      "x": 0,
+      "y": 2874
+    },
+    "n01b": {
+      "fill": "blue",
+      "text": "BOAS-VINDAS · 2 · o que troca a aposta\n• Lapso de tempo: o contador vai de 1 a 90 dias sem apostar em ~6 s e o planeta revive junto, na ordem do app: regiões, mar, rios\n• \"Cada dia sem apostar devolve a vida a ela.\"\n• Os 3 hábitos que substituem a aposta acendem quando o planeta responde: ficar longe das apostas → verde · respirar quando a vontade vem → mar limpo · cuidar do dinheiro → rios\n• É a ponte para o bloco de hábitos do Início\n• Movimento reduzido: mostra o dia 90 direto",
+      "w": 390,
+      "x": 9870,
+      "y": 2874
+    },
+    "n01c": {
+      "fill": "blue",
+      "text": "BOAS-VINDAS · 3 · a pessoa começa\n• O planeta volta ao dia 1: agora é com a pessoa\n• \"Você não causou isso sozinho. E pode recuperar.\"\n• Apelido + motivo em chips (Dormir em paz · Família · Dinheiro de novo · Voltar a ser eu); vão para a saudação do Início\n• \"Tudo fica só neste celular\"\n• \"Começar a missão\" → Início no dia 1; o fundo clareia do espaço para o app\n• O campo opcional \"quanto apostava por semana\" saiu daqui para a entrada ficar curta; vai para o Perfil (alimenta o \"longe das apostas\" do Início)",
+      "w": 390,
+      "x": 10340,
+      "y": 2874
+    },
+    "n02": {
+      "fill": "blue",
+      "text": "INÍCIO · módulo 03\n• Saudação + motivo da pessoa\n• Planeta 3D (globo.js): arrastar gira, solto volta ao Brasil; tocar numa região abre o Mapa-Mundi nela; botão de pausar o movimento\n• Meta atual com barra: região, dias feitos de dias da meta\n• \"Longe das apostas\" em R$ (só texto; não muda o planeta)\n• Cartão escuro \"Respire com a Terra\": sempre o elemento mais forte\n• Menu fixo no fundo, cinza-claro fosco com a aba ativa em pílula branca: Mapa-Mundi · Luneta · Planeta (no meio) · Ajuda · Finanças\n• Logo abaixo, botão amarelo (ipê) \"Hábitos saudáveis\" → tela de hábitos que trocam a aposta\n• Link discreto: \"Apostei hoje\" → Dia de tempestade\n• Topo à direita: avatar → Perfil",
+      "w": 390,
+      "x": 470,
+      "y": 2874
+    },
+    "n03": {
+      "fill": "blue",
+      "text": "RESPIRE COM A TERRA · escolha · módulo 03\n• Toque no cartão: o planeta mergulha até o mar ao lado do Brasil (quadro 5)\n• Técnica: Respiração lenta 4 s/6 s · Suspiro cíclico · Surfar a vontade\n• Duração: 1, 3 ou 5 min\n• Vontade de 0 a 10 antes de começar\n• Som do mar começa sozinho e baixo; botão \"Som ligado/desligado\"\n• \"Por que essas técnicas\": fontes do quadro 4\n• Céu pela hora: dia, entardecer ou noite\n• Movimento reduzido: sem voo, troca direta",
+      "w": 390,
+      "x": 940,
+      "y": 2874
+    },
+    "n03b": {
+      "fill": "blue",
+      "text": "RESPIRE COM A TERRA · sessão\n• Bolha encosta no anel no fim de cada inspiração\n• Cores: verde-água = Inspire · verde-água claro = Mais um pouco · lavanda = Solte (a palavra e o tamanho mudam junto)\n• Anel de fora = tempo da sessão\n• Surfar a vontade: uma frase curta a cada trecho\n• A maré do oceano sobe ao inspirar\n• Pausar e Encerrar sempre visíveis",
+      "w": 390,
+      "x": 6580,
+      "y": 2874
+    },
+    "n03c": {
+      "fill": "blue",
+      "text": "RESPIRE COM A TERRA · fim\n• Vontade de 0 a 10 de novo: \"foi de 7 para 4\"\n• Se subiu: sugere a Órbita e o CVV 188\n• Sessão de 1 min ou mais conta como Maré (limpa o mar do planeta)\n• Guardar {tecnica, minutos, antes, depois}: é a medida de resultado do pitch (edital 9.2)\n• Voltar ao planeta: sobe pelas nuvens e o planeta se afasta",
+      "w": 390,
+      "x": 7050,
+      "y": 2874
+    },
+    "n04": {
+      "fill": "blue",
+      "text": "DIA DE TEMPESTADE · módulo 03\n• Abre por \"Apostei hoje\" → confirmação curta\n• Nuvens cinzas cobrem o planeta 3D e somem ao sair da tela; NADA regride\n• Frase fixa: \"Você voltou. Isso conta.\"\n• Mostra que os dias e as regiões continuam\n• Opções: Respirar com a Terra · Avisar alguém da órbita · Falar com um profissional · Ficar quieto\n• Uma vez por dia; no dia seguinte o céu abre\n• Nunca: vermelho, alerta, contador zerando",
+      "w": 390,
+      "x": 1410,
+      "y": 2874
+    },
+    "n05": {
+      "fill": "blue",
+      "text": "MAPA-MUNDI · módulo 05\n• O planeta 3D aproxima até o Brasil (sem animação no modo reduzido); nuvens ficam fracas\n• Tocar numa região no mapa ou na lista: o planeta gira até ela e ela brilha\n• Lista fixa de metas, conhecidas desde o dia 1\n• Terra: Sul 7 · Sudeste 14 · Centro-Oeste 30 · Nordeste 60 · Norte 90 dias\n• Mar: 3 e 10 Marés · Rios: passos nas dívidas e Barreiras\n• Feita = verde com ✓ · atual = barra · futura = tracejada\n• Nada sorteado, nada perdido",
+      "w": 390,
+      "x": 1880,
+      "y": 2874
+    },
+    "n06": {
+      "fill": "blue",
+      "text": "FINANÇAS · DÍVIDAS · módulo 04\n• Topo: faixa de terra seca com 3 rios passando por trás dos nomes; rio seco = tracejado ocre, rio de volta = água azul correndo com margem verde (animação de fluxo)\n• Abas Básico · Dívidas · Barreiras com indicador que desliza\n• \"Começar pela\": mais cara ou menor, a lista se reordena\n• Um único cartão em foco: nome, valor, 5 pontos de progresso e UM botão com o próximo passo\n• As outras dívidas viram linhas curtas em \"Depois\", sem texto extra\n• Nunca: total de quanto perdeu, oferta de empréstimo, conexão com banco\n• Valores fictícios na demo",
+      "w": 390,
+      "x": 2350,
+      "y": 2874
+    },
+    "n06b": {
+      "fill": "blue",
+      "text": "FINANÇAS · BÁSICO · módulo 04\n• \"Este mês está garantido?\": moradia, comida, luz e água, transporte, remédios, sem valores\n• Se falta algo: uma linha só, básico antes das dívidas, CRAS\n• Detalhes fechados até a pessoa abrir (revelação progressiva): Lei 14.181/2021 e mínimo de R$ 600 (STF, 23/04/2026); Registrato do Banco Central\n• Rodapé curto: não é consultoria; Procon ou Defensoria",
+      "w": 390,
+      "x": 8460,
+      "y": 2874
+    },
+    "n06c": {
+      "fill": "blue",
+      "text": "FINANÇAS · PRÓXIMO PASSO · módulo 04\n• Abre ao tocar numa dívida\n• Passos: listei → abri a negociação → renegociei → paguei a 1ª parcela → quitei\n• \"Quando? Onde?\" antes de agir: plano de implementação (Gollwitzer e Sheeran, 2006)\n• Onde: consumidor.gov.br, Procon, canal do credor, Defensoria\n• Texto pronto para copiar: \"Quero negociar… Consigo R$ __ por mês sem faltar o básico\"\n• \"Fiz este passo\" avança o trilho; o 1º passo traz o Amazonas, a 1ª renegociação traz o Paraná\n• Aviso no topo: \"O Amazonas voltou a correr\" + Ver no planeta",
+      "w": 390,
+      "x": 8930,
+      "y": 2874
+    },
+    "n06d": {
+      "fill": "blue",
+      "text": "FINANÇAS · BARREIRAS · módulo 04\n• Lista de linhas com ícone; cada uma abre para mostrar o como e o botão \"Fiz isso\"\n• Pix menor à noite: baixar vale na hora, aumentar leva 24 h (Banco Central: 20h às 6h, padrão R$ 1.000)\n• Bloqueador de sites · Combinar com alguém da Órbita (o app não toca no dinheiro)\n• Autoexclusão \"a conferir\": apostas proibidas pela MP 1.394/2026; reconferir depois do STF em 3/11\n• A 1ª Barreira traz o São Francisco",
+      "w": 390,
+      "x": 9400,
+      "y": 2874
+    },
+    "n07": {
+      "fill": "blue",
+      "text": "ÓRBITA · módulo 04 · abre pelo Perfil\n• 1 a 3 pessoas de confiança; cada uma vira um satélite 3D (corpo dourado, painéis solares, faixa na cor da pessoa) em órbita inclinada; passa na frente e atrás do planeta e deixa um rastro de luz (só nesta tela; não é progresso, não muda o planeta)\n• Botão grande \"Preciso de você\": escolhe a pessoa e abre WhatsApp ou SMS com mensagem pronta\n• \"Recados a cada volta\": liga/desliga\n• Movimento reduzido: satélites parados\n• \"Como minha órbita me vê\" → Visão do familiar\n• Demo: número de teste ou conversa simulada (dados reais não, edital 8.5)",
+      "w": 390,
+      "x": 2820,
+      "y": 2874
+    },
+    "n07b": {
+      "fill": "blue",
+      "text": "ÓRBITA · recado no Início\n• A cada volta do satélite (cerca de 10 min) aparece UM recado, se houver\n• Só com o app aberto: nada de notificação para puxar a pessoa de volta\n• Nunca durante a respiração, a tempestade ou a Ajuda\n• Mostra quem escreveu e quando; botões Responder (abre conversa) e Obrigado\n• Não rouba o foco (role=status); fecha sozinho em 15 s ou no ×\n• Os recados se revezam; sem recado, o satélite só passa",
+      "w": 390,
+      "x": 7520,
+      "y": 2874
+    },
+    "n07c": {
+      "fill": "blue",
+      "text": "ÓRBITA · a pessoa escreve o recado\n• A pessoa da órbita escreve no celular do usuário (ou manda e ele cola): o app NUNCA inventa recado em nome de alguém\n• Até 140 caracteres; ideias prontas para começar\n• Guia curto: carinho, sem cobrança de dias ou dinheiro, convite concreto\n• Recados ficam só no celular; dá para apagar\n• Texto passa por detectarRisco antes de salvar",
+      "w": 390,
+      "x": 7990,
+      "y": 2874
+    },
+    "n08": {
+      "fill": "blue",
+      "text": "AJUDA · módulo 04\nOrdem fixa: \"Agora mesmo\" com CVV 188 e SAMU 192 juntos no topo → CAPS e CAPS AD (Disque Saúde 136) → Teleatendimento do SUS (Meu SUS Digital) → Jogadores Anônimos → Autoexclusão\n• Cada cartão: o que é, botão de ligar ou abrir, linha \"Fonte:\"\n• Link A_CONFERIR = botão desligado até a equipe conferir\n• Sem limite, a um toque de qualquer tela\n• Rodapé: o app é apoio e não substitui um profissional\n• \"Sobre as informações\" → tela Fontes",
+      "w": 390,
+      "x": 3290,
+      "y": 2874
+    },
+    "n09": {
+      "fill": "blue",
+      "text": "AJUSTES E ACESSIBILIDADE · módulo 05 · abre pelo Perfil (tela com rolagem)\n• Aparência: Tema (claro, escuro, seguir o celular) · Alto contraste · Modo para daltonismo com tipo\n• Leitura: tamanho do texto (3) · ler a tela em voz alta · mais espaço entre linhas\n• Movimento e som: animações · sons · legendas\n• Prévia ao vivo para a banca ver a troca\n• Atributos no <html>: data-tema, data-contraste, data-daltonismo, data-fonte, data-movimento, data-espaco\n• Apagar meus dados (com confirmação)",
+      "w": 390,
+      "x": 3760,
+      "y": 3130
+    },
+    "n10": {
+      "fill": "purple",
+      "text": "LUNETA (COMUNIDADE) · módulo 04 · NA DEMO: posts fictícios, sem servidor\n• Cada pessoa é um planeta anônimo (\"Planeta Turquesa-27 · 34 dias\"): sem nome, foto ou valores\n• Constelações = tópicos estilo Reddit: Primeiros dias · Dívidas · Família · Tempestades\n• Ações: Me identifico · Responder · Denunciar. Sem contagem pública de curtidas e sem ranking\n• Moderação automática ANTES de publicar: bloqueia links, valores, telefones e nomes de casas de aposta; palavras de risco abrem a Ajuda\n• Versão real (depois): servidor + moderação humana",
+      "w": 390,
+      "x": 4230,
+      "y": 2874
+    },
+    "n11": {
+      "fill": "purple",
+      "text": "PERFIL · módulo 05 (tela) + 06 (perguntas) · abre pelo avatar no topo do Início\n• Planeta, apelido, motivo, cor do planeta (editar)\n• A Órbita (satélites, recados e \"Preciso de você\") fica aqui, e o atalho para Ajustes\n• \"Sobre você\": perguntas sensíveis, TODAS opcionais, cada uma diz para que serve; ficam só no celular\n• \"Participar da pesquisa\": consentimento separado, destacado e revogável; dados anônimos; só no piloto, com aprovação ética\n• Na demo: só dados fictícios, nada é enviado",
+      "w": 390,
+      "x": 4700,
+      "y": 2874
+    },
+    "n12": {
+      "text": "INFO (botão \"i\" ao lado do planeta) · módulo 06\n• Um dado verificado por região, sempre com fonte e data\n• Só entra número conferido na fonte original (8.4). Norte e Sul: A_CONFERIR\n• Os números medem coisas diferentes: NÃO ranquear regiões\n• O mesmo dado aparece no Mapa-Mundi ao tocar a região, junto da missão dela\n• Tom: explica o problema sem culpar a pessoa nem estigmatizar regiões\n• Atualizar o aviso da MP das apostas antes da entrega",
+      "w": 390,
+      "x": 5170,
+      "y": 3210
+    },
+    "n13": {
+      "fill": "teal",
+      "text": "MODO ESCURO · módulo 05 (tokens) + 02 (aplicar)\n• Fundo #0A1F38 · superfície #12304F · borda #23476E\n• Texto #E6F1FB (principal) e #B5D4F4 (apoio), ambos acima de 4,5:1\n• Destaque #85B7EB · progresso #97C459\n• O cartão Respire com a Terra INVERTE (claro sobre escuro) para continuar o elemento mais forte\n• O planeta 3D é o mesmo; só o halo da atmosfera fica mais forte\n• Menu: componente Menu com tema=\"escuro\"",
+      "w": 390,
+      "x": 5640,
+      "y": 2874
+    },
+    "n14": {
+      "fill": "teal",
+      "text": "MODO PARA DALTONISMO · módulo 05 + 01\n• No planeta 3D: região seca fica escura e listrada; recuperada fica verde bem clara (diferença de claro e escuro, não de matiz)\n• Legenda sob o planeta com ícone e texto (✓ ◐ ✕)\n• Barra de progresso listrada e com borda\n• Bolha da respiração: cor + tamanho + palavra\n• Testar no Chrome: DevTools → Rendering → Emulate vision deficiencies",
+      "w": 390,
+      "x": 6110,
+      "y": 2874
+    },
+    "n15": {
+      "fill": "blue",
+      "text": "HÁBITOS SAUDÁVEIS · substituição de lazer · abre pelo botão amarelo \"Hábitos saudáveis\", logo abaixo de Respire com a Terra no Início\n• \"Quanto tempo você tem agora?\" 2 min · 15 min · 1 hora ou mais (indicador desliza)\n• 2 min: respirar · chamar alguém da Órbita · celular em outro cômodo\n• 15 min: caminhar ou alongar · ligar para alguém · um passo nas finanças\n• 1 hora+: Minhas trocas · encontrar alguém · grupo de apoio (Ajuda)\n• Cada linha já faz a ação (abre a respiração, a Órbita, Finanças ou a Ajuda)\n• Minhas trocas: a pessoa guarda o que funciona para ela\n• Nada custa dinheiro, nada dá prêmio (edital 8.4)",
+      "w": 390,
+      "x": 10810,
+      "y": 2874
+    },
+    "n15b": {
+      "fill": "blue",
+      "text": "HÁBITOS SAUDÁVEIS · a vontade passou?\n• Ao começar uma troca fora do app, a linha fica \"Fazendo\" e sobe a pergunta \"Como está a vontade agora?\" de 0 a 10\n• 0 a 3: a troca vai para Minhas trocas (\"funcionou para você\")\n• 7 ou mais: sugere respirar ou chamar alguém\n• \"Ainda não sei\" fecha sem cobrar nada\n• Mesma escala da respiração: é medida de resultado para o pitch\n• Base: surfar a vontade (Bowen e Marlatt, 2009)",
+      "w": 390,
+      "x": 11280,
+      "y": 2874
+    },
+    "t-doc": {
+      "kind": "title1",
+      "maxW": 6800,
+      "text": "Terraforma · estrutura do app",
+      "w": 240,
+      "x": 0,
+      "y": -300
+    },
+    "t-telas": {
+      "kind": "title1",
+      "maxW": 8000,
+      "text": "Telas do celular (390 × 844) · o que vai em cada uma",
+      "w": 240,
+      "x": 0,
+      "y": 1650
+    }
+  },
+  "order": [
+    "Main.dc.html",
+    "Missoes.dc.html",
+    "Estilo.dc.html",
+    "Nav.dc.html",
+    "Embasamento.dc.html",
+    "PlanetaMergulho.dc.html",
+    "TesteCores.dc.html",
+    "Tela01-BoasVindas.dc.html",
+    "Tela01b-BoasVindasLapso.dc.html",
+    "Tela01c-BoasVindasMotivo.dc.html",
+    "Tela02-Inicio.dc.html",
+    "Tela03-Mare.dc.html",
+    "Tela03b-RespireSessao.dc.html",
+    "Tela03c-RespireFim.dc.html",
+    "Tela04-Tempestade.dc.html",
+    "Tela05-Missao.dc.html",
+    "Tela06-Dividas.dc.html",
+    "Tela06b-FinBasico.dc.html",
+    "Tela06c-DividaPasso.dc.html",
+    "Tela06d-Barreiras.dc.html",
+    "Tela07-Tripulacao.dc.html",
+    "Tela07b-OrbitaRecado.dc.html",
+    "Tela07c-OrbitaEscrever.dc.html",
+    "Tela08-Ajuda.dc.html",
+    "Tela09-Ajustes.dc.html",
+    "Tela10-Comunidade.dc.html",
+    "Tela11-Perfil.dc.html",
+    "Tela12-InfoApostas.dc.html",
+    "Tela13-InicioEscuro.dc.html",
+    "Tela14-InicioDaltonismo.dc.html",
+    "Tela15-Troca.dc.html",
+    "Tela15b-TrocaVontade.dc.html",
+    "Tela02-Inicio-12hk.dc.html",
+    "TesteMenu.dc.html"
+  ],
+  "pages": [],
+  "title": "Terraforma · estrutura do app"
+}
