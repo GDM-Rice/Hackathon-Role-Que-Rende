@@ -1,39 +1,39 @@
 import {
+  Body,
   Controller,
   Get,
-  Post,
-  Body,
-  Request,
-  UseGuards,
+  HttpCode,
   HttpStatus,
-  HttpCode
+  Post,
+  Request,
 } from '@nestjs/common';
+import { Throttle } from '@nestjs/throttler';
+import { UserService } from '../user/user.service.js';
 import { AuthService } from './auth.service.js';
-import { LoginRequestBody } from './dto/loginRequestBody.dto.js';
-import { AuthGuard } from './guards/auth-guard.js';
-import type { AuthenticatedRequest } from './types/authenticated-request.js';
 import { Public } from './decorators/isPublic.decorator.js';
 import { ForgotPasswordDto } from './dto/forgot-password.dto.js';
+import { LoginRequestBody } from './dto/loginRequestBody.dto.js';
 import { ResetPasswordDto } from './dto/reset-password.dto.js';
-import { Throttle } from '@nestjs/throttler';
-
+import type { AuthenticatedRequest } from './types/authenticated-request.js';
 
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) { }
+  constructor(
+    private readonly authService: AuthService,
+    private readonly userService: UserService,
+  ) {}
 
   @Public()
-    @Throttle({ default: { limit: 5, ttl: 60_000 } }) // 5 por minuto
+  @Throttle({ default: { limit: 5, ttl: 60_000 } }) // 5 por minuto
   @HttpCode(HttpStatus.OK)
   @Post('login')
-  login(@Body() body: any) {
-    console.log('Dados puros que chegaram ao controlador:', body);
-    return this.authService.login(body)
+  login(@Body() body: LoginRequestBody) {
+    return this.authService.login(body);
   }
 
   @Get('me')
   getProfile(@Request() req: AuthenticatedRequest) {
-    return req.user;
+    return this.userService.findOne(req.user.sub);
   }
 
   @Public()
@@ -43,7 +43,8 @@ export class AuthController {
   async forgotPassword(@Body() dto: ForgotPasswordDto) {
     await this.authService.forgotPassword(dto.email);
     return {
-      message: 'Se o email estiver cadastrado, você receberá as instruções para redefinir a senha.',
+      message:
+        'Se o email estiver cadastrado, você receberá as instruções para redefinir a senha.',
     };
   }
 
@@ -55,5 +56,4 @@ export class AuthController {
     await this.authService.resetPassword(dto.token, dto.novaSenha);
     return { message: 'Senha redefinida com sucesso.' };
   }
-
 }
