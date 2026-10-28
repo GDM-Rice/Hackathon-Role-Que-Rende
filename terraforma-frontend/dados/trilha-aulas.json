@@ -1,0 +1,1130 @@
+{
+ "nota": "Conteúdo da trilha. Chaves: n = nome do capítulo; a = aulas; t = título; v = id do vídeo no YouTube; i/f = início/fim do trecho em segundos; q = perguntas (p = pergunta, o = alternativas, r = índice da certa, e = explicação).",
+ "capitulos": [
+  {
+   "id": "modulo_1",
+   "n": "Inadimplência financeira",
+   "a": [
+    {
+     "id": "modulo_1_aula_1",
+     "t": "Aposta não é investimento",
+     "v": "sLnR40D1g4Y",
+     "i": 534,
+     "f": 825,
+     "q": [
+      {
+       "p": "Por que uma aposta não é uma fonte confiável para pagar uma dívida?",
+       "o": [
+        "O resultado é incerto e pode não vir.",
+        "Porque o prêmio demora a cair na conta.",
+        "Porque só vale para dívidas pequenas.",
+        "Porque o banco não aceita esse dinheiro."
+       ],
+       "r": 0,
+       "e": "Resultados incertos não são uma base segura para cumprir obrigações financeiras."
+      },
+      {
+       "p": "Uma conta vence amanhã. Por que apostar para pagá-la é arriscado?",
+       "o": [
+        "A conta pode ser cancelada se for paga com prêmio.",
+        "A conta continua lá, mesmo se a aposta der errado.",
+        "Os juros da conta sobem quando você aposta.",
+        "O prêmio só cai depois do vencimento."
+       ],
+       "r": 1,
+       "e": "A obrigação continua existindo mesmo que a aposta resulte em perda."
+      },
+      {
+       "p": "Qual opção diferencia planejamento financeiro de aposta?",
+       "o": [
+        "Planejar exige ganhar mais do que você ganha hoje.",
+        "Apostar com estratégia vira um tipo de planejamento.",
+        "Planejar parte da renda, dos gastos e das contas.",
+        "Os dois funcionam se você tiver disciplina."
+       ],
+       "r": 2,
+       "e": "Planejar é avaliar os recursos e compromissos reais."
+      },
+      {
+       "p": "Conhecer as regras de uma aposta transforma a atividade em investimento seguro?",
+       "o": [
+        "Verdadeiro",
+        "Falso"
+       ],
+       "r": 1,
+       "e": "Conhecer as regras não elimina a incerteza nem garante retorno."
+      },
+      {
+       "p": "Qual atitude é mais adequada para lidar com uma dívida?",
+       "o": [
+        "Esperar uma renda extra para pagar tudo de uma vez.",
+        "Pagar primeiro quem cobra com mais insistência.",
+        "Pegar outro empréstimo sem comparar o custo.",
+        "Montar um plano que caiba na renda."
+       ],
+       "r": 3,
+       "e": "Um plano realista considera o valor devido, a renda e as despesas essenciais."
+      },
+      {
+       "p": "Por que usar dinheiro emprestado para apostar é perigoso?",
+       "o": [
+        "Você continua devendo, mesmo se perder.",
+        "O empréstimo deixa a aposta mais segura.",
+        "O banco desconta o prêmio automaticamente.",
+        "Os juros só começam se você ganhar."
+       ],
+       "r": 0,
+       "e": "O empréstimo precisa ser pago, mesmo se a aposta gerar prejuízo."
+      }
+     ]
+    },
+    {
+     "id": "modulo_1_aula_2",
+     "t": "Os efeitos sociais e a recuperação financeira",
+     "v": "sLnR40D1g4Y",
+     "i": 1325,
+     "f": 1570,
+     "q": [
+      {
+       "p": "Por que dívidas ligadas a apostas podem afetar outras pessoas?",
+       "o": [
+        "Só se a família souber da dívida.",
+        "Podem faltar recursos para gastos da casa.",
+        "Porque o CPF de todos da casa fica sujo.",
+        "Elas só afetam quem apostou."
+       ],
+       "r": 1,
+       "e": "Quando o orçamento familiar é comprometido, outras pessoas podem ser afetadas."
+      },
+      {
+       "p": "Qual é um primeiro passo para entender a situação financeira?",
+       "o": [
+        "Cortar todos os gastos de lazer de uma vez.",
+        "Pedir um empréstimo para organizar as contas.",
+        "Anotar renda, gastos e dívidas.",
+        "Negociar a dívida maior antes de tudo."
+       ],
+       "r": 2,
+       "e": "Conhecer a situação concreta ajuda a decidir como agir."
+      },
+      {
+       "p": "A recuperação financeira pode exigir mudanças no orçamento e apoio?",
+       "o": [
+        "Verdadeiro",
+        "Falso"
+       ],
+       "r": 0,
+       "e": "Rever gastos, negociar compromissos e buscar apoio podem fazer parte da recuperação."
+      },
+      {
+       "p": "Se a renda não cobre todas as despesas, o que é importante fazer?",
+       "o": [
+        "Garantir primeiro o essencial: casa, comida, luz.",
+        "Pagar primeiro quem cobra com mais pressão.",
+        "Dividir a renda igualmente entre todas as contas.",
+        "Usar o limite do cartão para cobrir a diferença."
+       ],
+       "r": 0,
+       "e": "Priorizar necessidades e compreender compromissos ajuda a construir um plano viável."
+      },
+      {
+       "p": "Qual pode ser uma consequência de esconder dívidas da família?",
+       "o": [
+        "A dívida para de cobrar juros.",
+        "A família fica protegida da preocupação.",
+        "O problema se resolve antes de alguém notar.",
+        "A família demora a perceber e a ajudar."
+       ],
+       "r": 3,
+       "e": "O segredo pode atrasar a compreensão do problema e a procura de apoio."
+      },
+      {
+       "p": "O que significa considerar o impacto social das apostas?",
+       "o": [
+        "Olhar só quanto a pessoa perdeu no total.",
+        "Ver como afetam relações e gastos da família.",
+        "Comparar o quanto cada região aposta.",
+        "Saber quanto as empresas de aposta lucram."
+       ],
+       "r": 1,
+       "e": "As consequências podem atingir o cotidiano e o bem-estar de outras pessoas."
+      }
+     ]
+    },
+    {
+     "id": "modulo_1_aula_3",
+     "t": "Como organizar as finanças após o endividamento",
+     "v": "sLnR40D1g4Y",
+     "i": 1570,
+     "f": 1865,
+     "q": [
+      {
+       "p": "O que é essencial para montar um plano de pagamento?",
+       "o": [
+        "Saber o prazo que o credor aceita, só isso.",
+        "Vontade de quitar tudo no mês seguinte.",
+        "Renda, gastos essenciais e dívidas.",
+        "Um dinheiro extra que ainda vai entrar."
+       ],
+       "r": 2,
+       "e": "A capacidade real de pagamento depende da renda e dos compromissos."
+      },
+      {
+       "p": "Por que anotar os gastos ajuda?",
+       "o": [
+        "Mostra para onde o dinheiro vai.",
+        "Faz você gastar menos sem perceber.",
+        "Serve de prova para negociar juros.",
+        "Evita que o banco cobre tarifas."
+       ],
+       "r": 0,
+       "e": "O registro revela padrões de consumo e possíveis ajustes."
+      },
+      {
+       "p": "Qual prática pode piorar o endividamento?",
+       "o": [
+        "Rever o orçamento todo mês.",
+        "Pagar primeiro as contas essenciais.",
+        "Conversar com o credor antes de atrasar a parcela.",
+        "Fazer parcelas sem ver se cabem na renda."
+       ],
+       "r": 3,
+       "e": "Compromissos incompatíveis com a renda podem ampliar o desequilíbrio."
+      },
+      {
+       "p": "Limite de cartão de crédito é o mesmo que renda disponível?",
+       "o": [
+        "Verdadeiro",
+        "Falso"
+       ],
+       "r": 1,
+       "e": "O limite é crédito e pode gerar obrigação de pagamento."
+      },
+      {
+       "p": "Se não é possível pagar tudo de uma vez, qual caminho é mais prudente?",
+       "o": [
+        "Pagar o mínimo do cartão em todas e esperar.",
+        "Ver prioridades e montar um plano possível.",
+        "Deixar de pagar até juntar o valor inteiro.",
+        "Pegar o primeiro empréstimo que aparecer."
+       ],
+       "r": 1,
+       "e": "Um plano viável considera necessidades, dívidas e capacidade de pagamento."
+      },
+      {
+       "p": "Por que incluir parcelas futuras no orçamento?",
+       "o": [
+        "Para saber quanto de limite ainda sobra.",
+        "Só importam quando chega a fatura.",
+        "Porque já são dinheiro comprometido.",
+        "Para conseguir parcelar mais coisas."
+       ],
+       "r": 2,
+       "e": "Parcelas futuras precisam ser consideradas no planejamento."
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "modulo_2",
+   "n": "Ajuda contra apelos publicitários",
+   "a": [
+    {
+     "id": "modulo_2_aula_1",
+     "t": "A promessa de dinheiro fácil e a facilidade de apostar",
+     "v": "EmN2UWGXXb0",
+     "i": 454,
+     "f": 720,
+     "q": [
+      {
+       "p": "Qual recurso publicitário pode tornar uma aposta atraente?",
+       "o": [
+        "Mostrar as chances reais de perder.",
+        "Prometer ganho fácil e mostrar vencedores.",
+        "Avisar sobre limites de idade.",
+        "Exibir o telefone de ajuda no fim."
+       ],
+       "r": 1,
+       "e": "Promessas de ganhos podem destacar sucessos e minimizar a percepção de risco."
+      },
+      {
+       "p": "Por que apostar pelo celular pode aumentar o risco?",
+       "o": [
+        "O celular mostra probabilidades erradas.",
+        "Os prêmios pelo app são menores.",
+        "Dá para repetir sem pausa para pensar.",
+        "O app cobra taxa a cada aposta."
+       ],
+       "r": 2,
+       "e": "O acesso rápido pode facilitar a repetição impulsiva."
+      },
+      {
+       "p": "Uma propaganda pode ser atraente e, mesmo assim, a aposta continuar incerta?",
+       "o": [
+        "Verdadeiro",
+        "Falso"
+       ],
+       "r": 0,
+       "e": "A propaganda não muda o resultado: a aposta continua incerta."
+      },
+      {
+       "p": "Ao ver promessa de ganho alto, qual pergunta crítica é útil?",
+       "o": [
+        "Quanto eu ganharia se apostasse o dobro?",
+        "Quantas pessoas já ganharam com isso?",
+        "Até quando vale essa promoção?",
+        "O que essa propaganda não está mostrando?"
+       ],
+       "r": 3,
+       "e": "Avaliar o que a mensagem não destaca ajuda a reconhecer riscos."
+      },
+      {
+       "p": "Qual é um sinal de alerta numa propaganda de apostas?",
+       "o": [
+        "Destacar ganhos e esconder perdas.",
+        "Mostrar o aviso de proibido para menores.",
+        "Informar as regras da promoção.",
+        "Citar o telefone de ajuda."
+       ],
+       "r": 0,
+       "e": "Enfatizar ganhos e minimizar perdas pode distorcer a percepção do risco."
+      },
+      {
+       "p": "Como se proteger de decisões levadas por promessa de dinheiro fácil?",
+       "o": [
+        "Apostar só um valor pequeno para testar.",
+        "Seguir quem já ganhou muitas vezes.",
+        "Fazer uma pausa e pensar nos riscos.",
+        "Esperar o bônus de boas-vindas."
+       ],
+       "r": 2,
+       "e": "Uma pausa ajuda a avaliar consequências antes de agir."
+      }
+     ]
+    },
+    {
+     "id": "modulo_2_aula_2",
+     "t": "Como o design dos aplicativos influencia as decisões",
+     "v": "EmN2UWGXXb0",
+     "i": 720,
+     "f": 1010,
+     "q": [
+      {
+       "p": "Como o design de um aplicativo pode influenciar o comportamento?",
+       "o": [
+        "Só pela velocidade da internet.",
+        "Com cores e atalhos que facilitam continuar.",
+        "Mostrando com clareza quanto você já perdeu.",
+        "Bloqueando sozinho quem aposta demais no dia."
+       ],
+       "r": 1,
+       "e": "A interface pode reduzir barreiras e estimular a continuidade."
+      },
+      {
+       "p": "Qual risco existe quando apostar fica muito rápido?",
+       "o": [
+        "Cada aposta passa a custar mais caro do que antes.",
+        "O prêmio demora mais a cair na sua conta.",
+        "Decidir sem pensar nas consequências.",
+        "As chances de ganhar ficam mais baixas."
+       ],
+       "r": 2,
+       "e": "A rapidez pode reduzir o tempo para refletir."
+      },
+      {
+       "p": "Qual comportamento ajuda a manter uma decisão consciente?",
+       "o": [
+        "Definir limites e parar quando pesa no bolso.",
+        "Apostar só quando chega uma notificação.",
+        "Aumentar o valor para recuperar o que perdeu antes.",
+        "Deixar o app sugerir quanto apostar."
+       ],
+       "r": 0,
+       "e": "Limites e pausas podem reduzir decisões impulsivas."
+      },
+      {
+       "p": "Elementos visuais e notificações podem influenciar a atenção e as decisões?",
+       "o": [
+        "Verdadeiro",
+        "Falso"
+       ],
+       "r": 0,
+       "e": "Design e notificações podem direcionar a atenção e incentivar a interação."
+      },
+      {
+       "p": "Por que notificações frequentes atrapalham quem tenta parar?",
+       "o": [
+        "Porque gastam a bateria do celular.",
+        "Porque trazem só promoções falsas.",
+        "Porque mostram resultados errados.",
+        "Podem puxar a pessoa de volta."
+       ],
+       "r": 3,
+       "e": "Notificações podem servir como estímulos para voltar a apostar."
+      },
+      {
+       "p": "Qual pergunta ajuda a avaliar uma função do aplicativo?",
+       "o": [
+        "Ela me ajuda a ganhar mais rápido?",
+        "Ela me faz pensar ou me faz apostar sem pensar?",
+        "Ela deixa o app mais bonito que os concorrentes?",
+        "Quantas pessoas usam essa função?"
+       ],
+       "r": 1,
+       "e": "É útil avaliar se a função incentiva reflexão ou acelera a aposta."
+      }
+     ]
+    },
+    {
+     "id": "modulo_2_aula_3",
+     "t": "Influenciadores, ética e responsabilidade",
+     "v": "sLnR40D1g4Y",
+     "i": 825,
+     "f": 1054,
+     "q": [
+      {
+       "p": "Por que avaliar com cuidado o que influenciadores dizem sobre apostas?",
+       "o": [
+        "Porque todo influenciador mente.",
+        "Porque eles só divulgam casas ilegais.",
+        "Podem ser pagos, e o risco continua.",
+        "Porque não entendem de futebol."
+       ],
+       "r": 2,
+       "e": "Popularidade não garante imparcialidade nem previsibilidade."
+      },
+      {
+       "p": "Que informação ajuda a ver se uma propaganda é responsável?",
+       "o": [
+        "Se diz que é publicidade e mostra os riscos.",
+        "Se o influenciador tem muitos seguidores.",
+        "Se mostra prints de prêmios recebidos.",
+        "Se o bônus oferecido é alto."
+       ],
+       "r": 0,
+       "e": "Transparência e comunicação de riscos ajudam o público a avaliar a mensagem."
+      },
+      {
+       "p": "Um depoimento de alguém que ganhou comprova que outros também ganharão?",
+       "o": [
+        "Verdadeiro",
+        "Falso"
+       ],
+       "r": 1,
+       "e": "Um caso individual não garante o mesmo resultado para outras pessoas."
+      },
+      {
+       "p": "Qual é o risco de mostrar só histórias de grandes ganhos?",
+       "o": [
+        "As pessoas passam a apostar valores menores.",
+        "Ninguém acredita nesse tipo de história.",
+        "As casas de aposta perdem dinheiro.",
+        "Fazer o ganho parecer comum e a perda, rara."
+       ],
+       "r": 3,
+       "e": "Mostrar apenas sucessos pode distorcer a percepção dos riscos."
+      },
+      {
+       "p": "Como reagir a uma promoção que promete ganhos fáceis?",
+       "o": [
+        "Aproveitar enquanto a oferta está valendo.",
+        "Perguntar quem lucra e quais os riscos.",
+        "Testar com pouco dinheiro primeiro.",
+        "Mandar para amigos que também apostam."
+       ],
+       "r": 1,
+       "e": "Avaliação crítica evita tratar publicidade como garantia."
+      },
+      {
+       "p": "Qual princípio é importante na comunicação responsável?",
+       "o": [
+        "Mostrar vencedores reais, com nome e foto.",
+        "Oferecer bônus iguais para todos.",
+        "Não vender ganho incerto como certo.",
+        "Falar dos riscos só nas letras miúdas."
+       ],
+       "r": 2,
+       "e": "Ganhos incertos não devem ser apresentados como resultados garantidos."
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "modulo_3",
+   "n": "Falta de controle financeiro",
+   "a": [
+    {
+     "id": "modulo_3_aula_1",
+     "t": "Dívida, “só mais uma” e por que não é falta de caráter",
+     "v": "IBMrjEnt_QI",
+     "i": 958,
+     "f": 1291,
+     "q": [
+      {
+       "p": "Por que apostar “só mais uma vez” pode ser perigoso?",
+       "o": [
+        "Pode gerar novas perdas e manter o ciclo.",
+        "Porque a próxima rodada costuma ser pior.",
+        "Porque o app aumenta o valor sozinho.",
+        "Só é perigoso se for com dinheiro emprestado."
+       ],
+       "r": 0,
+       "e": "Tentar recuperar perdas pode estimular novas apostas e ampliar o prejuízo."
+      },
+      {
+       "p": "Qual visão ajuda a entender problemas com apostas?",
+       "o": [
+        "É falta de força de vontade.",
+        "Só acontece com quem não sabe de dinheiro.",
+        "Pode ser questão de saúde e merece cuidado.",
+        "Passa sozinho quando a pessoa ganha."
+       ],
+       "r": 2,
+       "e": "O problema não deve ser reduzido a julgamento moral."
+      },
+      {
+       "p": "Além da culpa, são preciso apoio e passos práticos para sair do problema?",
+       "o": [
+        "Verdadeiro",
+        "Falso"
+       ],
+       "r": 0,
+       "e": "Culpa e vergonha sozinhas não resolvem. Apoio e medidas práticas fazem a diferença."
+      },
+      {
+       "p": "Qual sinal pode indicar perda do controle financeiro?",
+       "o": [
+        "Anotar os gastos do mês numa planilha.",
+        "Separar o dinheiro das contas no dia do salário.",
+        "Pedir para reduzir o limite do cartão.",
+        "Usar o dinheiro das contas para apostar."
+       ],
+       "r": 3,
+       "e": "Comprometer recursos essenciais é um sinal de impacto financeiro."
+      },
+      {
+       "p": "O que fazer quando a vontade de recuperar perdas leva a novas apostas?",
+       "o": [
+        "Apostar mais alto para recuperar mais rápido.",
+        "Parar a sequência e pedir apoio.",
+        "Mudar para outro tipo de jogo.",
+        "Apostar só nos dias de folga."
+       ],
+       "r": 1,
+       "e": "Interromper o ciclo e buscar apoio pode reduzir novas perdas."
+      },
+      {
+       "p": "Por que evitar julgamentos morais simplistas?",
+       "o": [
+        "Porque a culpa ajuda a pessoa a parar.",
+        "Porque o problema não tem consequências.",
+        "A vergonha afasta a pessoa da ajuda.",
+        "Porque só especialistas podem opinar."
+       ],
+       "r": 2,
+       "e": "O estigma pode afastar a pessoa do apoio necessário."
+      }
+     ]
+    },
+    {
+     "id": "modulo_3_aula_2",
+     "t": "Dinheiro não deve ser um tabu",
+     "v": "sLnR40D1g4Y",
+     "i": 1865,
+     "f": 2200,
+     "q": [
+      {
+       "p": "Como conversar sobre dinheiro pode ajudar a família?",
+       "o": [
+        "Evita que alguém precise mudar os próprios hábitos.",
+        "Deixa o problema visível e as decisões juntas.",
+        "Faz os credores darem mais prazo.",
+        "Mostra quem é o culpado pela dívida."
+       ],
+       "r": 1,
+       "e": "O diálogo ajuda a entender a situação e combinar ações."
+      },
+      {
+       "p": "Qual atitude favorece uma conversa boa sobre dívidas?",
+       "o": [
+        "Ouvir, contar a situação e combinar o próximo passo.",
+        "Esperar a dívida estar resolvida para só então contar.",
+        "Evitar números para não brigar.",
+        "Prometer que vai ganhar de volta."
+       ],
+       "r": 0,
+       "e": "Uma conversa produtiva procura compreender a situação e planejar ações."
+      },
+      {
+       "p": "Falar sobre dívidas pode ajudar a identificar o problema e planejar soluções?",
+       "o": [
+        "Verdadeiro",
+        "Falso"
+       ],
+       "r": 0,
+       "e": "A comunicação torna informações claras e facilita o planejamento."
+      },
+      {
+       "p": "Por que o silêncio sobre problemas financeiros pode atrapalhar?",
+       "o": [
+        "Porque os juros crescem mais rápido.",
+        "Porque a família pode ser processada.",
+        "Porque o banco percebe e corta o crédito.",
+        "Atrasa perceber o problema e buscar apoio."
+       ],
+       "r": 3,
+       "e": "Quando o problema fica oculto, pode ser mais difícil enfrentá-lo."
+      },
+      {
+       "p": "Que informação é útil numa conversa sobre organizar o dinheiro?",
+       "o": [
+        "Quanto alguém conhecido ganhou apostando.",
+        "Valores reais de renda, gastos e dívidas.",
+        "Só os gastos de lazer de cada um.",
+        "O total que vocês gastaram no ano passado."
+       ],
+       "r": 1,
+       "e": "Dados reais ajudam a transformar a conversa em planejamento."
+      },
+      {
+       "p": "Qual deve ser o objetivo de conversar sobre dinheiro em família?",
+       "o": [
+        "Descobrir quem errou mais.",
+        "Decidir quem da família vai pagar a dívida sozinho.",
+        "Entender a situação e combinar ações.",
+        "Evitar que alguém mude de hábito."
+       ],
+       "r": 2,
+       "e": "O diálogo deve ajudar a construir entendimento e próximos passos."
+      }
+     ]
+    },
+    {
+     "id": "modulo_3_aula_3",
+     "t": "Infidelidade financeira e patrimônio familiar",
+     "v": "sLnR40D1g4Y",
+     "i": 2200,
+     "f": 2470,
+     "q": [
+      {
+       "p": "O que mostra um problema de transparência financeira na família?",
+       "o": [
+        "Esconder dívidas que afetam o dinheiro de todos.",
+        "Ter conta bancária separada do parceiro ou parceira.",
+        "Um ganhar mais do que o outro.",
+        "Guardar dinheiro para uma surpresa."
+       ],
+       "r": 0,
+       "e": "Ocultar informações relevantes pode prejudicar decisões sobre recursos compartilhados."
+      },
+      {
+       "p": "Por que esconder dívidas pode afetar o patrimônio da família?",
+       "o": [
+        "Porque a dívida passa automaticamente para os filhos.",
+        "Recursos de todos podem ser usados sem plano.",
+        "Porque o imóvel é tomado na hora.",
+        "Só afeta se a dívida for no cartão."
+       ],
+       "r": 1,
+       "e": "Compromissos não informados podem afetar o orçamento e os bens da família."
+      },
+      {
+       "p": "Qual prática ajuda a evitar conflitos sobre dinheiro?",
+       "o": [
+        "Cada um decidir sozinho sobre o próprio dinheiro.",
+        "Evitar falar de dívidas para não brigar.",
+        "Combinar transparência sobre o que é de todos.",
+        "Deixar uma só pessoa cuidar de tudo."
+       ],
+       "r": 2,
+       "e": "Comunicação sobre compromissos compartilhados favorece decisões conscientes."
+      },
+      {
+       "p": "Ocultar uma dívida impede que ela afete despesas comuns?",
+       "o": [
+        "Verdadeiro",
+        "Falso"
+       ],
+       "r": 1,
+       "e": "Mesmo escondida, a dívida pode comprometer recursos destinados a despesas comuns."
+      },
+      {
+       "p": "Ao descobrir uma dívida escondida, qual resposta é mais construtiva?",
+       "o": [
+        "Fingir que não viu para não criar conflito.",
+        "Pagar a dívida em silêncio, sem conversar.",
+        "Esperar a pessoa resolver tudo sozinha.",
+        "Ver os valores e combinar como proteger a casa."
+       ],
+       "r": 3,
+       "e": "Compreender valores e impactos permite planejar medidas."
+      },
+      {
+       "p": "Por que decisões financeiras importantes devem considerar as pessoas afetadas?",
+       "o": [
+        "Porque a lei exige assinatura de todos.",
+        "O dinheiro e as contas podem ser de todos.",
+        "Porque assim a dívida diminui.",
+        "Para dividir a culpa se der errado."
+       ],
+       "r": 1,
+       "e": "Decisões individuais podem afetar outras pessoas quando os recursos são compartilhados."
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "modulo_4",
+   "n": "Quando o jogo vira problema",
+   "a": [
+    {
+     "id": "modulo_4_aula_1",
+     "t": "Como o cérebro vai se acostumando",
+     "v": "IBMrjEnt_QI",
+     "i": 434,
+     "f": 721,
+     "q": [
+      {
+       "p": "Por que repetir apostas pode torná-las mais difíceis de interromper?",
+       "o": [
+        "A repetição fortalece o hábito.",
+        "Porque quem aposta muito esquece as perdas.",
+        "Porque o app bloqueia a saída depois de um tempo.",
+        "Porque fica mais fácil ganhar com a prática."
+       ],
+       "r": 0,
+       "e": "A repetição e a expectativa de recompensa podem reforçar hábitos."
+      },
+      {
+       "p": "Qual frase evita simplificar o problema do jogo?",
+       "o": [
+        "É sempre falta de caráter.",
+        "Quem quer de verdade para sozinho.",
+        "Envolve vários fatores e merece cuidado.",
+        "Todo mundo que aposta vai ficar dependente."
+       ],
+       "r": 2,
+       "e": "O risco não é igual para todos e não deve ser reduzido a julgamento moral."
+      },
+      {
+       "p": "Todas as pessoas que apostam desenvolverão necessariamente um transtorno?",
+       "o": [
+        "Verdadeiro",
+        "Falso"
+       ],
+       "r": 1,
+       "e": "Não é correto afirmar que todas as pessoas que apostam desenvolverão um transtorno."
+      },
+      {
+       "p": "Qual atitude pode ajudar ao perceber dificuldade em controlar apostas?",
+       "o": [
+        "Apostar só nos fins de semana para compensar.",
+        "Reconhecer os sinais e procurar apoio.",
+        "Trocar de casa de aposta.",
+        "Esperar uma boa fase para parar."
+       ],
+       "r": 1,
+       "e": "Reconhecer a dificuldade e buscar apoio são passos importantes."
+      },
+      {
+       "p": "O que pode acontecer quando aposta e recompensa se repetem juntas?",
+       "o": [
+        "A pessoa aprende a prever os resultados.",
+        "Os riscos de perder diminuem.",
+        "A vontade de apostar some com o tempo.",
+        "Forma um hábito difícil de interromper."
+       ],
+       "r": 3,
+       "e": "A repetição pode reforçar o comportamento."
+      },
+      {
+       "p": "Por que observar mudanças no jeito de apostar?",
+       "o": [
+        "Sinais cedo podem mostrar perda de controle.",
+        "Qualquer mudança já é um diagnóstico.",
+        "Para saber a melhor hora de apostar.",
+        "Porque mudanças sempre trazem prejuízo."
+       ],
+       "r": 0,
+       "e": "Observar mudanças ajuda a reconhecer possíveis problemas sem concluir diagnóstico automaticamente."
+      }
+     ]
+    },
+    {
+     "id": "modulo_4_aula_2",
+     "t": "O “quase ganhar” e por que não para nem ganhando",
+     "v": "IBMrjEnt_QI",
+     "i": 1291,
+     "f": 1553,
+     "q": [
+      {
+       "p": "Por que a sensação de “quase ganhar” pode puxar novas apostas?",
+       "o": [
+        "Porque mostra que a sorte está mudando a seu favor.",
+        "Porque devolve parte do dinheiro.",
+        "Parece que a vitória está perto, mas não está.",
+        "Porque o próximo resultado fica mais fácil."
+       ],
+       "r": 2,
+       "e": "Quase vencer não garante o resultado seguinte."
+      },
+      {
+       "p": "Alguém perdeu 5 vezes seguidas e pensa: “agora tem que vir”. O que há de errado nisso?",
+       "o": [
+        "As perdas anteriores não mudam a chance da próxima.",
+        "Nada: depois de várias perdas, ganhar fica mais provável.",
+        "Ele deveria esperar mais algumas rodadas.",
+        "O erro foi ter apostado pouco nas anteriores."
+       ],
+       "r": 0,
+       "e": "Cada rodada é independente. Perder várias vezes não aumenta a chance de ganhar na próxima."
+      },
+      {
+       "p": "A sensação de quase ganhar garante matematicamente uma vitória futura?",
+       "o": [
+        "Verdadeiro",
+        "Falso"
+       ],
+       "r": 1,
+       "e": "A sensação não garante resultados futuros."
+      },
+      {
+       "p": "Uma pessoa ganha pouco e continua até perder mais do que ganhou. O que isso mostra?",
+       "o": [
+        "Que ela deveria ter apostado mais alto desde o início.",
+        "Que a próxima vitória vai compensar.",
+        "Que ganhar uma vez quita as perdas.",
+        "Uma vitória isolada não garante saldo positivo."
+       ],
+       "r": 3,
+       "e": "É possível ganhar em uma rodada e terminar com perdas acumuladas."
+      },
+      {
+       "p": "Como não confundir sensação de proximidade com chance real?",
+       "o": [
+        "Apostar mais rápido para não pensar.",
+        "Lembrar que a sensação não prevê nada.",
+        "Acompanhar os padrões dos últimos resultados.",
+        "Aumentar a aposta quando sentir que vai ganhar."
+       ],
+       "r": 1,
+       "e": "A sensação subjetiva não determina o próximo resultado."
+      },
+      {
+       "p": "Por que anotar o total gasto é mais útil que lembrar só de uma vitória?",
+       "o": [
+        "Mostra o saldo real, com perdas e ganhos.",
+        "Ajuda a descobrir o melhor horário para apostar.",
+        "A memória das vitórias já é suficiente.",
+        "Porque o app pode errar o saldo."
+       ],
+       "r": 0,
+       "e": "Considerar todos os valores oferece uma visão mais realista."
+      }
+     ]
+    },
+    {
+     "id": "modulo_4_aula_3",
+     "t": "Sinais para a família e como o problema avança",
+     "v": "zNp_Dl_smYM",
+     "i": 523,
+     "f": 888,
+     "q": [
+      {
+       "p": "Qual mudança pode ser sinal de alerta para a família?",
+       "o": [
+        "Falar abertamente sobre o orçamento.",
+        "Esconder gastos e pensar o tempo todo em apostas.",
+        "Começar a anotar todas as contas da casa num caderno.",
+        "Cortar gastos que não são essenciais."
+       ],
+       "r": 1,
+       "e": "Segredo sobre gastos e preocupação intensa podem indicar que algo merece atenção."
+      },
+      {
+       "p": "Como entender um sinal isolado de comportamento?",
+       "o": [
+        "Como prova de que a pessoa já tem um problema grave.",
+        "Como motivo para não tocar no assunto.",
+        "Como algo que merece atenção, sem concluir nada.",
+        "Como sinal de que está tudo bem."
+       ],
+       "r": 2,
+       "e": "Um sinal isolado não basta para concluir um diagnóstico."
+      },
+      {
+       "p": "Observar sinais de alerta significa acusar imediatamente a pessoa?",
+       "o": [
+        "Verdadeiro",
+        "Falso"
+       ],
+       "r": 1,
+       "e": "Acusações podem dificultar o diálogo; é melhor conversar com cuidado."
+      },
+      {
+       "p": "Qual é uma forma de apoiar alguém com possível problema de apostas?",
+       "o": [
+        "Ouvir com respeito e incentivar a busca de ajuda.",
+        "Pagar todas as dívidas dela sem tocar no assunto.",
+        "Vigiar o celular da pessoa escondido.",
+        "Dar um ultimato no primeiro sinal."
+       ],
+       "r": 0,
+       "e": "Acolhimento e apoio adequado são mais construtivos do que estimular apostas."
+      },
+      {
+       "p": "Por que dívidas secretas podem preocupar a família?",
+       "o": [
+        "Porque sempre indicam um problema grave e sem saída.",
+        "Porque toda dívida escondida é de aposta.",
+        "Porque a família vai ter que pagar.",
+        "Podem mostrar que as apostas pesam nas decisões."
+       ],
+       "r": 3,
+       "e": "Mudanças financeiras secretas podem indicar consequências negativas."
+      },
+      {
+       "p": "Qual a diferença entre apoiar e encobrir?",
+       "o": [
+        "Nenhuma: os dois protegem a pessoa.",
+        "Apoiar enfrenta o problema; encobrir esconde.",
+        "Encobrir é apoiar sem a pessoa saber.",
+        "Apoiar é pagar as dívidas por ela."
+       ],
+       "r": 1,
+       "e": "Apoiar busca enfrentar o problema; encobrir pode impedir que ele seja reconhecido."
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "modulo_5",
+   "n": "Organização financeira",
+   "a": [
+    {
+     "id": "modulo_5_aula_1",
+     "t": "Economia é sobre pessoas, não apenas dinheiro",
+     "v": "sLnR40D1g4Y",
+     "i": 255,
+     "f": 534,
+     "q": [
+      {
+       "p": "Por que a análise econômica deve considerar o bem-estar das pessoas?",
+       "o": [
+        "Decisões de dinheiro afetam a vida e as relações.",
+        "Porque o dinheiro importa menos que a felicidade.",
+        "Porque todas as famílias gastam igual.",
+        "Só para fazer pesquisa de opinião."
+       ],
+       "r": 0,
+       "e": "Os efeitos econômicos também aparecem nas necessidades diárias e relações."
+      },
+      {
+       "p": "Qual é um exemplo de impacto de uma dívida na família?",
+       "o": [
+        "Aumentar a renda da casa.",
+        "Melhorar o crédito de todos.",
+        "Faltar dinheiro para as contas da casa.",
+        "Fazer as contas da casa vencerem mais tarde."
+       ],
+       "r": 2,
+       "e": "Recursos comprometidos podem deixar despesas compartilhadas sem cobertura."
+      },
+      {
+       "p": "Compreender um problema financeiro exige olhar somente o valor da dívida?",
+       "o": [
+        "Verdadeiro",
+        "Falso"
+       ],
+       "r": 1,
+       "e": "Também importa compreender efeitos sobre necessidades, cotidiano e relações."
+      },
+      {
+       "p": "Qual pergunta ajuda a entender o impacto real de uma perda?",
+       "o": [
+        "Quanto eu teria ganhado se tivesse acertado?",
+        "Quem ganhou mais apostando este mês?",
+        "Em qual jogo eu perdi mais?",
+        "Quais gastos e necessidades foram afetados?"
+       ],
+       "r": 3,
+       "e": "Identificar necessidades afetadas ajuda a entender consequências concretas."
+      },
+      {
+       "p": "Por que o contexto da família importa no planejamento?",
+       "o": [
+        "Dinheiro e contas podem ser de todos.",
+        "Porque a família define quanto apostar.",
+        "Porque todas têm o mesmo orçamento.",
+        "Para dividir as dívidas igualmente."
+       ],
+       "r": 0,
+       "e": "O planejamento precisa considerar responsabilidades e necessidades reais."
+      },
+      {
+       "p": "Qual abordagem combina com uma visão humana da economia?",
+       "o": [
+        "Olhar só para o lucro possível.",
+        "Considerar necessidades e bem-estar.",
+        "Tratar dívidas pequenas como irrelevantes.",
+        "Comparar a renda entre famílias."
+       ],
+       "r": 1,
+       "e": "Uma visão humana considera como as decisões econômicas afetam a vida das pessoas."
+      }
+     ]
+    },
+    {
+     "id": "modulo_5_aula_2",
+     "t": "Prevenção, educação financeira e políticas públicas",
+     "v": "sLnR40D1g4Y",
+     "i": 2470,
+     "f": 2726,
+     "q": [
+      {
+       "p": "Qual é o papel da educação financeira na prevenção de problemas com apostas?",
+       "o": [
+        "Ensinar a apostar com estratégia.",
+        "Garantir que ninguém perca dinheiro.",
+        "Ajudar a entender riscos e planejar.",
+        "Substituir o tratamento profissional."
+       ],
+       "r": 2,
+       "e": "Educação financeira ajuda a compreender riscos, mas não garante lucro nem substitui outros apoios."
+      },
+      {
+       "p": "Por que a prevenção vai além das escolhas de cada um?",
+       "o": [
+        "Propaganda, acesso e leis também influenciam.",
+        "Porque as escolhas pessoais não fazem diferença nenhuma.",
+        "Porque todos terão o mesmo resultado.",
+        "Porque leis eliminam todo o risco."
+       ],
+       "r": 0,
+       "e": "A prevenção pode envolver educação, regulação, informação e proteção."
+      },
+      {
+       "p": "Uma única medida de educação financeira garante que ninguém terá problemas com apostas?",
+       "o": [
+        "Verdadeiro",
+        "Falso"
+       ],
+       "r": 1,
+       "e": "Nenhuma medida isolada garante a eliminação de todos os riscos."
+      },
+      {
+       "p": "Qual é uma finalidade de políticas públicas de prevenção?",
+       "o": [
+        "Garantir que apostar seja lucrativo.",
+        "Esconder os riscos para não assustar.",
+        "Substituir o planejamento financeiro de cada pessoa.",
+        "Garantir informação, proteção e responsabilidade."
+       ],
+       "r": 3,
+       "e": "Políticas públicas podem criar condições de proteção e responsabilidade."
+      },
+      {
+       "p": "Qual atitude mostra olhar crítico diante de uma oferta de aposta?",
+       "o": [
+        "Aceitar porque todos os amigos também estão apostando.",
+        "Comparar a promessa com os riscos e as regras.",
+        "Aproveitar enquanto o bônus está alto.",
+        "Apostar pouco só para conhecer."
+       ],
+       "r": 1,
+       "e": "Verificar condições e riscos evita decisões baseadas apenas em promessas."
+      },
+      {
+       "p": "Por que prevenção é mais ampla que simplesmente dizer “tenha cuidado”?",
+       "o": [
+        "Precisa de informação, limites e apoio.",
+        "Porque avisos não servem para nada.",
+        "Porque só a lei resolve o problema.",
+        "Porque cuidado só depende de sorte."
+       ],
+       "r": 0,
+       "e": "A prevenção pode combinar educação, apoio e medidas de proteção."
+      }
+     ]
+    },
+    {
+     "id": "modulo_5_aula_3",
+     "t": "Eu Vou Levar — consumo e decisão de compra",
+     "v": "FdTip4SdWMw",
+     "i": 0,
+     "f": 259,
+     "q": [
+      {
+       "p": "Antes de comprar algo, qual pergunta ajuda a avaliar a necessidade?",
+       "o": [
+        "Dá para parcelar sem juros?",
+        "Eu preciso disso e cabe no orçamento?",
+        "Quantas pessoas já compraram?",
+        "A promoção acaba hoje?"
+       ],
+       "r": 1,
+       "e": "Avaliar necessidade e orçamento ajuda a distinguir desejo imediato de compra compatível com os recursos."
+      },
+      {
+       "p": "Qual é um risco de comprar por impulso?",
+       "o": [
+        "O produto sempre sai mais caro do que na loja física.",
+        "Não é possível devolver.",
+        "Usar dinheiro que era de outra prioridade.",
+        "Ganhar pontos no cartão."
+       ],
+       "r": 2,
+       "e": "Compras impulsivas podem consumir recursos necessários para outras despesas."
+      },
+      {
+       "p": "Comparar uma compra com o orçamento pode ajudar a evitar gastos incompatíveis com a renda?",
+       "o": [
+        "Verdadeiro",
+        "Falso"
+       ],
+       "r": 0,
+       "e": "Conferir o orçamento antes da compra ajuda a avaliar se ela cabe nos recursos."
+      },
+      {
+       "p": "Qual atitude favorece uma compra consciente?",
+       "o": [
+        "Comprar sempre que houver promoção.",
+        "Olhar só o valor da parcela.",
+        "Comprar logo para não perder a chance.",
+        "Comparar opções e ver o custo total."
+       ],
+       "r": 3,
+       "e": "Necessidade e custo total devem ser considerados na decisão."
+      },
+      {
+       "p": "Uma promoção significa que a compra é vantajosa?",
+       "o": [
+        "Não necessariamente: pode não caber no bolso.",
+        "Sim, todo desconto compensa.",
+        "Sim, comprar mais sempre economiza.",
+        "Sim, se o desconto for maior que a metade do preço."
+       ],
+       "r": 0,
+       "e": "Mesmo com desconto, a compra pode ser desnecessária ou incompatível com o orçamento."
+      },
+      {
+       "p": "Qual prática ajuda a equilibrar desejos e compromissos?",
+       "o": [
+        "Gastar primeiro e ver o que sobra.",
+        "Planejar e separar dinheiro para prioridades.",
+        "Usar o cartão e pensar nas parcelas depois.",
+        "Comprar antes de ver o preço."
+       ],
+       "r": 1,
+       "e": "Planejar ajuda a atender prioridades sem comprometer outras obrigações."
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

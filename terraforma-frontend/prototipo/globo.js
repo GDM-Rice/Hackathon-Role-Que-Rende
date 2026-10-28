@@ -638,7 +638,7 @@ export async function criarGlobo(container, opcoes = {}) {
   // só mostra o canvas depois do primeiro quadro desenhado com textura (entra com fade, por cima do marcador)
   requestAnimationFrame(() => requestAnimationFrame(() => { canvas.style.opacity = '1'; }));
   // a versão em alta chega em segundo plano
-  const trocar = (t, im) => { t.image = im; t.needsUpdate = true; };
+  const trocar = (t, im) => { t.dispose(); t.image = im; t.needsUpdate = true; };   // dispose: a textura muda de tamanho e precisa ser recriada na GPU
   carregarImagem(base + 'terra-dia.jpg').then((im) => trocar(texturas[0], im)).catch(() => {});
   carregarImagem(base + 'brasil-rios.png').then((im) => trocar(texturas[4], im)).catch(() => {});
 
