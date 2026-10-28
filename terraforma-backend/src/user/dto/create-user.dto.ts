@@ -1,9 +1,28 @@
-import { IsEmail, IsNotEmpty, IsString, MaxLength, MinLength } from 'class-validator';
+import { Transform } from 'class-transformer';
+import {
+  IsEmail,
+  IsNotEmpty,
+  IsString,
+  Matches,
+  MaxLength,
+  MinLength,
+} from 'class-validator';
 import { NormalizeEmail } from '../../common/normalize-email.js';
 
 export class CreateUserDto {
+  // Minúsculas e sem espaços nas pontas: "Ana" e "ana" não podem ser duas contas
+  // diferentes (evita alguém se passar por outra pessoa).
+  @Transform(({ value }) =>
+    typeof value === 'string' ? value.trim().toLowerCase() : value,
+  )
   @IsString({ message: 'O username deve ser uma string.' })
   @IsNotEmpty({ message: 'O campo username não pode estar vazio.' })
+  @MinLength(3, { message: 'O username deve ter no mínimo 3 caracteres.' })
+  @MaxLength(30, { message: 'O username deve ter no máximo 30 caracteres.' })
+  @Matches(/^[a-z0-9._-]+$/, {
+    message:
+      'O username só pode ter letras minúsculas, números, ponto, hífen e sublinhado.',
+  })
   username!: string;
 
   @NormalizeEmail()
