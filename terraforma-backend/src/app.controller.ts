@@ -1,4 +1,5 @@
 import { Controller, Get } from '@nestjs/common';
+import { SkipThrottle } from '@nestjs/throttler';
 import { AppService } from './app.service.js';
 import { Public } from './auth/decorators/isPublic.decorator.js';
 
@@ -6,9 +7,11 @@ import { Public } from './auth/decorators/isPublic.decorator.js';
 export class AppController {
   constructor(private readonly appService: AppService) {}
 
+  // Verificação de saúde para hospedagem e monitoramento: pública e sem limite de taxa.
   @Public()
-  @Get()
-  getHello(): string {
-    return this.appService.getHello();
+  @SkipThrottle()
+  @Get('health')
+  getHealth() {
+    return this.appService.getHealth();
   }
 }
