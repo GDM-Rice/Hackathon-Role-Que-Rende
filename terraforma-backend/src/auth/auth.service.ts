@@ -91,7 +91,8 @@ export class AuthService {
     } catch (error) {
       // Não propaga: um erro 500 só para e-mails existentes revelaria quem está cadastrado
       this.logger.error(
-        `Falha ao enviar e-mail de recuperação para ${user.email}`,
+        // Só o id: e-mail é dado pessoal e não deve ficar em log.
+        `Falha ao enviar e-mail de recuperação (usuário ${user.id})`,
         error,
       );
     }
