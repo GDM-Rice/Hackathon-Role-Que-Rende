@@ -87,13 +87,21 @@ describe('Fluxo de login e chats (e2e, sem banco real)', () => {
   const novo = { username: 'ana', email: 'Ana@Email.com', senha: 'senha-forte-1' };
   let token = '';
 
-  it('GET / é público', () => http.get('/').expect(200));
+  it('GET /health é público', async () => {
+    const res = await http.get('/health').expect(200);
+    expect(res.body).toEqual({ status: 'ok' });
+  });
 
   it('rota protegida sem token => 401', () => http.get('/chats').expect(401));
   it('GET /user/me sem token => 401', () => http.get('/user/me').expect(401));
 
   it('cadastro valida o corpo (senha curta => 400)', () =>
     http.post('/user').send({ ...novo, senha: '123' }).expect(400));
+
+  it('cadastro rejeita username curto ou com caracteres inválidos => 400', async () => {
+    await http.post('/user').send({ ...novo, username: 'ab' }).expect(400);
+    await http.post('/user').send({ ...novo, username: 'ana silva!' }).expect(400);
+  });
 
   it('cadastro funciona e NÃO devolve a senha', async () => {
     const res = await http.post('/user').send(novo).expect(201);
@@ -118,12 +126,32 @@ describe('Fluxo de login e chats (e2e, sem banco real)', () => {
     expect(res.body.senha).toBeUndefined();
   });
 
+  it('trocar o e-mail sem a senha atual => 400; com senha atual errada => 403', async () => {
+    const auth = { Authorization: `Bearer ${token}` };
+    await http.patch('/user/me').set(auth).send({ email: 'outra@email.com' }).expect(400);
+    await http
+      .patch('/user/me')
+      .set(auth)
+      .send({ email: 'outra@email.com', senhaAtual: 'senha-errada-1' })
+      .expect(403);
+  });
+
+  it('lista chats paginados: { itens, proximoCursor }', async () => {
+    const auth = { Authorization: `Bearer ${token}` };
+    const res = await http.get('/chats?limit=5').set(auth).expect(200);
+    expect(Array.isArray(res.body.itens)).toBe(true);
+    expect(res.body).toHaveProperty('proximoCursor');
+    await http.get('/chats?limit=0').set(auth).expect(400);
+    await http.get('/chats?limit=101').set(auth).expect(400);
+  });
+
   it('cria chat, envia mensagem e lê o histórico', async () => {
     const auth = { Authorization: `Bearer ${token}` };
     const chat = await http.post('/chats').set(auth).send({}).expect(201);
     await http.post(`/chats/${chat.body.id}/messages`).set(auth).send({ conteudo: 'oi' }).expect(201);
     const lido = await http.get(`/chats/${chat.body.id}`).set(auth).expect(200);
     expect(lido.body.mensagens).toHaveLength(1);
+    expect(lido.body.proximoCursor).toBeNull();
   });
 
   it('mensagem vazia => 400', async () => {
