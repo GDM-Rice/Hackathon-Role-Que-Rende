@@ -1,20 +1,26 @@
-import { MiddlewareConsumer, Module, NestModule, RequestMethod } from '@nestjs/common';
-import { AuthService } from './auth.service.js';
-import { AuthController } from './auth.controller.js';
-import { UserModule } from '../user/user.module.js';
+import { Module } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
-import { LoginValidationMiddleware } from './middleware/LoginValidationMiddleware.middleware.js';
-import { MailModule } from '../../mail/mail.module.js';
+import { MailModule } from '../mail/mail.module.js';
+import { UserModule } from '../user/user.module.js';
+import { AuthController } from './auth.controller.js';
+import { AuthService } from './auth.service.js';
 
 @Module({
-  imports: [UserModule, JwtModule, MailModule],
+  imports: [
+    UserModule,
+    MailModule,
+    // Configura o segredo uma única vez; o AuthService e o AuthGuard só usam o JwtService.
+    JwtModule.registerAsync({
+      global: true,
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => ({
+        secret: config.getOrThrow<string>('JWT_SECRET'),
+        signOptions: { expiresIn: '1d' },
+      }),
+    }),
+  ],
   controllers: [AuthController],
   providers: [AuthService],
 })
-export class AuthModule implements NestModule {
-  configure(consumer: MiddlewareConsumer) {
-    consumer
-      .apply(LoginValidationMiddleware)
-      .forRoutes({ path: 'auth/login', method: RequestMethod.POST });
-  }
-}
+export class AuthModule {}
