@@ -1,142 +1,99 @@
-import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
+import { Prisma } from '@prisma/client';
+import * as bcrypt from 'bcrypt';
+import { PrismaService } from '../prisma/prisma.service.js';
 import { CreateUserDto } from './dto/create-user.dto.js';
 import { UpdateUserDto } from './dto/update-user.dto.js';
-import * as bcrypt from 'bcrypt';
+
+// Campos que podem sair da API. A senha (hash) nunca está aqui.
+const publicSelect = {
+  id: true,
+  username: true,
+  email: true,
+  createdAt: true,
+  updatedAt: true,
+} satisfies Prisma.UserSelect;
 
 @Injectable()
 export class UserService {
+  constructor(private readonly prisma: PrismaService) {}
 
-  constructor(private readonly prisma: PrismaService) {
+  async create(dto: CreateUserDto) {
+    const senha = await bcrypt.hash(dto.senha, 10);
 
+    try {
+      return await this.prisma.user.create({
+        data: { username: dto.username, email: dto.email, senha },
+        select: publicSelect,
+      });
+    } catch (error) {
+      throw this.traduzirErro(error);
+    }
   }
 
-  // Create
-
-  async create(createUserDto: CreateUserDto) {
-    const existingUserUsername = await this.prisma.User.findUnique({
-      where: { username: createUserDto.username }
-    })
-
-    if (existingUserUsername) {
-      throw new ConflictException('User com esse username já existe');
-    }
-
-
-    const existingUserEmail = await this.prisma.User.findUnique({
-      where: { email: createUserDto.email }
-    });
-
-    if (existingUserEmail) {
-      throw new ConflictException('User com esse email já existe');
-    }
-
-    const hashedPassword = await bcrypt.hash(createUserDto.senha, 10);
-
-    return this.prisma.User.create({
-      data: {
-        username: createUserDto.username,
-        nome: createUserDto.username,
-        email: createUserDto.email,
-        senha: hashedPassword
-      },
-    });
-  }
-
-  //Finds
-
-  async findAll() {
-    return await this.prisma.usuario.findMany({
-      select: {
-        id: true,
-        username: true,
-        email: true,
-        senha: false,
-        createdAt: true,
-        updatedAt: true,
-
-      }
-    });
-  }
-
-  async findOne(id: number) {
-    const isValidId = await this.prisma.User.findUnique({ where: { id } })
-
-    if (!isValidId) {
-      throw new NotFoundException('User com Id não encontrado');
-    }
-    return await this.prisma.User.findUnique({
+  async findOne(id: string) {
+    const user = await this.prisma.user.findUnique({
       where: { id },
-      select: {
-        id: true,
-        username: true,
-        email: true,
-        senha: false,
-        createdAt: true,
-        updatedAt: true,
-
-      }
+      select: publicSelect,
     });
-  }
-
-  async findByEmail(email: string) {
-
-    const user = await this.prisma.User.findUnique({ where: { email } });
-    if (!user) {
-      return null;
-    }
+    if (!user) throw new NotFoundException('User com Id não encontrado');
     return user;
   }
 
-  //Update
-
-  async update(id: number, updateUserDto: UpdateUserDto) {
-    const isValidId = await this.prisma.User.findUnique({ where: { id } })
-
-    if (!isValidId) {
-      throw new NotFoundException('User com Id não encontrado');
-    }
-
-    return await this.prisma.User.update({
-      where: { id },
-      data: {
-        username: updateUserDto.username,
-        email: updateUserDto.email,
-        ...(updateUserDto.senha !== undefined && {
-          senhaHash: await bcrypt.hash(updateUserDto.senha, 10),
-          senhaVersao: { increment: 1 },
-        }),
-      },
-      select: {
-        id: true,
-        username: true,
-        email: true,
-        senha: false,
-        createdAt: true,
-        updatedAt: true,
-      }
-    });
+  // Uso interno do login: precisa devolver o hash da senha, por isso NÃO é exposto em controller.
+  findByEmail(email: string) {
+    return this.prisma.user.findUnique({ where: { email } });
   }
 
-  //Remove
-
-  async remove(id: number) {
-
-    const isValidId = await this.prisma.User.findUnique({ where: { id } })
-
-    if (!isValidId) {
-      throw new NotFoundException('User com Id não encontrado');
+  async update(id: string, dto: UpdateUserDto) {
+    try {
+      return await this.prisma.user.update({
+        where: { id },
+        data: {
+          username: dto.username,
+          email: dto.email,
+          ...(dto.senha !== undefined && {
+            senha: await bcrypt.hash(dto.senha, 10),
+            senhaVersao: { increment: 1 }, // invalida os tokens antigos
+          }),
+        },
+        select: publicSelect,
+      });
+    } catch (error) {
+      throw this.traduzirErro(error);
     }
+  }
 
-    return await this.prisma.User.delete({
-      where: { id }, select: {
-        id: true,
-        username: true,
-        email: true,
-        senha: false,
-        createdAt: true,
-        updatedAt: true,
+  async remove(id: string) {
+    try {
+      return await this.prisma.user.delete({
+        where: { id },
+        select: publicSelect,
+      });
+    } catch (error) {
+      throw this.traduzirErro(error);
+    }
+  }
 
+  // Converte erros do Prisma em respostas HTTP corretas (em vez de 500).
+  private traduzirErro(error: unknown): unknown {
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      if (error.code === 'P2002') {
+        const campo = String((error.meta?.target as string[] | string) ?? '');
+        return new ConflictException(
+          campo.includes('username')
+            ? 'User com esse username já existe'
+            : 'User com esse email já existe',
+        );
       }
-    });
+      if (error.code === 'P2025') {
+        return new NotFoundException('User com Id não encontrado');
+      }
+    }
+    return error;
   }
 }
