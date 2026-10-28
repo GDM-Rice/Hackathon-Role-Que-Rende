@@ -15,17 +15,25 @@ export class MailService {
         host,
         port: Number(this.config.get('SMTP_PORT') ?? 587),
         secure: this.config.get('SMTP_SECURE') === 'true',
-        auth: {
-          user: this.config.get<string>('SMTP_USER'),
-          pass: this.config.get<string>('SMTP_PASS'),
-        },
+        // Só autentica se houver usuário: servidores locais (ex.: MailHog) não usam login,
+        // e mandar credenciais vazias faz o envio falhar.
+        ...(this.config.get<string>('SMTP_USER') && {
+          auth: {
+            user: this.config.get<string>('SMTP_USER'),
+            pass: this.config.get<string>('SMTP_PASS'),
+          },
+        }),
       });
     }
   }
 
   async enviarRecuperacaoSenha(para: string, link: string) {
-    // Sem SMTP configurado (dev), só mostra o link no console
+    // Sem SMTP configurado, só em desenvolvimento mostramos o link no console.
+    // Em produção o link é uma credencial (quem o tem redefine a senha): nunca vai para o log.
     if (!this.transporter) {
+      if (process.env.NODE_ENV === 'production') {
+        throw new Error('SMTP não configurado em produção.');
+      }
       this.logger.warn(`SMTP não configurado. Link de recuperação de ${para}: ${link}`);
       return;
     }
