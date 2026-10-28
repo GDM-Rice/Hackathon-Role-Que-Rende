@@ -1,5 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { MessageRole } from '@prisma/client';
+import type { PaginacaoDto } from '../common/paginacao.dto.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 
 @Injectable()
@@ -12,21 +13,49 @@ export class ChatService {
     });
   }
 
-  findAll(userId: string) {
-    return this.prisma.chat.findMany({
+  // Pede 1 a mais que o limite só para saber se existe próxima página.
+  async findAll(userId: string, { limit = 20, cursor }: PaginacaoDto = {}) {
+    const chats = await this.prisma.chat.findMany({
       where: { userId },
-      orderBy: { updatedAt: 'desc' },
+      orderBy: [{ updatedAt: 'desc' }, { id: 'desc' }],
+      take: limit + 1,
+      ...(cursor && { cursor: { id: cursor }, skip: 1 }),
     });
+    const itens = chats.slice(0, limit);
+    return {
+      itens,
+      proximoCursor: chats.length > limit ? itens[itens.length - 1].id : null,
+    };
   }
 
   // Sempre filtra por userId: chat de outra pessoa responde 404 (não revela que existe).
-  async findOne(userId: string, chatId: string) {
+  // Devolve as mensagens MAIS RECENTES primeiro na busca e inverte para ordem cronológica;
+  // o cursor leva para as mais antigas.
+  async findOne(
+    userId: string,
+    chatId: string,
+    { limit = 50, cursor }: PaginacaoDto = {},
+  ) {
     const chat = await this.prisma.chat.findFirst({
       where: { id: chatId, userId },
-      include: { mensagens: { orderBy: { createdAt: 'asc' } } },
+      include: {
+        mensagens: {
+          orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
+          take: limit + 1,
+          ...(cursor && { cursor: { id: cursor }, skip: 1 }),
+        },
+      },
     });
     if (!chat) throw new NotFoundException('Chat não encontrado');
-    return chat;
+
+    const { mensagens, ...resto } = chat;
+    const pagina = mensagens.slice(0, limit);
+    return {
+      ...resto,
+      mensagens: pagina.reverse(),
+      proximoCursor:
+        mensagens.length > limit ? mensagens[limit - 1].id : null,
+    };
   }
 
   async addMessage(
