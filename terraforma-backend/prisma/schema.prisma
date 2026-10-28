@@ -1,9 +1,7 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
+// Documentação: https://pris.ly/d/prisma-schema
 
 generator client {
-  provider = "prisma-client-js" //Mudamos para o legacy mode para evitar problemas de erro de caminho relativo no Windows, mas você pode mudar para o novo modo se quiser
-  // output   = "../generated/prisma" 
+  provider = "prisma-client-js"
 }
 
 datasource db {
@@ -11,29 +9,62 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum MessageRole {
+  USER
+  ASSISTANT
+}
+
 model User {
-  id    String  @id
-  username  String 
-  email     String @unique
-  senha     String @map("senha")
-  senhaVersao Int @default(0) @map("senha_versao")
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id          String   @id @default(cuid())
+  username    String   @unique
+  email       String   @unique
+  senha       String
+  senhaVersao Int      @default(0) @map("senha_versao")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
 
   tokensRecuperacaoSenha TokenRecuperacaoSenha[]
+  chats                  Chat[]
 
-  @@map("Users")
+  @@map("users")
 }
 
 model TokenRecuperacaoSenha {
-  id        String      @id
-  UserId String      @map("usuario_id")
+  id        String   @id @default(cuid())
+  usuarioId String   @map("usuario_id")
   tokenHash String   @unique @map("token_hash")
   expiresAt DateTime @map("expires_at")
-  createdAt DateTime @default(now())
+  createdAt DateTime @default(now()) @map("created_at")
 
-  usuario User @relation(fields: [UserId], references: [id], onDelete: Cascade)
+  usuario User @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
 
-  @@index([UserId])
+  @@index([usuarioId])
   @@map("tokens_recuperacao_senha")
+}
+
+model Chat {
+  id        String   @id @default(cuid())
+  titulo    String
+  userId    String   @map("user_id")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  mensagens Message[]
+
+  @@index([userId, updatedAt])
+  @@map("chats")
+}
+
+model Message {
+  id        String      @id @default(cuid())
+  chatId    String      @map("chat_id")
+  role      MessageRole
+  conteudo  String
+  createdAt DateTime    @default(now()) @map("created_at")
+
+  chat Chat @relation(fields: [chatId], references: [id], onDelete: Cascade)
+
+  @@index([chatId, createdAt])
+  @@map("messages")
 }
