@@ -1,4 +1,5 @@
 import { Body, Controller, Delete, Get, Patch, Post } from '@nestjs/common';
+import { Throttle } from '@nestjs/throttler';
 import { CurrentUser } from '../auth/decorators/CurrentUser.decorator.js';
 import { Public } from '../auth/decorators/isPublic.decorator.js';
 import { CreateUserDto } from './dto/create-user.dto.js';
@@ -22,6 +23,8 @@ export class UserController {
     return this.userService.findOne(userId);
   }
 
+  // Limite baixo: quem tem o token não pode ficar chutando a senha atual.
+  @Throttle({ default: { limit: 5, ttl: 60_000 } })
   @Patch('me')
   updateMe(@CurrentUser('sub') userId: string, @Body() dto: UpdateUserDto) {
     return this.userService.update(userId, dto);
