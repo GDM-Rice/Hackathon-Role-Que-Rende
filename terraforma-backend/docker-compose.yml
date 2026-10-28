@@ -1,0 +1,26 @@
+# Banco PostgreSQL para desenvolvimento.
+#   docker compose up -d     sobe o banco
+#   docker compose down      desliga (os dados ficam no volume)
+#   docker compose down -v   desliga e APAGA os dados
+services:
+  db:
+    image: postgres:17-alpine
+    container_name: terraforma-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: terraforma
+      POSTGRES_PASSWORD: terraforma
+      POSTGRES_DB: terraforma
+    ports:
+      # 5433 no seu PC -> 5432 no container (evita conflito com um Postgres já instalado)
+      - "5433:5432"
+    volumes:
+      - terraforma-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U terraforma -d terraforma"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  terraforma-pgdata:

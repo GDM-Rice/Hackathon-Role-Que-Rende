@@ -8,12 +8,13 @@ Este repositório tem dois projetos independentes:
 
 | Pasta | O que é | Tecnologia | Porta |
 |---|---|---|---|
-| `terraforma-backend/` | API REST | NestJS 12, Prisma 6, SQLite, JWT | **3001** |
+| `terraforma-backend/` | API REST | NestJS 12, Prisma 6, PostgreSQL, JWT | **3001** |
 | `terraforma-frontend/` | Site | Next.js 16, React 19, Tailwind 4 | **3000** |
 
 ## Requisitos
 
 - Node.js 22 ou mais novo e npm
+- PostgreSQL 15 ou mais novo: via Docker (recomendado, já configurado no projeto) ou instalado na máquina
 - Duas janelas de terminal (uma para cada projeto)
 
 ## Como rodar
@@ -32,7 +33,15 @@ Abra o `.env` e **troque o `JWT_SECRET`** por um valor com **16 caracteres ou ma
 node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"
 ```
 
-Crie o banco (SQLite, arquivo `dev.db`) e suba a API:
+Suba o PostgreSQL. Com Docker (usa o `docker-compose.yml` do back, porta **5433**, e já bate com o `DATABASE_URL` do `.env.example`):
+
+```bash
+npm run db:up               # docker compose up -d
+```
+
+> **Sem Docker?** Use um PostgreSQL instalado: crie um usuário e um banco (por exemplo `terraforma`) e ajuste o `DATABASE_URL` do `.env` para a sua porta (padrão `5432`), usuário e senha.
+
+Crie as tabelas e suba a API:
 
 ```bash
 npx prisma migrate deploy   # aplica as migrations existentes
@@ -67,7 +76,7 @@ Abra <http://localhost:3000>, crie uma conta e comece sua contagem.
 | `PORT` | Porta da API (padrão 3001; o front usa a 3000) |
 | `FRONTEND_URL` | Endereço do front. Vale para o CORS e para o link do e-mail de recuperação de senha |
 | `CORS_ORIGINS` | Opcional. Várias origens separadas por vírgula. Vazio = usa `FRONTEND_URL` |
-| `DATABASE_URL` | Arquivo do SQLite (`file:./dev.db`) |
+| `DATABASE_URL` | URL do PostgreSQL: `postgresql://USUARIO:SENHA@HOST:PORTA/BANCO?schema=public` |
 | `JWT_SECRET` | Chave dos tokens. Obrigatória, mínimo 16 caracteres |
 | `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_USER`, `SMTP_PASS`, `MAIL_FROM` | E-mail. Opcional em desenvolvimento: sem `SMTP_HOST`, o link de recuperação de senha aparece **no console do back** |
 
@@ -120,7 +129,10 @@ Para testar a API na mão, importe no Insomnia o arquivo `terraforma-backend-ins
 - **Porta em uso.** O Next sobe na 3001 se a 3000 estiver ocupada, e aí colide com o back. Libere a 3000 ou ajuste `PORT`, `FRONTEND_URL` e `NEXT_PUBLIC_API_URL`.
 - **429 (muitas tentativas).** Login, esqueci-senha e troca de dados têm limite por minuto. Espere um minuto.
 - **Não chegou o e-mail de recuperação.** Sem `SMTP_HOST`, o link só aparece no console do back (e só fora de produção).
-- **Quero zerar o banco.** Apague `terraforma-backend/dev.db` e rode `npx prisma migrate deploy` de novo.
+- **Quero zerar o banco.** Em `terraforma-backend`, rode `npm run prisma:reset` (apaga todos os dados e reaplica as migrations). Com Docker, também dá para usar `docker compose down -v` e depois `npm run db:up` e `npx prisma migrate deploy`.
+- **`P1001: Can't reach database server`.** O PostgreSQL não está rodando ou o `DATABASE_URL` está com host/porta errados. Com Docker, confira `docker compose ps` (porta 5433); com Postgres local, a porta costuma ser 5432.
+- **`P1000: Authentication failed`.** Usuário ou senha do `DATABASE_URL` não batem com os do banco. Se mudou as credenciais do `docker-compose.yml` depois de criar o volume, rode `docker compose down -v` para recriá-lo.
+- **Porta 5433 (ou 5432) em uso.** Mude a porta à esquerda em `ports:` no `docker-compose.yml` e use a mesma no `DATABASE_URL`.
 
 ## Limitações conhecidas
 

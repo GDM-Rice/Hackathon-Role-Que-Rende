@@ -59,6 +59,3 @@ pids
 report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 
 /generated/prisma
-# banco SQLite local (o padrão antigo "*./dev.db" não casava com nenhum arquivo)
-*.db
-*.db-journal
