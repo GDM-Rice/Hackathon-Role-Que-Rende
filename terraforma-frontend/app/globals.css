@@ -70,9 +70,9 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .slot::before { content: ""; position: absolute; left: 50%; top: 50%; width: min(100%, 260px); aspect-ratio: 1; transform: translate(-50%, -50%); border-radius: 50%;
   background: url(data:image/webp;base64,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) center / cover no-repeat; filter: blur(5px) saturate(1.1); opacity: .95; transition: opacity 900ms ease 200ms; }
 .app.pronto .slot::before { opacity: 0; }
-/* enquanto o planeta 3D carrega, o planeta desfocado respira (só opacidade: fica na GPU) */
-@keyframes carregando { 50% { opacity: .55; } }
-.app:not(.pronto):not(.sem-3d) .slot::before { animation: carregando 1.4s ease-in-out infinite; }
+/* enquanto o planeta 3D carrega, fica o planeta desfocado, parado e do mesmo tamanho do que vai entrar (--d vem do app.js).
+   Antes ele "respirava" piscando a opacidade: no celular a carga demora e virava um pisca-pisca. */
+.slot::before { width: var(--d, min(100%, 260px)); }
 .app.reduzido .slot::before { animation: none; }
 
 .topo { display: flex; align-items: center; justify-content: space-between; min-height: 44px; }
@@ -249,6 +249,9 @@ h3.secao { margin: 4px 0 0; font-size: 15px; color: var(--titulo); }
 .chip-ideia { min-height: 36px; border: 1px solid var(--borda); border-radius: 999px; background: var(--sup); color: var(--texto); font-size: 13px; padding: 0 12px; }
 .recado { position: absolute; left: 14px; right: 14px; top: 64px; z-index: 6; background: var(--sup); border: 1px solid #9FE1CB; border-radius: 18px; padding: 12px 14px; box-shadow: 0 16px 34px -14px rgba(var(--sombra),.45); display: flex; flex-direction: column; gap: 8px; transform: translateY(-14px); opacity: 0; transition: opacity 420ms cubic-bezier(.2,.8,.2,1), transform 420ms cubic-bezier(.2,.8,.2,1); pointer-events: none; }
 .recado.on { opacity: 1; transform: none; pointer-events: auto; }
+/* fechado = escondido de verdade: some do Tab e do leitor de tela depois do fade */
+.recado { visibility: hidden; transition-property: opacity, transform, visibility; transition-duration: 420ms, 420ms, 0s; transition-delay: 0s, 0s, 420ms; }
+.recado.on { visibility: visible; transition-delay: 0s; }
 .app.reduzido .recado { transition-duration: 1ms; }
 .recado .cab { display: flex; align-items: center; gap: 10px; }
 .recado .cab .quem { flex-grow: 1; display: flex; flex-direction: column; } .recado .cab small { font-size: 12px; color: var(--suave); }
@@ -430,6 +433,8 @@ h3.secao { margin: 4px 0 0; font-size: 15px; color: var(--titulo); }
 .cartao-valor label b { display: block; font-size: 15.5px; color: var(--texto); } .cartao-valor label small { display: block; font-size: 13px; color: var(--neutro); line-height: 1.4; margin-top: 2px; }
 .link-reais { border: 0; background: none; padding: 0; color: var(--link); font-size: 13.5px; text-decoration: underline; text-underline-offset: 3px; }
 .motivo-outro { display: flex; gap: 8px; } .motivo-outro input { flex: 1; min-width: 0; }
+.erro-motivo { margin: 6px 0 0; }
+.motivo-outro input[aria-invalid="true"] { border-color: #F7C1C1; }
 .motivos button.outro { border-style: dashed; }
 .campo-boas label, .campo-boas .rot { font-size: 13px; font-weight: 700; color: #B5D4F4; }
 .campo-boas input { min-height: 50px; border-radius: 14px; border: 1px solid rgba(230,241,251,.25); background: rgba(230,241,251,.06); color: #FFFFFF; font: inherit; font-size: 17px; padding: 0 14px; }
@@ -837,6 +842,9 @@ svg.paisagem { position: absolute; inset: 0; width: 100%; height: 100%; overflow
 .roda-reg .vivo { font-size: 12px; font-weight: 700; color: #0F6E56; display: inline-flex; align-items: center; gap: 5px; }
 .roda-reg .vivo::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: #1D9E75; animation: pisca 1.6s infinite; }
 .app[data-tema="escuro"] .roda-reg .vivo { color: #5DCAA5; }
+/* dados de exemplo: sem a bolinha piscando de "ao vivo" */
+.vivo.demo { color: var(--neutro) !important; font-weight: 600; } .vivo.demo::before { display: none; }
+.dica-salvar { margin: 0; text-align: center; } .dica-salvar:empty { display: none; }
 .outras-reg { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; padding: 0 16px 4px; }
 .outras-reg::-webkit-scrollbar { display: none; }
 .outras-reg button { flex: none; min-width: 112px; min-height: 64px; border: 1px solid var(--borda); background: var(--sup); border-radius: 14px; padding: 8px 12px; text-align: left; color: var(--texto); display: flex; flex-direction: column; gap: 2px; }
@@ -960,8 +968,10 @@ svg.paisagem { position: absolute; inset: 0; width: 100%; height: 100%; overflow
 .interr b { display: block; font-size: 14.5px; color: var(--texto); } .interr small { display: block; font-size: 12.5px; color: var(--neutro); line-height: 1.35; }
 .interr input { appearance: none; flex: none; width: 48px; height: 28px; border-radius: 999px; background: var(--trilho); position: relative; cursor: pointer; transition: background-color 200ms; margin: 0; }
 .interr input::after { content: ""; position: absolute; top: 3px; left: 3px; width: 22px; height: 22px; border-radius: 50%; background: #FFFFFF; box-shadow: 0 1px 3px rgba(0,0,0,.3); transition: transform 200ms; }
-.interr input:checked { background: var(--lun); } .interr input:checked::after { transform: translateX(20px); }
-.interr input:focus-visible { outline: 2px solid var(--lun); outline-offset: 2px; }
+/* --lun só existe na Luneta e em Finanças; fora delas o "ligado" ficava transparente. Cai para --realce. */
+.interr input { box-shadow: inset 0 0 0 1px var(--borda); }
+.interr input:checked { background: var(--lun, var(--realce)); box-shadow: none; } .interr input:checked::after { transform: translateX(20px); }
+.interr input:focus-visible { outline: 2px solid var(--lun, var(--realce)); outline-offset: 2px; }
 .bloq-lista { display: flex; flex-direction: column; gap: 6px; } .bloq-lista p { margin: 0; font-size: 13px; color: var(--neutro); }
 .bloq-lista button { min-height: 40px; border: 1px solid var(--borda); background: var(--sup); color: var(--texto); border-radius: 12px; padding: 0 12px; font-size: 13.5px; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 .bloq-lista button span:last-child { color: var(--link); }
@@ -984,6 +994,9 @@ svg.paisagem { position: absolute; inset: 0; width: 100%; height: 100%; overflow
 .veu.on { opacity: 1; pointer-events: auto; }
 .aviso { position: absolute; left: 20px; right: 20px; bottom: 104px; z-index: 6; background: var(--primaria); color: var(--sobre-primaria); border-radius: 14px; padding: 12px 14px; font-size: 14px; opacity: 0; transform: translateY(8px); transition: opacity 240ms, transform 240ms; pointer-events: none; }
 .aviso.on { opacity: 1; transform: none; }
+/* com uma folha aberta, o aviso sobe para o topo e fica por cima dela (senão some atrás do formulário) */
+.aviso { z-index: 9; }
+.app .aviso.no-topo { bottom: auto; top: calc(14px + env(safe-area-inset-top, 0px)); }
 .app[data-tela="trilha"] .aviso { bottom: auto; top: 16px; }
 
 @media (prefers-reduced-motion: reduce) { .tela > * { transition-duration: 1ms !important; } }
