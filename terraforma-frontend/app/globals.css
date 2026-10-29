@@ -1342,6 +1342,18 @@ body { padding: 0; overflow: hidden; background: var(--pagina); }
    computador (1024px+) e celular deitado (600px+ de largura, até 520px de altura): a navegação vira uma barra lateral.
    --resp-coluna é a largura do conteúdo; --resp-margem, o espaço de cada lado para centralizá-lo.
    (prefixo "resp-": o tema escuro já usa --margem para a cor da margem dos rios) */
+/* Início em telas baixas: a navegação sempre aparece. O globo encolhe primeiro (de 286px até 140px);
+   se ainda faltar espaço, o bloco de baixo rola sozinho. A tela inteira não rola para não roubar o arrastar do globo. */
+#tela-inicio > .slot { height: auto !important; flex: 0 100 286px; min-height: 140px; }   /* 100: encolhe antes do bloco de baixo */
+.inicio-baixo { display: flex; flex-direction: column; gap: 12px; flex: 0 1 auto; min-height: 96px; overflow-y: auto; overscroll-behavior: contain; pointer-events: auto; margin: 0 -4px; padding: 0 4px 18px;
+  -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 18px), transparent); mask-image: linear-gradient(to bottom, #000 calc(100% - 18px), transparent); }   /* esmaece o fim: dá a dica de que rola */
+.inicio-baixo > .link-baixo { flex-shrink: 0; }
+#tela-inicio > .nav { flex-shrink: 0; }
+/* Login: o formulário rola (antes ficava cortado embaixo, sem rolagem, em telas baixas); o globo encolhe junto */
+.tela-login > .slot { flex-shrink: 1; min-height: 64px; }
+.login-corpo, .tela-boas .boas-corpo { pointer-events: auto; }
+.login-corpo { justify-content: flex-start; }
+.login-corpo > :first-child { margin-top: auto; }
 /* lista de regiões do Mapa-Mundi: com overflow: hidden numa coluna flex, ela encolhia até sumir em telas baixas */
 .lista-regioes { flex-shrink: 0; }
 @media (max-width: 349px) {

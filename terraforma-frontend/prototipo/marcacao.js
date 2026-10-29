@@ -46,6 +46,7 @@ export const MARCACAO = `<div class="bancada">
             <button class="botao-redondo" type="button" id="pausar" style="left: 4px; bottom: -4px" aria-label="Pausar o movimento do planeta" aria-pressed="false"><span><svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true"><path id="icone-pausa" d="M3 2h2v8H3zM7 2h2v8H7z" fill="currentColor"></path></svg></span></button>
             <button class="botao-redondo" type="button" id="abrir-info" style="right: 4px; bottom: -4px" aria-label="Por que o planeta começa seco"><span>i</span></button>
           </div>
+          <div class="inicio-baixo">
           <div class="progresso">
             <div class="linha-prog"><span>Próxima região: <b id="prox-nome">Centro-Oeste</b></span><span id="prox-falta" style="color: var(--suave)">faltam 9 dias</span></div>
             <div class="trilho" role="progressbar" id="prox-barra" aria-label="Progresso da próxima região" aria-valuemin="0" aria-valuemax="100" aria-valuenow="70"><div style="width: 70%"></div></div>
@@ -54,6 +55,7 @@ export const MARCACAO = `<div class="bancada">
           <button class="cartao-mare" type="button" data-ir="mare"><span><small>A vontade de apostar apareceu? Respire uns minutos.</small><strong>Respire com a Terra</strong></span><i><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M3 10c3-3 6 3 9 0s6 3 9 0M3 15c3-3 6 3 9 0s6 3 9 0"></path></svg></i></button>
           <button class="botao-troca" type="button" data-ir="troca"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 19c0-8 5-14 15-14 0 10-6 15-14 15"/><path d="M5 19c3-4 6-7 10-9"/></svg>Hábitos saudáveis</button>
           <button class="link-baixo" type="button" data-ir="tempestade">Apostei hoje. Contar sem medo</button>
+          </div>
           <nav class="nav" aria-label="Menu principal" data-nav></nav>
         </section>
 
