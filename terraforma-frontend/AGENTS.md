@@ -99,3 +99,13 @@ Abrir uma tela direto: `http://localhost:3000/#financas` (lista em `const telas`
 3. Olhar a tela mexida nos temas claro e escuro, em 320 e 390 px (celular), 768 px (tablet), 844×390 (celular deitado) e 1440 px (computador). O layout responsivo fica no fim de `app/globals.css` (seção `responsivo`): coluna central a partir de 600 px e barra lateral a partir de 1024 px ou em tela baixa.
 4. Se criou evento, campo de estado ou número com fonte: atualizar `lib/tipos.ts`, `docs/API.md` e `docs/CONTEXTO.md`.
 5. Marcar a tarefa em `docs/BACKLOG.md`.
+
+<!-- BEGIN:nextjs-agent-rules -->
+
+## This is NOT the Next.js you know
+
+This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
+
+This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
+
+<!-- END:nextjs-agent-rules -->
