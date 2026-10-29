@@ -251,7 +251,7 @@ void main(){
   float a=uTempo*.012; float c0=cos(a), s0=sin(a);
   vec3 p=vObj; p.xz=mat2(c0,-s0,s0,c0)*p.xz;
   float n=fbm(p*2.6+vec3(0.,uTempo*.004,0.))*.5+.5;
-  float n2=fbm(p*7.)*.5+.5;
+  float n2=snoise(p*7.)*.25+.5;   // detalhe fino: uma oitava só (fbm aqui custava 4 ruídos por pixel do planeta inteiro)
   float limiar=mix(.58,.4,uTempestade);
   float alfa=smoothstep(limiar,limiar+.22,n*.8+n2*.2);
   vec3 N=normalize(vN), L=normalize(uLuz), V=normalize(cameraPosition-vP);
@@ -300,8 +300,10 @@ export async function criarGlobo(container, opcoes = {}) {
   const ctx = cv.getContext('2d', { willReadFrequently: true }); ctx.drawImage(imReg, 0, 0);
   const pixelsRegiao = ctx.getImageData(0, 0, cv.width, cv.height).data;
 
-  const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: 'high-performance' });
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+  // em telas densas (celular) o pixel já é pequeno: o MSAA quase não aparece e pesa muito na GPU
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  const renderer = new THREE.WebGLRenderer({ antialias: dpr < 1.5, alpha: true, powerPreference: 'high-performance' });
+  renderer.setPixelRatio(dpr);
   renderer.setClearColor(0x000000, 0);
   const canvas = renderer.domElement;
   canvas.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none;outline:none;opacity:0;transition:opacity 700ms cubic-bezier(.2,.8,.2,1)';
@@ -483,7 +485,7 @@ export async function criarGlobo(container, opcoes = {}) {
     if (lugar.lon === undefined) { para.lon = foco.lon; para.lat = foco.lat; }
     if (reduzido || ms <= 0 || vista.r === 0) { Object.assign(vista, para); alvoVista = null; return; }
     alvoVista = { de: { ...vista }, para, t0: performance.now(), dur: ms, curva };
-    intro = null;
+    intro = null; ocioso = false;
   }
 
   // ---------- interação ----------
@@ -517,7 +519,7 @@ export async function criarGlobo(container, opcoes = {}) {
     const [x, y] = pos(ev);
     if (!noGlobo(x, y) || vista.opacidade < 0.5) return;
     inicio = { x, y, t: performance.now(), lon: vista.lon, lat: vista.lat, ux: x, uy: y, ut: performance.now() };
-    arrastando = true; alvoVista = null; intro = null; vel.lon = vel.lat = 0;
+    arrastando = true; alvoVista = null; intro = null; vel.lon = vel.lat = 0; ocioso = false;
     canvas.setPointerCapture(ev.pointerId);
   });
   canvas.addEventListener('pointermove', (ev) => {
@@ -555,9 +557,12 @@ export async function criarGlobo(container, opcoes = {}) {
   });
 
   // ---------- loop ----------
-  let anterior = performance.now();
+  let anterior = performance.now(), ocioso = false;
   function quadro(agora) {
+    // no máximo 60 quadros por segundo (em tela de 120 Hz seria o dobro de trabalho); parado, só balançando, 30 bastam
+    if (agora - anterior < (ocioso ? 28 : 12)) return;
     const dt = Math.min(0.05, (agora - anterior) / 1000); anterior = agora;
+    const lon0 = vista.lon, lat0 = vista.lat;
     const anima = !reduzido && !pausado;
     if (anima) tempo += dt;
     uTerra.uTempo.value = tempo;
@@ -633,6 +638,12 @@ export async function criarGlobo(container, opcoes = {}) {
     aplicarCamera();
     uHalo.uSil.value *= escala;
     if (vista.opacidade > 0.01) renderer.render(cena, camera);
+    // ocioso: nada em transição, ninguém arrastando e o planeta girando devagar (o balanço anda ~3°/s)
+    let mudando = Math.abs(atual.mar - alvo.mar) + Math.abs(atual.tempestade - alvo.tempestade) + Math.abs(forcaNuvens - uNuvens.uForca.value);
+    for (let i = 0; i < 5; i++) mudando += Math.abs(atual.rec[i] - alvo.rec[i]);
+    for (let i = 0; i < 3; i++) mudando += Math.abs(atual.rios[i] - alvo.rios[i]);
+    const giro = (Math.abs(vista.lon - lon0) + Math.abs(vista.lat - lat0)) / Math.max(dt, 1e-3);
+    ocioso = !alvoVista && !intro && !arrastando && respirarDesde === null && !orbita.visible && mudando < 0.01 && giro < 6;
   }
   renderer.setAnimationLoop(quadro);
   // só mostra o canvas depois do primeiro quadro desenhado com textura (entra com fade, por cima do marcador)

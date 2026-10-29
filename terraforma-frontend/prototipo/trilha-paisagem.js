@@ -535,6 +535,7 @@ function padrao(nome, P) {
 }
 
 // ---------- uma cena por capítulo ----------
+let OFF = null;
 export class CenaTrilha {
   // cfg: { canvas, c, W, H, ox, oy, d (caminho SVG), pts, premios: [{x, y, tipo, feito, novo}], completo, yF, yAnt, animar, reduzido, escuro }
   constructor(cfg) {
@@ -615,27 +616,16 @@ export class CenaTrilha {
     if (this.animar && !r) { const k = clamp((seg - 0.35) / 2.6); this.yCur = this.yAnt + (this.yF - this.yAnt) * vaiVolta(k); }
     else this.yCur = this.yF;
     this.atualizarVivos(seg, false);
-    ctx.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
-    ctx.clearRect(0, 0, this.cw, this.ch);
-    ctx.translate(this.ox, this.oy);
-    const x0 = -this.ox - 4, x1 = this.cw - this.ox + 4, y0 = -this.oy - 4, y1 = this.ch - this.oy + 4;
-    // chão no visual anterior: terra cinza rachada que vira grama verde numa faixa suave; morros nas bordas
-    const P = this.escuro ? PAL.escuro : PAL.claro, yc = this.yCur, M = 64, W0 = x1 - x0, H0 = y1 - y0;
-    const gr = ctx.createLinearGradient(0, yc - M, 0, yc + M); gr.addColorStop(0, P.seco); gr.addColorStop(1, P.grama);
-    ctx.fillStyle = gr; ctx.fillRect(x0, y0, W0, H0);
-    // texturas alinhadas à rolagem inteira (não a cada capítulo): rachaduras e grama continuam de um capítulo para o outro
+    // o chão só muda quando a frente anda, o tema troca ou o layout mexe: fica guardado numa imagem
+    // (antes eram duas camadas em tela cheia compostas a cada quadro)
     const yMundo = (this.canvas.parentElement?.offsetTop || 0) + this.oy;
-    const alinhar = (pat, nome) => { const k = LADRILHO[nome][1]; try { pat.setTransform(new DOMMatrix([k, 0, 0, k, 0, -yMundo])); } catch {} return pat; };
-    this.camada(ctx, (c) => { c.fillStyle = alinhar(c.createPattern(padrao('rachas', P), 'repeat'), 'rachas'); c.fillRect(x0, y0, W0, H0); }, true, x0, y0, W0, H0);
-    this.camada(ctx, (c) => { c.fillStyle = alinhar(c.createPattern(padrao('grama', P), 'repeat'), 'grama'); c.fillRect(x0, y0, W0, H0); }, false, x0, y0, W0, H0);
-    // estrada: rachada e cinza onde falta; verde onde a pessoa já passou
-    ctx.lineCap = 'round'; ctx.lineJoin = 'round';
-    ctx.strokeStyle = P.eSecaB; ctx.lineWidth = 30; ctx.stroke(this.caminho);
-    ctx.strokeStyle = alinhar(ctx.createPattern(padrao('estrada', P), 'repeat'), 'estrada'); ctx.lineWidth = 24; ctx.stroke(this.caminho);
-    ctx.save(); ctx.beginPath(); ctx.rect(x0, yc, W0, y1 - yc + 10); ctx.clip();
-    ctx.strokeStyle = P.eVivaB; ctx.lineWidth = 30; ctx.stroke(this.caminho);
-    ctx.strokeStyle = P.eViva; ctx.lineWidth = 24; ctx.stroke(this.caminho);
-    ctx.restore();
+    const chave = [this.canvas.width, this.canvas.height, this.ox, this.oy, this.yCur, this.escuro, yMundo].join('|');
+    if (this.chaoChave !== chave) { this.pintarChao(yMundo); this.chaoChave = chave; }
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    ctx.drawImage(this.chao, 0, 0);
+    ctx.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
+    ctx.translate(this.ox, this.oy);
     // revoadas: sombra no chão primeiro
     this.voar(seg, ctx, true);
     // plantas e bichos de trás para a frente
@@ -657,8 +647,33 @@ export class CenaTrilha {
     // ainda animando? (crescimento, frente andando ou bichos)
     return !r;
   }
+  pintarChao(yMundo) {
+    const o = this.chao || (this.chao = document.createElement('canvas'));
+    if (o.width !== this.canvas.width || o.height !== this.canvas.height) { o.width = this.canvas.width; o.height = this.canvas.height; }
+    const ctx = o.getContext('2d');
+    ctx.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
+    ctx.clearRect(0, 0, this.cw, this.ch);
+    ctx.translate(this.ox, this.oy);
+    const x0 = -this.ox - 4, x1 = this.cw - this.ox + 4, y0 = -this.oy - 4, y1 = this.ch - this.oy + 4;
+    // chão no visual anterior: terra cinza rachada que vira grama verde numa faixa suave; morros nas bordas
+    const P = this.escuro ? PAL.escuro : PAL.claro, yc = this.yCur, M = 64, W0 = x1 - x0, H0 = y1 - y0;
+    const gr = ctx.createLinearGradient(0, yc - M, 0, yc + M); gr.addColorStop(0, P.seco); gr.addColorStop(1, P.grama);
+    ctx.fillStyle = gr; ctx.fillRect(x0, y0, W0, H0);
+    // texturas alinhadas à rolagem inteira (não a cada capítulo): rachaduras e grama continuam de um capítulo para o outro
+    const alinhar = (pat, nome) => { const k = LADRILHO[nome][1]; try { pat.setTransform(new DOMMatrix([k, 0, 0, k, 0, -yMundo])); } catch {} return pat; };
+    this.camada(ctx, (c) => { c.fillStyle = alinhar(c.createPattern(padrao('rachas', P), 'repeat'), 'rachas'); c.fillRect(x0, y0, W0, H0); }, true, x0, y0, W0, H0);
+    this.camada(ctx, (c) => { c.fillStyle = alinhar(c.createPattern(padrao('grama', P), 'repeat'), 'grama'); c.fillRect(x0, y0, W0, H0); }, false, x0, y0, W0, H0);
+    // estrada: rachada e cinza onde falta; verde onde a pessoa já passou
+    ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    ctx.strokeStyle = P.eSecaB; ctx.lineWidth = 30; ctx.stroke(this.caminho);
+    ctx.strokeStyle = alinhar(ctx.createPattern(padrao('estrada', P), 'repeat'), 'estrada'); ctx.lineWidth = 24; ctx.stroke(this.caminho);
+    ctx.save(); ctx.beginPath(); ctx.rect(x0, yc, W0, y1 - yc + 10); ctx.clip();
+    ctx.strokeStyle = P.eVivaB; ctx.lineWidth = 30; ctx.stroke(this.caminho);
+    ctx.strokeStyle = P.eViva; ctx.lineWidth = 24; ctx.stroke(this.caminho);
+    ctx.restore();
+  }
   camada(ctx, desenha, deCima, x0, y0, W0, H0) {   // desenha numa camada que some suavemente na faixa da frente
-    const o = this.off || (this.off = document.createElement('canvas'));
+    const o = OFF ?? (OFF = document.createElement('canvas'));   // uma só para todas as cenas: só é usada enquanto o chão é refeito
     if (o.width !== this.canvas.width || o.height !== this.canvas.height) { o.width = this.canvas.width; o.height = this.canvas.height; }
     const c = o.getContext('2d'), yc = this.yCur, M = 64;
     c.setTransform(1, 0, 0, 1, 0, 0); c.globalCompositeOperation = 'source-over'; c.clearRect(0, 0, o.width, o.height);
@@ -772,10 +787,13 @@ export class CenaTrilha {
 }
 
 // ---------- motor: pinta só o que está na tela ----------
-const cenas = new Set(); let raf = 0, ativo = () => true;
+const cenas = new Set(); let raf = 0, ultimo = 0, ativo = () => true;
 const visiveis = new IntersectionObserver((es) => es.forEach((e) => { const c = e.target.__cena; if (c) c.visivel = e.isIntersecting; }), { rootMargin: '120px' });
 function laco(agora) {
-  raf = 0; let continuar = false;
+  raf = 0;
+  if (agora - ultimo < 12) { if (!document.hidden) raf = requestAnimationFrame(laco); return; }   // no máximo 60 quadros por segundo, mesmo em tela de 120 Hz
+  ultimo = agora;
+  let continuar = false;
   for (const c of cenas) {
     if (!c.canvas.isConnected) { cenas.delete(c); visiveis.unobserve(c.canvas); continue; }
     if (!c.visivel || !ativo()) { continuar = true; continue; }

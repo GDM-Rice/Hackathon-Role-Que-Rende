@@ -409,11 +409,12 @@ function comecarSessao() {
       const f = rot[0] === 'Solte' ? 'solte' : rot[0] === 'Inspire' ? 'inspire' : 'mais';
       $('#fase').textContent = rot[0]; $('#fase').dataset.fase = f; bolha.dataset.fase = f;
     }
-    $('#dica').textContent = `${rot[1]} · ${rot[4]}`;
+    const dica = `${rot[1]} · ${rot[4]}`; if ($('#dica').textContent !== dica) $('#dica').textContent = dica;   // só mexe no texto quando muda (evita layout a cada quadro)
     bolha.style.transform = `scale(${0.42 + 0.58 * v})`; // cheio = encosta no anel
     oceano?.setFolego(v);
     const resta = Math.max(0, Math.ceil(sessao.total - e));
-    $('#tempo').firstChild.textContent = `${Math.floor(resta / 60)}:${String(resta % 60).padStart(2, '0')}`;
+    const relogio = `${Math.floor(resta / 60)}:${String(resta % 60).padStart(2, '0')}`, noTempo = $('#tempo').firstChild;
+    if (noTempo.textContent !== relogio) noTempo.textContent = relogio;
     anel.setAttribute('stroke-dashoffset', (653.5 * (1 - Math.min(1, e / sessao.total))).toFixed(1));
     if (t.falas) {
       const i = Math.min(t.falas.length - 1, Math.floor(e / (sessao.total / t.falas.length)));
