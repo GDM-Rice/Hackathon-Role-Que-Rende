@@ -15,7 +15,9 @@ O repositório vira **dois projetos no Vercel**, um para cada pasta, e um banco 
 | API | https://terraforma-api.vercel.app (`/health`) | `terraforma-api`, função em São Paulo (`gru1`) |
 | Banco | Neon Postgres `terraforma-db`, São Paulo, plano gratuito | conectado ao `terraforma-api` |
 
-Variáveis já configuradas: no back, `JWT_SECRET`, `FRONTEND_URL` e as do Neon (`DATABASE_URL`, `DATABASE_URL_UNPOOLED`...); no front, `NEXT_PUBLIC_BACKEND_URL`. Falta só SMTP, se quiserem o e-mail de "Esqueci a senha".
+Variáveis já configuradas: no back, `JWT_SECRET`, `FRONTEND_URL`, `CORS_ORIGINS` (só em Production) e as do Neon (`DATABASE_URL`, `DATABASE_URL_UNPOOLED`...); no front, `NEXT_PUBLIC_BACKEND_URL` (Production e Preview). Falta só SMTP, se quiserem o e-mail de "Esqueci a senha".
+
+`CORS_ORIGINS` hoje tem duas origens: o site (`https://terraforma-five.vercel.app`) e o preview de teste da branch `feat/debloat` (`https://terraforma-4xwbruzw2-o-recomeco.vercel.app`), liberado para a equipe testar login, conversas e trilha. Ela está guardada como Secret: não dá para ler o valor depois, só remover e adicionar de novo.
 
 Para publicar de novo pela CLI (logada na conta do time): `npx vercel deploy --prod --yes` dentro de `terraforma-backend` ou `terraforma-frontend`. Teste ponta a ponta contra produção: `BASE=https://terraforma-five.vercel.app BACKEND=https://terraforma-api.vercel.app node testes/trilha-conta.mjs` (na pasta do front).
 
@@ -55,6 +57,16 @@ Depois disso: abrir o site, criar conta, concluir uma aula da trilha e entrar co
 ## Bom saber
 
 - **Previews:** o back só aceita chamadas das origens em `FRONTEND_URL`/`CORS_ORIGINS`. Um preview do front (URL que muda a cada deploy) não fala com o back de produção, a não ser que você inclua a URL dele em `CORS_ORIGINS`. Com a Deployment Protection ligada, os previews do back também pedem login do Vercel.
+- **Liberar um preview novo no back** (na pasta `terraforma-backend`). Com `CORS_ORIGINS` definida, o back ignora o `FRONTEND_URL` no CORS: a lista **tem que** manter o site, senão ele para de falar com o back.
+  ```bash
+  npx vercel env rm CORS_ORIGINS production --yes
+  printf '%s' 'https://terraforma-five.vercel.app,https://<url-do-preview>' | npx vercel env add CORS_ORIGINS production
+  npx vercel ls --environment production          # a primeira linha é o deploy atual do back
+  npx vercel redeploy <url-da-primeira-linha>     # recompila o mesmo código, agora com a variável nova
+  ```
+  Conferir: `curl -s -D - -o /dev/null -X OPTIONS https://terraforma-api.vercel.app/auth/entrar -H "Origin: <url-do-preview>" -H 'Access-Control-Request-Method: POST' | grep -i allow-origin`. Para desfazer, só o `env rm` e o `redeploy`: o back volta a usar o `FRONTEND_URL`.
+- **Preview para quem não está no time do Vercel:** gere um link compartilhável (vale até 7 dias). Na pasta do front: `npx vercel api "/aliases/<host-do-preview>/protection-bypass?teamId=team_AWFAMFk2DSrrpeBUUyVa8jfW" -X PATCH -F ttl=604800` e mande `https://<host-do-preview>/?_vercel_share=<token da resposta>`.
+- **O preview usa o banco de produção:** contas e progresso criados lá ficam junto com os do site.
 - **Limite de tentativas** (login, cadastro, senha): é o `src/common/limite.ts` do back (o `@nestjs/throttler` não roda no Vercel: é CommonJS e o Nest 12 é só ESM). Fica na memória de cada instância da função, então no Vercel é um limite aproximado. O IP de quem chama vem do proxy do Vercel (`trust proxy` liga sozinho quando `VERCEL` existe).
 - **Eventos e estado de exemplo** (`/api/eventos`, `/api/estado` do Next): continuam em memória e somem quando a função reinicia. Conta, conversas e trilha ficam no banco.
 - **Migração manual:** `DATABASE_URL="<url direta>" npx prisma migrate deploy` na pasta do back.
