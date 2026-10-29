@@ -18,6 +18,7 @@ const publicSelect = {
   email: true,
   createdAt: true,
   updatedAt: true,
+  boasVindasEm: true,
 } satisfies Prisma.UserSelect;
 
 @Injectable()
@@ -46,6 +47,15 @@ export class UserService {
     return user;
   }
 
+  // Marca que a pessoa concluiu as boas-vindas. Guarda só a primeira vez (repetir não muda nada).
+  async concluirBoasVindas(id: string) {
+    await this.prisma.user.updateMany({
+      where: { id, boasVindasEm: null },
+      data: { boasVindasEm: new Date() },
+    });
+    return this.findOne(id);
+  }
+
   // Uso interno do login: precisa devolver o hash da senha, por isso NÃO é exposto em controller.
   findByEmail(email: string) {
     return this.prisma.user.findUnique({ where: { email } });
@@ -70,13 +80,19 @@ export class UserService {
 
     try {
       if (!trocaCredencial) {
-        return await this.prisma.user.update({ where: { id }, data, select: publicSelect });
+        return await this.prisma.user.update({
+          where: { id },
+          data,
+          select: publicSelect,
+        });
       }
       // Trocou e-mail ou senha: links de "esqueci minha senha" pedidos antes deixam de valer.
       // Sem isso, um link enviado ao e-mail antigo (talvez comprometido) ainda redefinia a senha nova.
       const [atualizado] = await this.prisma.$transaction([
         this.prisma.user.update({ where: { id }, data, select: publicSelect }),
-        this.prisma.tokenRecuperacaoSenha.deleteMany({ where: { usuarioId: id } }),
+        this.prisma.tokenRecuperacaoSenha.deleteMany({
+          where: { usuarioId: id },
+        }),
       ]);
       return atualizado;
     } catch (error) {
@@ -93,10 +109,16 @@ export class UserService {
           where: { userId: id },
           select: { chatId: true },
         });
-        const removido = await tx.user.delete({ where: { id }, select: publicSelect });
+        const removido = await tx.user.delete({
+          where: { id },
+          select: publicSelect,
+        });
         if (participacoes.length) {
           await tx.chat.deleteMany({
-            where: { id: { in: participacoes.map((p) => p.chatId) }, membros: { none: {} } },
+            where: {
+              id: { in: participacoes.map((p) => p.chatId) },
+              membros: { none: {} },
+            },
           });
         }
         return removido;

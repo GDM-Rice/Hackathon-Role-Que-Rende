@@ -3,6 +3,8 @@
 generator client {
   provider = "prisma-client-js"
   output   = "../src/generated/prisma"
+  // native: a máquina onde roda o build; rhel-openssl-3.0.x: as funções do Vercel (Amazon Linux 2023)
+  binaryTargets = ["native", "rhel-openssl-3.0.x"]
 }
 
 datasource db {
@@ -16,12 +18,15 @@ model User {
   email       String   @unique
   senha       String
   senhaVersao Int      @default(0) @map("senha_versao")
+  // quando a pessoa concluiu as boas-vindas (o tutorial de 3 passos); null = ainda não
+  boasVindasEm DateTime? @map("boas_vindas_em")
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
 
   tokensRecuperacaoSenha TokenRecuperacaoSenha[]
   participacoes          ChatMembro[]
   mensagens              Message[]
+  trilha                 TrilhaProgresso[]
 
   @@map("users")
 }
@@ -83,4 +88,25 @@ model Message {
   @@index([chatId, createdAt])
   @@index([autorId])
   @@map("messages")
+}
+
+// Progresso da trilha: uma linha por atividade concluída (aula, quiz ou "Na prática").
+// capitulo/indice são a posição do círculo na trilha (a chave "c-i" do front).
+// Nada regride: a data fica a primeira, os acertos ficam o melhor resultado.
+model TrilhaProgresso {
+  userId      String   @map("user_id")
+  capitulo    Int
+  indice      Int
+  concluidaEm DateTime @map("concluida_em")
+  // só no quiz: melhor número de acertos de primeira e total de perguntas
+  acertos     Int?
+  total       Int?
+  // só no "Na prática": índice da opção escolhida
+  escolha     Int?
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([userId, capitulo, indice])
+  @@map("trilha_progresso")
 }

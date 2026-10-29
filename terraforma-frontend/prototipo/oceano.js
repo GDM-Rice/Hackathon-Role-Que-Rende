@@ -81,9 +81,11 @@ void main(){
   // ondulações finas (só perto da câmera)
   float perto=1.-smoothstep(15.,140.,dist);
   vec2 q=vPos.xz*.45; float t=uTempo;
-  float e=.08;
-  float n0=fbm2(q+vec2(t*.22,t*.07)), nx=fbm2(q+vec2(e,0.)+vec2(t*.22,t*.07)), nz=fbm2(q+vec2(0.,e)+vec2(t*.22,t*.07));
-  N=normalize(N+vec3(n0-nx,0.,n0-nz)*4.5*perto);
+  if(perto>0.){   // longe elas não aparecem: pula os 3 fbm (15 ruídos por pixel)
+    float e=.08; vec2 m=vec2(t*.22,t*.07);
+    float n0=fbm2(q+m), nx=fbm2(q+vec2(e,0.)+m), nz=fbm2(q+vec2(0.,e)+m);
+    N=normalize(N+vec3(n0-nx,0.,n0-nz)*4.5*perto);
+  }
   float F=.02+.98*pow(1.-max(dot(N,V),0.),5.);
   vec3 R=reflect(-V,N); R.y=abs(R.y)+.002;
   vec3 refl=ceu(normalize(R),false);
@@ -98,8 +100,9 @@ void main(){
   float rs=max(dot(normalize(R),uSol),0.);
   float alto=smoothstep(40.,220.,cameraPosition.y); // do alto, brilho largo e suave em vez de pontinhos
   cor+=uCorSol*(pow(rs,700.)*mix(9.,4.,uNoite)*(1.-alto*.85)+pow(rs,mix(70.,18.,alto))*mix(.3,.45,uNoite));
-  float espuma=smoothstep(.9,1.5,vAlt/max(uAmp,.2))*smoothstep(.45,.75,fbm2(vPos.xz*.6+t*.3));
-  cor=mix(cor,vec3(.9,.95,1.)*mix(1.,.45,uNoite),espuma*.55*(1.-alto)); // do alto a espuma vira pontilhado: some
+  float espuma=smoothstep(.9,1.5,vAlt/max(uAmp,.2))*(1.-alto);   // do alto a espuma vira pontilhado: some
+  if(espuma>0.) espuma*=smoothstep(.45,.75,fbm2(vPos.xz*.6+t*.3));   // o ruído só nas cristas
+  cor=mix(cor,vec3(.9,.95,1.)*mix(1.,.45,uNoite),espuma*.55);
   vec3 h=ceu(normalize(vec3(-V.x,.012,-V.z)),false);
   float dh=length(vPos.xz-cameraPosition.xz);
   cor=mix(cor,h,1.-exp(-dh*.0042));
@@ -162,8 +165,10 @@ const suave = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2)
 const NUVENS_Y = [70, 140, 210];
 
 export function criarOceano(container, opcoes = {}) {
-  const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+  // tela cheia com shader pesado: 1,5x já fica nítido (céu e água são macios) e o MSAA só vale em tela comum
+  const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
+  const renderer = new THREE.WebGLRenderer({ antialias: dpr < 1.5, powerPreference: 'high-performance' });
+  renderer.setPixelRatio(dpr);
   const canvas = renderer.domElement;
   canvas.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;display:block';
   canvas.setAttribute('aria-hidden', 'true');
@@ -230,6 +235,7 @@ export function criarOceano(container, opcoes = {}) {
   }
 
   function quadro(agora) {
+    if (agora - anterior < 12) return;   // no máximo 60 quadros por segundo, mesmo em tela de 120 Hz
     const dt = Math.min(0.05, (agora - anterior) / 1000); anterior = agora;
     tempo += dt * (reduzido ? 0.35 : 1);
     comum.uTempo.value = tempo;

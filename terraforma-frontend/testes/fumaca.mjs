@@ -24,8 +24,8 @@ const falha = (m) => erros.push(m);
 
 await p.goto(BASE + '/'); await p.waitForSelector('#app.pronto', { timeout: 90000 }); await espera(800);
 
-// login → entrada em 3 passos → início
-await p.fill('#login-email', 'teste@exemplo.com'); await p.fill('#login-senha', 'segredo1'); await p.click('#login-ok'); await espera(1200);
+// sem conta → entrada em 3 passos → início
+await p.click('#sem-conta'); await espera(1200);   // o login é real (back NestJS); o fluxo com conta está em testes/conta.mjs
 await p.click('#boas-seguir'); await espera(1800); await p.click('#boas-seguir'); await espera(1800);
 await p.fill('#boas-nome', 'Teste'); await p.click('#boas-comecar'); await espera(2000);
 if ((await tela()) !== 'inicio') falha('a entrada não terminou no Início');
@@ -60,7 +60,7 @@ await p.fill('#txt-post', 'Hoje respirei e a vontade passou.'); await ev(() => d
 const r = await p.request.get(BASE + '/api/eventos');
 if (r.ok()) {
   const tipos = (await r.json()).map((e) => e.tipo);
-  for (const t of ['login', 'perfil_criado', 'tempestade', 'barreira_ativada', 'orbita_pessoa_adicionada', 'luneta_post'])
+  for (const t of ['entrada', 'perfil_criado', 'tempestade', 'barreira_ativada', 'orbita_pessoa_adicionada', 'luneta_post'])
     if (!tipos.includes(t)) falha('evento não chegou: ' + t);
 } else falha('GET /api/eventos respondeu ' + r.status() + ' (com backend real, ajuste este trecho)');
 

@@ -4,7 +4,7 @@ export const MARCACAO = `<div class="bancada">
   
 
   <div class="celular">
-    <div class="app" id="app" data-tela="inicio">
+    <div class="app" id="app" data-tela="inicio" aria-busy="true">
       <div class="sombra-globo" id="sombra" aria-hidden="true"></div>
       <div class="estrelas" aria-hidden="true"></div>
       <div class="camada-globo" id="camada"></div>
@@ -17,15 +17,16 @@ export const MARCACAO = `<div class="bancada">
           <div class="slot" data-slot style="height: 150px"></div>
           <div class="boas-corpo login-corpo">
             <div><h2 class="boas-tit" id="login-tit">Um lugar para recomeçar.</h2><p class="boas-sub" style="margin-top: 6px">Apoio para quem quer parar de apostar. Sem julgamento.</p></div>
-            <div class="seg-login" role="tablist" aria-label="Entrar ou criar conta"><button type="button" role="tab" data-login="entrar" aria-selected="true">Entrar</button><button type="button" role="tab" data-login="criar" aria-selected="false">Criar conta</button></div>
+            <div class="seg-login" id="abas-login" role="tablist" aria-label="Entrar ou criar conta"><button type="button" role="tab" data-login="entrar" aria-selected="true">Entrar</button><button type="button" role="tab" data-login="criar" aria-selected="false">Criar conta</button></div>
             <form class="form-login" id="form-login" novalidate>
-              <div class="campo-boas"><label for="login-email">E-mail</label><input id="login-email" type="email" autocomplete="email" inputmode="email" placeholder="voce@email.com"></div>
-              <div class="campo-boas"><label for="login-senha">Senha</label><span class="com-olho"><input id="login-senha" type="password" autocomplete="current-password" placeholder="mínimo 6 caracteres"><button type="button" id="ver-senha" aria-label="Mostrar senha" aria-pressed="false"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button></span></div>
+              <div class="campo-boas" id="campo-usuario" hidden><label for="login-usuario">Nome de usuário</label><input id="login-usuario" type="text" autocomplete="username" autocapitalize="none" spellcheck="false" maxlength="30" placeholder="ex.: verde.27" aria-describedby="dica-usuario"><small class="dica-boas" id="dica-usuario">Letras minúsculas, números, ponto, hífen ou sublinhado. É por ele que outras pessoas te chamam para conversar. Não use seu nome real.</small></div>
+              <div class="campo-boas" id="campo-email"><label for="login-email">E-mail</label><input id="login-email" type="email" autocomplete="email" inputmode="email" placeholder="voce@email.com"></div>
+              <div class="campo-boas"><label for="login-senha" id="rot-senha">Senha</label><span class="com-olho"><input id="login-senha" type="password" autocomplete="current-password" placeholder="mínimo 8 caracteres"><button type="button" id="ver-senha" aria-label="Mostrar senha" aria-pressed="false"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button></span></div>
               <p class="erro-login" id="erro-login" role="alert"></p>
               <button class="boas-botao" type="submit" id="login-ok">Entrar</button>
               <button class="link-login" type="button" id="esqueci">Esqueci a senha</button>
             </form>
-            <div class="ou"><span>ou</span></div>
+            <div class="ou" id="ou-login"><span>ou</span></div>
             <button class="botao-sem-conta" type="button" id="sem-conta">Continuar sem conta</button>
             <p class="privado"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg><span id="login-priv">Sem conta, tudo fica só neste celular.</span></p>
           </div>
@@ -45,6 +46,7 @@ export const MARCACAO = `<div class="bancada">
             <button class="botao-redondo" type="button" id="pausar" style="left: 4px; bottom: -4px" aria-label="Pausar o movimento do planeta" aria-pressed="false"><span><svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true"><path id="icone-pausa" d="M3 2h2v8H3zM7 2h2v8H7z" fill="currentColor"></path></svg></span></button>
             <button class="botao-redondo" type="button" id="abrir-info" style="right: 4px; bottom: -4px" aria-label="Por que o planeta começa seco"><span>i</span></button>
           </div>
+          <div class="inicio-baixo">
           <div class="progresso">
             <div class="linha-prog"><span>Próxima região: <b id="prox-nome">Centro-Oeste</b></span><span id="prox-falta" style="color: var(--suave)">faltam 9 dias</span></div>
             <div class="trilho" role="progressbar" id="prox-barra" aria-label="Progresso da próxima região" aria-valuemin="0" aria-valuemax="100" aria-valuenow="70"><div style="width: 70%"></div></div>
@@ -53,6 +55,7 @@ export const MARCACAO = `<div class="bancada">
           <button class="cartao-mare" type="button" data-ir="mare"><span><small>A vontade de apostar apareceu? Respire uns minutos.</small><strong>Respire com a Terra</strong></span><i><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M3 10c3-3 6 3 9 0s6 3 9 0M3 15c3-3 6 3 9 0s6 3 9 0"></path></svg></i></button>
           <button class="botao-troca" type="button" data-ir="troca"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 19c0-8 5-14 15-14 0 10-6 15-14 15"/><path d="M5 19c3-4 6-7 10-9"/></svg>Hábitos saudáveis</button>
           <button class="link-baixo" type="button" data-ir="tempestade">Apostei hoje. Contar sem medo</button>
+          </div>
           <nav class="nav" aria-label="Menu principal" data-nav></nav>
         </section>
 
@@ -61,7 +64,7 @@ export const MARCACAO = `<div class="bancada">
           <div class="topo-trilha">
             <button class="voltar-planeta" type="button" id="subir-planeta"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>Planeta</button>
             <button class="chip-regiao" type="button" id="chip-regiao" aria-haspopup="true" aria-expanded="false"><span id="chip-regiao-nome">Sul</span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>
-            <div class="lista-regioes" id="lista-regioes" hidden></div>
+            <div class="menu-regioes" id="menu-regioes" hidden></div>
           </div>
           <div class="cab-trilha">
             <div><h2>Sua trilha</h2><p class="resumo" id="trilha-resumo">0 de 25 atividades</p><p class="vida" id="trilha-vida"></p></div>

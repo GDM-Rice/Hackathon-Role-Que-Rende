@@ -1,0 +1,11 @@
+# Não sobe no deploy pela CLI: segredos locais, build e arquivos de ferramentas
+.env
+.env.*
+!.env.example
+node_modules
+dist
+src/generated
+.agents
+.claude
+skills-lock.json
+coverage

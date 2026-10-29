@@ -11,6 +11,8 @@ Este repositório tem dois projetos independentes:
 | `terraforma-backend/` | API REST | NestJS 12, Prisma 6, PostgreSQL, JWT | **3001** |
 | `terraforma-frontend/` | Site | Next.js 16, React 19, Tailwind 4 | **3000** |
 
+Deploy no Vercel: veja [`DEPLOY.md`](DEPLOY.md).
+
 ## Requisitos
 
 - Node.js 22 ou mais novo e npm

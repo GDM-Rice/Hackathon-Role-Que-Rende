@@ -251,7 +251,7 @@ void main(){
   float a=uTempo*.012; float c0=cos(a), s0=sin(a);
   vec3 p=vObj; p.xz=mat2(c0,-s0,s0,c0)*p.xz;
   float n=fbm(p*2.6+vec3(0.,uTempo*.004,0.))*.5+.5;
-  float n2=fbm(p*7.)*.5+.5;
+  float n2=snoise(p*7.)*.25+.5;   // detalhe fino: uma oitava só (fbm aqui custava 4 ruídos por pixel do planeta inteiro)
   float limiar=mix(.58,.4,uTempestade);
   float alfa=smoothstep(limiar,limiar+.22,n*.8+n2*.2);
   vec3 N=normalize(vN), L=normalize(uLuz), V=normalize(cameraPosition-vP);
@@ -281,7 +281,8 @@ const lerp = (a, b, t) => a + (b - a) * t;
 function lerpAngulo(a, b, t) { let d = ((b - a + 540) % 360) - 180; return a + d * t; }
 
 function carregarImagem(url) {
-  return new Promise((ok, erro) => { const im = new Image(); im.onload = () => ok(im); im.onerror = erro; im.src = url; });
+  // decode(): a imagem já chega decodificada, então subir a textura para a GPU não trava o quadro
+  return new Promise((ok, erro) => { const im = new Image(); im.onload = () => (im.decode ? im.decode().catch(() => {}) : Promise.resolve()).then(() => ok(im)); im.onerror = erro; im.src = url; });
 }
 
 // ---------- o planeta ----------
@@ -289,10 +290,15 @@ export async function criarGlobo(container, opcoes = {}) {
   const fragmentado = !!opcoes.fragmentado; // placas soltas que se juntam (desligado: o Brasil só reverdece)
   const base = opcoes.assets ?? 'assets/';
   const info = await fetch(base + 'brasil.json').then((r) => r.json());
-  // carga progressiva: primeiro uma Terra leve (~50 KB) para o planeta aparecer logo;
-  // a textura de 4K e os rios chegam depois e trocam no lugar, sem piscar
-  const [imDia, imAgua, imReg, imLin] = await Promise.all(
-    ['terra-dia-baixa.webp', 'terra-agua.png', 'brasil-regioes.png', 'brasil-linhas.png'].map((f) => carregarImagem(base + f)));
+  // carga em duas etapas: a Terra de 2K (~200 KB) segura a entrada, para o planeta aparecer já nítido (e a animação
+  // de entrada não rodar sobre uma imagem borrada). Se a rede passar do limite, entra com a leve (~50 KB) e a de 2K
+  // troca depois. A de 4K e os rios chegam por último, em segundo plano.
+  const nitida = carregarImagem(base + 'terra-dia-2k.webp').catch(() => null);
+  const limite = new Promise((ok) => setTimeout(() => ok(null), opcoes.esperaNitida ?? 3000));
+  const [imAgua, imReg, imLin] = await Promise.all(
+    ['terra-agua.png', 'brasil-regioes.png', 'brasil-linhas.png'].map((f) => carregarImagem(base + f)));
+  const imNitida = await Promise.race([nitida, limite]);
+  const imDia = imNitida ?? await carregarImagem(base + 'terra-dia-baixa.webp');
   const imRios = document.createElement('canvas'); imRios.width = imRios.height = 4;   // sem rios até o arquivo chegar
 
   // máscara das regiões também na CPU, para saber em que região o toque caiu
@@ -300,8 +306,10 @@ export async function criarGlobo(container, opcoes = {}) {
   const ctx = cv.getContext('2d', { willReadFrequently: true }); ctx.drawImage(imReg, 0, 0);
   const pixelsRegiao = ctx.getImageData(0, 0, cv.width, cv.height).data;
 
-  const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: 'high-performance' });
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+  // em telas densas (celular) o pixel já é pequeno: o MSAA quase não aparece e pesa muito na GPU
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  const renderer = new THREE.WebGLRenderer({ antialias: dpr < 1.5, alpha: true, powerPreference: 'high-performance' });
+  renderer.setPixelRatio(dpr);
   renderer.setClearColor(0x000000, 0);
   const canvas = renderer.domElement;
   canvas.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none;outline:none;opacity:0;transition:opacity 700ms cubic-bezier(.2,.8,.2,1)';
@@ -456,6 +464,13 @@ export async function criarGlobo(container, opcoes = {}) {
   const aoTocarRegiao = opcoes.aoTocarRegiao ?? (() => {});
   let estado = estadoDoPlaneta();
 
+  // durante a "queda" (zoom até a trilha ou o mar) o planeta enche a tela inteira com o shader mais pesado do app, em movimento
+  // rápido: em tela 3x são milhões de pixels por quadro. Nesse trecho a imagem renderiza em resolução menor e volta ao normal no fim
+  let dprAtual = dpr;
+  function resolucao(r) {
+    if (r === dprAtual) return;
+    dprAtual = r; renderer.setPixelRatio(r); renderer.setSize(largura, altura, false);
+  }
   function medir() {
     const r = container.getBoundingClientRect();
     largura = Math.max(1, r.width); altura = Math.max(1, r.height);
@@ -483,7 +498,8 @@ export async function criarGlobo(container, opcoes = {}) {
     if (lugar.lon === undefined) { para.lon = foco.lon; para.lat = foco.lat; }
     if (reduzido || ms <= 0 || vista.r === 0) { Object.assign(vista, para); alvoVista = null; return; }
     alvoVista = { de: { ...vista }, para, t0: performance.now(), dur: ms, curva };
-    intro = null;
+    intro = null; ocioso = false;
+    if (curva === 'queda') resolucao(Math.min(dpr, 1.25));
   }
 
   // ---------- interação ----------
@@ -517,7 +533,7 @@ export async function criarGlobo(container, opcoes = {}) {
     const [x, y] = pos(ev);
     if (!noGlobo(x, y) || vista.opacidade < 0.5) return;
     inicio = { x, y, t: performance.now(), lon: vista.lon, lat: vista.lat, ux: x, uy: y, ut: performance.now() };
-    arrastando = true; alvoVista = null; intro = null; vel.lon = vel.lat = 0;
+    arrastando = true; alvoVista = null; intro = null; vel.lon = vel.lat = 0; ocioso = false;
     canvas.setPointerCapture(ev.pointerId);
   });
   canvas.addEventListener('pointermove', (ev) => {
@@ -555,9 +571,12 @@ export async function criarGlobo(container, opcoes = {}) {
   });
 
   // ---------- loop ----------
-  let anterior = performance.now();
+  let anterior = performance.now(), ocioso = false;
   function quadro(agora) {
+    // no máximo 60 quadros por segundo (em tela de 120 Hz seria o dobro de trabalho); parado, só balançando, 30 bastam
+    if (agora - anterior < (ocioso ? 28 : 12)) return;
     const dt = Math.min(0.05, (agora - anterior) / 1000); anterior = agora;
+    const lon0 = vista.lon, lat0 = vista.lat;
     const anima = !reduzido && !pausado;
     if (anima) tempo += dt;
     uTerra.uTempo.value = tempo;
@@ -630,16 +649,26 @@ export async function criarGlobo(container, opcoes = {}) {
       st.sat.rotation.set(0.25 * Math.sin(a * 2 + i), -a, 0.15);   // painéis voltados ao longo da órbita, com leve oscilação
       st.anel.uniforms.uAng.value = a;
     }
+    if (!alvoVista) resolucao(dpr);
     aplicarCamera();
     uHalo.uSil.value *= escala;
     if (vista.opacidade > 0.01) renderer.render(cena, camera);
+    // ocioso: nada em transição, ninguém arrastando e o planeta girando devagar (o balanço anda ~3°/s)
+    let mudando = Math.abs(atual.mar - alvo.mar) + Math.abs(atual.tempestade - alvo.tempestade) + Math.abs(forcaNuvens - uNuvens.uForca.value);
+    for (let i = 0; i < 5; i++) mudando += Math.abs(atual.rec[i] - alvo.rec[i]);
+    for (let i = 0; i < 3; i++) mudando += Math.abs(atual.rios[i] - alvo.rios[i]);
+    const giro = (Math.abs(vista.lon - lon0) + Math.abs(vista.lat - lat0)) / Math.max(dt, 1e-3);
+    ocioso = !alvoVista && !intro && !arrastando && respirarDesde === null && !orbita.visible && mudando < 0.01 && giro < 6;
   }
   renderer.setAnimationLoop(quadro);
   // só mostra o canvas depois do primeiro quadro desenhado com textura (entra com fade, por cima do marcador)
   requestAnimationFrame(() => requestAnimationFrame(() => { canvas.style.opacity = '1'; }));
   // a versão em alta chega em segundo plano
   const trocar = (t, im) => { t.dispose(); t.image = im; t.needsUpdate = true; };   // dispose: a textura muda de tamanho e precisa ser recriada na GPU
-  carregarImagem(base + 'terra-dia.jpg').then((im) => trocar(texturas[0], im)).catch(() => {});
+  (async () => {
+    if (!imNitida) { const im = await nitida; if (im) trocar(texturas[0], im); }   // a rede foi lenta: a de 2K entra no lugar da leve
+    carregarImagem(base + 'terra-dia-4k.webp').then((im) => trocar(texturas[0], im)).catch(() => {});
+  })();
   carregarImagem(base + 'brasil-rios.png').then((im) => trocar(texturas[4], im)).catch(() => {});
 
   function setEstado(e) {

@@ -2,15 +2,17 @@
 // iniciar() roda no navegador, depois que MARCACAO já está no DOM.
 // opcoes.assets            pasta pública das texturas e do som (padrão /terra/)
 // opcoes.aoEvento(tipo, d) chamado nas ações que o backend deve guardar (ver docs/API.md)
+// opcoes.backend           cliente do back NestJS (lib/backend.ts): conta, senha e conversas. Sem ele, só o modo sem conta
 // Leia AGENTS.md antes de editar. Mapa das seções: docs/BACKLOG.md e AGENTS.md.
 import { criarGlobo, estadoDoPlaneta, REGIOES, LIMIARES, RIOS } from './globo.js';
 import { criarOceano, criarSomDoMar, ceuDaHora, corDaNevoa } from './oceano.js';
-import { carregarTexturas, montarCena, limparCenas, definirAtivo, retomar, destaque, BIOMAS, NOMES } from './trilha-paisagem.js';
+import { carregarTexturas, montarCena, limparCenas, definirAtivo, retomar, destaque, aquecerChao, BIOMAS, NOMES } from './trilha-paisagem.js';
 
 let iniciado = false;
 export async function iniciar(opcoes = {}) {
   if (iniciado) return; iniciado = true;   // o React em modo estrito monta duas vezes no desenvolvimento
   const ASSETS = opcoes.assets ?? '/terra/';
+  const B = opcoes.backend ?? null;
   const __evento = (tipo, dados) => { try { opcoes.aoEvento?.(tipo, { ...dados, em: new Date().toISOString() }); } catch (e) { console.error(e); } };
   const $ = (s, el = document) => el.querySelector(s);
 const $$ = (s, el = document) => [...el.querySelectorAll(s)];
@@ -407,11 +409,12 @@ function comecarSessao() {
       const f = rot[0] === 'Solte' ? 'solte' : rot[0] === 'Inspire' ? 'inspire' : 'mais';
       $('#fase').textContent = rot[0]; $('#fase').dataset.fase = f; bolha.dataset.fase = f;
     }
-    $('#dica').textContent = `${rot[1]} · ${rot[4]}`;
+    const dica = `${rot[1]} · ${rot[4]}`; if ($('#dica').textContent !== dica) $('#dica').textContent = dica;   // só mexe no texto quando muda (evita layout a cada quadro)
     bolha.style.transform = `scale(${0.42 + 0.58 * v})`; // cheio = encosta no anel
     oceano?.setFolego(v);
     const resta = Math.max(0, Math.ceil(sessao.total - e));
-    $('#tempo').firstChild.textContent = `${Math.floor(resta / 60)}:${String(resta % 60).padStart(2, '0')}`;
+    const relogio = `${Math.floor(resta / 60)}:${String(resta % 60).padStart(2, '0')}`, noTempo = $('#tempo').firstChild;
+    if (noTempo.textContent !== relogio) noTempo.textContent = relogio;
     anel.setAttribute('stroke-dashoffset', (653.5 * (1 - Math.min(1, e / sessao.total))).toFixed(1));
     if (t.falas) {
       const i = Math.min(t.falas.length - 1, Math.floor(e / (sessao.total / t.falas.length)));
@@ -453,7 +456,7 @@ function abrirInfo(abrir) {
 $('#abrir-info').onclick = () => abrirInfo(true);
 $('#fechar-info').onclick = () => abrirInfo(false);
 $('#veu').onclick = () => abrirInfo(false);
-app.addEventListener('keydown', (e) => { if (e.key === 'Escape' && $('#info').classList.contains('aberta')) abrirInfo(false); if (e.key === 'Escape' && !$('#lista-regioes').hidden) { abrirListaRegioes(false); $('#chip-regiao').focus(); } });
+app.addEventListener('keydown', (e) => { if (e.key === 'Escape' && $('#info').classList.contains('aberta')) abrirInfo(false); if (e.key === 'Escape' && !$('#menu-regioes').hidden) { abrirListaRegioes(false); $('#chip-regiao').focus(); } });
 
 let avisoT;
 function aviso(txt) { const a = $('#aviso'); a.textContent = txt; a.classList.add('on'); clearTimeout(avisoT); avisoT = setTimeout(() => a.classList.remove('on'), 2600); }
@@ -798,6 +801,29 @@ app.addEventListener('click', (e) => {
 // 1. o problema (as apostas secaram a terra) · 2. o que troca a aposta (o planeta revive em lapso de tempo) · 3. a pessoa começa
 let boasPasso = 0, lapso = null;
 var perfil = { nome: '', motivo: 'Para voltar a dormir em paz', valor: 0, periodo: 'semana' };
+// boas-vindas já feitas neste aparelho: { feito, dono (id da conta ou null), perfil: { nome, motivo, valor, periodo } }.
+// Com conta, o back também guarda (boasVindasEm), então outro aparelho pula o tutorial.
+let boasVindas = null;
+try { const v = JSON.parse(localStorage.getItem('terraforma:boas-vindas')); if (v && v.feito) { boasVindas = v; Object.assign(perfil, v.perfil || {}); } } catch {}
+function guardarBoasVindas() {
+  if (!boasVindas) return;
+  const { nome, motivo, valor, periodo } = perfil;
+  boasVindas.perfil = { nome, motivo, valor, periodo };
+  try { localStorage.setItem('terraforma:boas-vindas', JSON.stringify(boasVindas)); } catch {}
+}
+// o tutorial aparece só na primeira vez: depois do login (ou de "Continuar sem conta") vai direto ao Início
+function tutorialFeito() {
+  if (conta?.boasVindas) return true;
+  if (!boasVindas) return false;
+  return !conta || !boasVindas.dono || boasVindas.dono === conta.id;   // outra conta neste aparelho ainda não fez
+}
+function entrarNoApp() {
+  if (!tutorialFeito()) { irPara('boas'); return; }
+  // feito sem conta e agora entrou numa conta: a conta passa a ter as boas-vindas feitas
+  if (conta && !conta.boasVindas) { conta.boasVindas = true; B?.concluirBoasVindas().catch(() => {}); }
+  if (conta && boasVindas) { boasVindas.dono = conta.id; guardarBoasVindas(); }
+  irPara('inicio'); aplicar();
+}
 const MOTIVOS = ['Para voltar a dormir em paz', 'Pela minha família', 'Para ter dinheiro de novo', 'Para voltar a ser eu'];
 const DIA1 = () => estadoDoPlaneta({ dias: 1, mares: 0, rios: {} });
 const palavras = (txt, d = 0) => txt.split(' ').map((w, k, a) => `<span class="palavra" style="--k:${k};--d:${d}ms">${w}${k < a.length - 1 ? ' ' : ''}</span>`).join('');
@@ -808,31 +834,62 @@ const ICO_H = {
 };
 function pararLapso() { if (lapso) { clearInterval(lapso); lapso = null; } }
 function planetaBoas(e) { estadoBoas = e; if (globo) globo.setEstado(e); }
-let conta = null, modoLogin = 'entrar';
+// conta = { id, username, email } quando há sessão no back; null = modo sem conta (tudo fica no aparelho)
+let conta = null, modoLogin = 'entrar', tokenRedefinir = null, enviandoLogin = false;
+const EMAIL_OK = /^[^\s@]+@[^\s@]+\.[^\s@]+$/, USUARIO_OK = /^[a-z0-9._-]{3,30}$/;
+const contaDe = (u) => ({ id: u.id, username: u.username, email: u.email, boasVindas: !!u.boasVindasEm });
 function desenharLogin() {
+  const redef = modoLogin === 'redefinir';
   $$('#tela-login [data-login]').forEach((b) => b.setAttribute('aria-selected', String(b.dataset.login === modoLogin)));
-  $('#login-ok').textContent = modoLogin === 'entrar' ? 'Entrar' : 'Criar conta';
+  $('#abas-login').hidden = redef; $('#campo-email').hidden = redef; $('#login-priv').parentElement.hidden = redef; $('#ou-login').hidden = redef; $('#sem-conta').hidden = redef;
+  $('#campo-usuario').hidden = modoLogin !== 'criar';
+  $('#login-tit').textContent = redef ? 'Crie uma senha nova.' : 'Um lugar para recomeçar.';
+  $('#rot-senha').textContent = redef ? 'Senha nova' : 'Senha';
+  $('#login-ok').textContent = redef ? 'Salvar senha nova' : modoLogin === 'entrar' ? 'Entrar' : 'Criar conta';
   $('#login-senha').autocomplete = modoLogin === 'entrar' ? 'current-password' : 'new-password';
   $('#esqueci').hidden = modoLogin !== 'entrar'; $('#erro-login').textContent = '';
 }
-$('#tela-login').addEventListener('click', (e) => {
+function semBackend() { $('#erro-login').textContent = 'A conta não está disponível nesta versão. Você pode continuar sem conta.'; }
+$('#tela-login').addEventListener('click', async (e) => {
   const t = e.target;
   const md = t.closest('[data-login]'); if (md) { modoLogin = md.dataset.login; desenharLogin(); return; }
   const v = t.closest('#ver-senha'); if (v) { const on = v.getAttribute('aria-pressed') !== 'true'; v.setAttribute('aria-pressed', String(on)); v.setAttribute('aria-label', on ? 'Esconder senha' : 'Mostrar senha'); $('#login-senha').type = on ? 'text' : 'password'; return; }
   if (t.closest('#esqueci')) {
     const em = $('#login-email').value.trim();
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)) { $('#erro-login').textContent = 'Digite seu e-mail acima para receber o link.'; $('#login-email').focus(); return; }
-    emitir?.('senha_esquecida', {}); aviso('Se esse e-mail tiver conta, chega um link para criar uma senha nova.'); return;
+    if (!EMAIL_OK.test(em)) { $('#erro-login').textContent = 'Digite seu e-mail acima para receber o link.'; $('#login-email').focus(); return; }
+    if (!B) { semBackend(); return; }
+    try { await B.esqueciSenha(em); emitir?.('senha_esquecida', {}); aviso('Se esse e-mail tiver conta, chega um link para criar uma senha nova.'); }
+    catch (err) { $('#erro-login').textContent = err.message; }
+    return;
   }
-  if (t.closest('#sem-conta')) { conta = null; emitir?.('entrada', { comConta: false }); irPara('boas'); }
+  if (t.closest('#sem-conta')) { conta = null; emitir?.('entrada', { comConta: false }); entrarNoApp(); }
 });
-$('#form-login').addEventListener('submit', (e) => {
-  e.preventDefault();
-  const em = $('#login-email').value.trim(), se = $('#login-senha').value;
-  const erro = !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em) ? 'Confira o e-mail.' : se.length < 6 ? 'A senha precisa ter pelo menos 6 caracteres.' : '';
-  $('#erro-login').textContent = erro; if (erro) { (erro.includes('e-mail') ? $('#login-email') : $('#login-senha')).focus(); return; }
-  conta = { email: em }; emitir?.(modoLogin === 'entrar' ? 'login' : 'conta_criada', {});
-  aviso(modoLogin === 'entrar' ? 'Que bom te ver.' : 'Conta criada.'); irPara('boas');
+$('#form-login').addEventListener('submit', async (e) => {
+  e.preventDefault(); if (enviandoLogin) return;
+  const em = $('#login-email').value.trim(), se = $('#login-senha').value, us = $('#login-usuario').value.trim().toLowerCase();
+  const redef = modoLogin === 'redefinir', criar = modoLogin === 'criar';
+  const erro = !redef && !EMAIL_OK.test(em) ? 'Confira o e-mail.'
+    : criar && !USUARIO_OK.test(us) ? 'O nome de usuário precisa ter de 3 a 30 letras minúsculas, números, ponto, hífen ou sublinhado.'
+    : se.length < 8 ? 'A senha precisa ter pelo menos 8 caracteres.' : '';
+  $('#erro-login').textContent = erro;
+  if (erro) { (erro.includes('e-mail') ? $('#login-email') : erro.includes('usuário') ? $('#login-usuario') : $('#login-senha')).focus(); return; }
+  if (!B) { semBackend(); return; }
+  const bt = $('#login-ok'), rotulo = bt.textContent;
+  enviandoLogin = true; bt.disabled = true; bt.textContent = 'Um instante…';
+  try {
+    if (redef) {
+      await B.redefinirSenha(tokenRedefinir, se);
+      tokenRedefinir = null; try { history.replaceState(null, '', '/#login'); } catch {}
+      modoLogin = 'entrar'; desenharLogin(); $('#login-senha').value = '';
+      aviso('Senha nova salva. Agora é só entrar.'); $('#login-email').focus(); return;
+    }
+    const u = criar ? await B.criarConta(us, em, se) : await B.entrar(em, se);
+    conta = contaDe(u); $('#login-senha').value = ''; trilhaDaConta();
+    emitir?.(criar ? 'conta_criada' : 'login', {});
+    aviso(criar ? 'Conta criada.' : 'Que bom te ver.'); entrarNoApp();
+  } catch (err) {
+    $('#erro-login').textContent = err.status === 401 ? 'E-mail ou senha não conferem.' : err.message;
+  } finally { enviandoLogin = false; bt.disabled = false; if (bt.textContent === 'Um instante…') bt.textContent = rotulo; }
 });
 function abrirBoas() { boasPasso = 0; desenharBoas(); }
 function passoBoas(n) {
@@ -874,7 +931,7 @@ function desenharBoas() {
         <div class="motivo-outro" id="motivo-outro" ${MOTIVOS.includes(perfil.motivo) ? 'hidden' : ''}><label class="sr-only" for="motivo-txt">Seu motivo, com suas palavras</label><input id="motivo-txt" type="text" maxlength="60" placeholder="Com suas palavras. Ex.: Para pagar a faculdade" value="${MOTIVOS.includes(perfil.motivo) ? '' : perfil.motivo}"></div></div>
       <div class="campo-boas surgir" style="--d: 680ms"><label for="boas-valor">Quanto você apostava? <small style="font-weight: 400">opcional</small></label>
         <div class="valor-periodo"><span class="pref-boas"><b aria-hidden="true">R$</b><input id="boas-valor" inputmode="numeric" maxlength="7" autocomplete="off" placeholder="pode pular"></span>
-        <div class="seg-login periodo" role="radiogroup" aria-label="Por período">${[['dia', 'por dia'], ['semana', 'por semana'], ['mes', 'por mês']].map(([k, n]) => `<button type="button" role="radio" data-periodo="${k}" aria-checked="${(perfil.periodo || 'semana') === k}" aria-selected="${(perfil.periodo || 'semana') === k}">${n}</button>`).join('')}</div></div>
+        <div class="seg-login periodo" role="radiogroup" aria-label="Por período">${[['dia', 'por dia'], ['semana', 'por semana'], ['mes', 'por mês']].map(([k, n]) => `<button type="button" role="radio" data-periodo="${k}" aria-checked="${(perfil.periodo || 'semana') === k}">${n}</button>`).join('')}</div></div>
         <small class="dica-boas">Só para mostrar o dinheiro que fica com você. Pode ser aproximado.</small></div>
       <p class="privado surgir" style="--d: 740ms"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>${conta ? 'Seu motivo fica na sua conta. Ninguém mais vê.' : 'Tudo fica só neste celular.'}</p>
       <button class="boas-botao surgir" style="--d: 860ms" type="button" id="boas-comecar">Começar a missão</button>
@@ -903,6 +960,8 @@ function comecarMissao() {
   if ($('#motivo-outro-bt')?.getAttribute('aria-pressed') === 'true') { const mt = $('#motivo-txt').value.trim(); if (mt.length < 3) { $('#motivo-txt').focus(); aviso('Escreva seu motivo ou escolha um da lista.'); return; } perfil.motivo = mt; }
   __evento('perfil_criado', { nome: perfil.nome, motivo: perfil.motivo, valor: perfil.valor || null, periodo: perfil.periodo });
   Object.assign(s, { dias: 1, mares: 0, rios: { amazonas: false, saoFrancisco: false, parana: false } });
+  boasVindas = { feito: true, dono: conta?.id ?? null }; guardarBoasVindas();
+  if (conta && !conta.boasVindas) { conta.boasVindas = true; B?.concluirBoasVindas().catch(() => {}); }   // sem rede: o aparelho já lembra
   estadoBoas = null; irPara('inicio'); aplicar();
 }
 const SOBRE = [
@@ -913,7 +972,7 @@ const SOBRE = [
 ];
 perfil.sobre ||= {};
 // ---------- Ajustes e acessibilidade ----------
-s.tema ??= 'auto'; s.texto ??= 0; s.anim ??= 'auto'; s.legendas ??= true;
+s.tema ??= 'auto'; s.texto ??= 0; s.anim ??= 'auto'; s.legendas ??= false;
 const OPC_AJ = { tema: [['claro', 'Claro'], ['escuro', 'Escuro'], ['auto', 'Seguir o celular']], texto: [[0, 'A'], [1, 'A'], [2, 'A']], anim: [['auto', 'Seguir o celular'], ['reduzidas', 'Reduzidas'], ['normais', 'Normais']] };
 function aplicarAjustes() {
   if (s.tema !== 'manual') { if (s.tema === 'auto') s.escuro = mq('(prefers-color-scheme: dark)'); else s.escuro = s.tema === 'escuro'; }
@@ -928,16 +987,26 @@ function desenharAjustes() {
   $('#aj-contraste').checked = !!s.contraste; $('#aj-dalt').checked = !!s.dalt; $('#aj-espaco').checked = !!s.espaco;
   $('#aj-som').checked = somLigado; $('#aj-legendas').checked = !!s.legendas;
 }
-$('#tela-ajustes').addEventListener('click', (e) => {
+$('#tela-ajustes').addEventListener('click', async (e) => {
   const b = e.target.closest('[data-aj]'); if (b) { const k = b.dataset.aj; s[k] = k === 'texto' ? +b.dataset.v : b.dataset.v; aplicarAjustes(); desenharAjustes(); return; }
   if (e.target.closest('#aj-fontes')) { abrirInfo(true); return; }
   const ap = e.target.closest('#aj-apagar'); if (ap) {
-    if (!ap.classList.contains('confirmar')) { ap.classList.add('confirmar'); ap.textContent = 'Toque de novo para apagar tudo'; return; }
-    try { ['terraforma:trilha-aulas', 'terraforma:luneta', 'terraforma:orbita', 'terraforma:som', 'terraforma:video'].forEach((k) => localStorage.removeItem(k)); } catch {}
-    ORBITA.splice(0); guardarOrbita(); troca.minhas = []; Object.assign(perfil, { nome: '', valor: 0 }); emitir?.('dados_apagados', {});
+    if (!ap.classList.contains('confirmar')) { ap.classList.add('confirmar'); ap.textContent = conta ? 'Toque de novo para apagar tudo, inclusive a conta' : 'Toque de novo para apagar tudo'; return; }
+    if (ap.disabled) return;
+    // com conta, apaga primeiro no servidor: se falhar, nada some do aparelho e a pessoa pode tentar de novo
+    if (conta && B) {
+      ap.disabled = true;
+      try { await B.apagarConta(); }
+      catch (err) { aviso('Não deu para apagar sua conta agora. ' + err.message); return; }
+      finally { ap.disabled = false; }
+    }
+    try { localStorage.removeItem('terraforma:token'); } catch {}
+    conversasApi = null; convApi = null;
+    try { ['terraforma:trilha-aulas', 'terraforma:boas-vindas', 'terraforma:luneta', 'terraforma:orbita', 'terraforma:som', 'terraforma:video'].forEach((k) => localStorage.removeItem(k)); } catch {}
+    ORBITA.splice(0); guardarOrbita(); troca.minhas = []; Object.assign(perfil, { nome: '', valor: 0 }); boasVindas = null; emitir?.('dados_apagados', {});
     trilha = { feitas: {} }; lun = { aba: 'mural', filtro: 'tudo', ident: {}, denun: {}, meus: [], resp: {}, msgs: {}, planeta: lun.planeta, regiao: lun.regiao, mostrarDias: true, bloq: {} };
     fin = JSON.parse(JSON.stringify(FIN_PADRAO)); Object.assign(s, { dias: 1, mares: 0, rios: { amazonas: false, saoFrancisco: false, parana: false } });
-    perfil.sobre = {}; perfil.pesquisa = false; conta = null; aplicar(); aviso('Seus dados foram apagados deste celular.'); irPara('login');
+    perfil.sobre = {}; perfil.pesquisa = false; const tinhaConta = !!conta; conta = null; aplicar(); aviso(tinhaConta ? 'Sua conta e seus dados foram apagados.' : 'Seus dados foram apagados deste celular.'); irPara('login');
   }
 });
 $('#tela-ajustes').addEventListener('change', (e) => {
@@ -955,24 +1024,24 @@ function desenharPerfil() {
   $('#perfil-bola').style.background = lun.planeta.cor; $('#perfil-luneta').textContent = 'Na Luneta: ' + euNome();
   $('#edicao-perfil').hidden = true; $('#perfil-motivo').hidden = false;
   $('#sobre-onde').textContent = conta ? 'Fica só na sua conta.' : 'Fica só neste celular.';
-  $('#conta-perfil').textContent = conta ? 'Sair da conta' : 'Entrar ou criar conta';
+  $('#conta-perfil').textContent = conta ? `Sair da conta (@${conta.username})` : 'Entrar ou criar conta';
   $('#sobre').innerHTML = SOBRE.map(([k, q, ops]) => { const r = perfil.sobre[k];
     return `<details><summary><span>${q}</span><span class="resp${r ? ' dada' : ''}">${r || 'Responder'}</span></summary><div class="ops" role="radiogroup" aria-label="${q}">${ops.map((o) => `<button type="button" role="radio" data-sobre="${k}" data-op="${o}" aria-pressed="${r === o}" aria-checked="${r === o}">${o}</button>`).join('')}</div></details>`; }).join('');
   $('#pesquisa-on').checked = !!perfil.pesquisa;
   $('#perfil-valor').value = perfil.valor ? perfil.valor.toLocaleString('pt-BR') : '';
-  $('#perfil-periodo').innerHTML = [['dia', 'por dia'], ['semana', 'por semana'], ['mes', 'por mês']].map(([k, n]) => `<button type="button" role="radio" data-periodo-p="${k}" aria-checked="${(perfil.periodo || 'semana') === k}" aria-selected="${(perfil.periodo || 'semana') === k}">${n}</button>`).join('');
+  $('#perfil-periodo').innerHTML = [['dia', 'por dia'], ['semana', 'por semana'], ['mes', 'por mês']].map(([k, n]) => `<button type="button" role="radio" data-periodo-p="${k}" aria-checked="${(perfil.periodo || 'semana') === k}">${n}</button>`).join('');
 }
 $('#tela-perfil').addEventListener('click', (e) => {
   const sb = e.target.closest('[data-sobre]'); if (sb) { perfil.sobre[sb.dataset.sobre] = sb.dataset.op; const aberto = sb.closest('details'); desenharPerfil(); if (sb.dataset.op === 'Quero buscar') { aviso('A Ajuda mostra como falar com um psicólogo pelo SUS.'); setTimeout(() => irPara('ajuda'), 700); } return; }
   if (e.target.closest('#editar-perfil')) { $('#edicao-perfil').hidden = false; $('#perfil-motivo').hidden = true; $('#ed-nome').value = perfil.nome; $('#ed-motivo').value = perfil.motivo; $('#ed-nome').focus(); return; }
   if (e.target.closest('#cancelar-perfil')) { desenharPerfil(); return; }
-  if (e.target.closest('#salvar-perfil')) { const n = $('#ed-nome').value.trim(), m = $('#ed-motivo').value.trim(); if (n) perfil.nome = n; if (m.length >= 3) perfil.motivo = m; desenharPerfil(); atualizarTextos(); aviso('Perfil atualizado.'); return; }
-  if (e.target.closest('#conta-perfil')) { if (conta) { conta = null; aviso('Você saiu da conta. Seus dados ficam neste celular.'); desenharPerfil(); } else { modoLogin = 'entrar'; irPara('login'); } return; }
-  const pe = e.target.closest('[data-periodo-p]'); if (pe) { $$('#perfil-periodo [data-periodo-p]').forEach((b) => { b.setAttribute('aria-checked', String(b === pe)); b.setAttribute('aria-selected', String(b === pe)); }); return; }
+  if (e.target.closest('#salvar-perfil')) { const n = $('#ed-nome').value.trim(), m = $('#ed-motivo').value.trim(); if (n) perfil.nome = n; if (m.length >= 3) perfil.motivo = m; guardarBoasVindas(); desenharPerfil(); atualizarTextos(); aviso('Perfil atualizado.'); return; }
+  if (e.target.closest('#conta-perfil')) { if (conta) { B?.sair(); conta = null; conversasApi = null; convApi = null; const trilhaNaConta = !trilha.pendente; if (trilhaNaConta) { trilha = { feitas: {} }; guardarTrilha(); } aviso(trilhaNaConta ? 'Você saiu da conta. Sua trilha fica guardada nela; o resto fica neste celular.' : 'Você saiu da conta. Seus dados ficam neste celular.'); desenharPerfil(); } else { modoLogin = 'entrar'; irPara('login'); } return; }
+  const pe = e.target.closest('[data-periodo-p]'); if (pe) { $$('#perfil-periodo [data-periodo-p]').forEach((b) => { b.setAttribute('aria-checked', String(b === pe)); }); return; }
   if (e.target.closest('#salvar-valor')) {
     const v = parseInt($('#perfil-valor').value.replace(/\D/g, ''), 10); perfil.valor = v > 0 ? v : 0;
     perfil.periodo = $('#perfil-periodo [aria-checked="true"]')?.dataset.periodoP || 'semana';
-    aplicar(); desenharPerfil(); aviso(perfil.valor ? 'Salvo. O Início mostra o dinheiro que ficou com você.' : 'Tudo bem. O Início não mostra valor.');
+    guardarBoasVindas(); aplicar(); desenharPerfil(); aviso(perfil.valor ? 'Salvo. O Início mostra o dinheiro que ficou com você.' : 'Tudo bem. O Início não mostra valor.');
   }
 });
 $('#pesquisa-on').addEventListener('change', (e) => { perfil.pesquisa = e.target.checked; aviso(e.target.checked ? 'Obrigado. Só números anônimos são enviados.' : 'Você saiu da pesquisa.'); emitir?.('pesquisa', { participa: e.target.checked }); });
@@ -984,7 +1053,7 @@ $('#tela-boas').addEventListener('click', (e) => {
   if (t.closest('#boas-seguir')) { passoBoas(boasPasso + 1); return; }
   if (t.closest('#boas-pular')) { passoBoas(2); return; }
   const m = t.closest('[data-motivo]'); if (m) { perfil.motivo = m.dataset.motivo; $$('#tela-boas [data-motivo]').forEach((b) => b.setAttribute('aria-pressed', String(b === m))); $('#motivo-outro-bt').setAttribute('aria-pressed', 'false'); $('#motivo-outro-bt').setAttribute('aria-expanded', 'false'); $('#motivo-outro').hidden = true; return; }
-  const pe = t.closest('[data-periodo]'); if (pe) { perfil.periodo = pe.dataset.periodo; $$('#tela-boas [data-periodo]').forEach((b) => { b.setAttribute('aria-checked', String(b === pe)); b.setAttribute('aria-selected', String(b === pe)); }); return; }
+  const pe = t.closest('[data-periodo]'); if (pe) { perfil.periodo = pe.dataset.periodo; $$('#tela-boas [data-periodo]').forEach((b) => { b.setAttribute('aria-checked', String(b === pe)); }); return; }
   if (t.closest('#motivo-outro-bt')) {
     $$('#tela-boas [data-motivo]').forEach((b) => b.setAttribute('aria-pressed', 'false'));
     $('#motivo-outro-bt').setAttribute('aria-pressed', 'true'); $('#motivo-outro-bt').setAttribute('aria-expanded', 'true');
@@ -1088,6 +1157,39 @@ const escH = (t) => String(t).replace(/&/g, '&amp;').replace(/"/g, '&quot;').rep
 let trilha = { feitas: {} };   // 'c-i' → { em, acertos?, total? }
 try { const v = JSON.parse(localStorage.getItem('terraforma:trilha-aulas')); if (v && v.feitas) trilha = v; } catch {}
 const guardarTrilha = () => { try { localStorage.setItem('terraforma:trilha-aulas', JSON.stringify(trilha)); } catch {} };
+// ---------- progresso da trilha na conta (back NestJS, tabela trilha_progresso) ----------
+// o aparelho continua sendo a cópia de trabalho; com conta, cada conclusão vai para o servidor e, ao entrar, os dois se juntam.
+// trilha.dono = id da conta dona do progresso guardado; trilha.pendente = há algo que ainda não chegou ao servidor
+const mesclarFeita = (a, b) => !a ? b : !b ? a : {
+  ...a, ...b,
+  em: a.em && b.em ? (a.em < b.em ? a.em : b.em) : a.em || b.em,
+  ...(a.acertos != null || b.acertos != null ? { acertos: Math.max(a.acertos ?? 0, b.acertos ?? 0) } : {}),
+};
+let filaTrilha = Promise.resolve();
+function sincronizarTrilhaConta() {
+  if (!B || !conta) return filaTrilha;
+  const dono = conta.id;
+  // uma de cada vez: a resposta de uma não apaga o que foi concluído enquanto a outra viajava
+  filaTrilha = filaTrilha.then(async () => {
+    if (conta?.id !== dono) return;
+    trilha.dono = dono;
+    try {
+      const doServidor = await B.sincronizarTrilha(trilha.feitas);
+      if (conta?.id !== dono) return;
+      const antes = JSON.stringify(trilha.feitas);
+      for (const [k, v] of Object.entries(doServidor)) trilha.feitas[k] = mesclarFeita(v, trilha.feitas[k]);
+      trilha.pendente = false; guardarTrilha();
+      if (JSON.stringify(trilha.feitas) !== antes && telaAtual === 'trilha' && !licao) desenharTrilha();
+    } catch { trilha.pendente = true; guardarTrilha(); }   // fora do ar: tenta de novo na próxima conclusão ou ao abrir o app
+  });
+  return filaTrilha;
+}
+// ao entrar: progresso de outra conta neste aparelho já está guardado nela, então não passa para esta
+function trilhaDaConta() {
+  if (!conta) return;
+  if (trilha.dono && trilha.dono !== conta.id) { trilha = { feitas: {} }; guardarTrilha(); }
+  sincronizarTrilhaConta();
+}
 const chaveAt = (c, i) => `${c}-${i}`;
 const feita = (c, i) => !!trilha.feitas[chaveAt(c, i)];
 const ordemLinear = () => TRILHA_NOS.flatMap((cap, c) => cap.map((_, i) => [c, i]));
@@ -1115,11 +1217,17 @@ function desenharTrilha() {
   const html = ordem.map((c) => {
     const cap = TRILHA_NOS[c], N = cap.length, feitasCap = cap.filter((_, i) => feita(c, i)).length, H = TOPO + N * DY, base = c * N;
     const pts = cap.map((_, i) => [xs(base + i + 1), H - 60 - i * DY]);
-    let d = `M ${W / 2} ${H + 40}`;
-    pts.forEach(([x, y], i) => { const [px, py] = i ? pts[i - 1] : [W / 2, H + 40]; const my = (py + y) / 2; d += ` C ${px} ${my}, ${x} ${my}, ${x} ${y}`; });
-    const [ux, uy] = pts[N - 1]; d += ` C ${ux} ${uy - 44}, ${W / 2} 14, ${W / 2} -90`;
-    const frente = (n) => n <= 0 ? H + 400 : n >= N ? -400 : (pts[n - 1][1] + pts[n][1]) / 2;
-    const yF = frente(feitasCap), anima = c === uc && !s.mov, yAnt = anima ? frente(feitasCap - 1) : yF;
+    // a estrada entra e sai de cada capítulo por uma reta vertical no centro, longe das bordas: emenda perfeita com o capítulo de baixo e o de cima
+    let d = `M ${W / 2} ${H + 400} L ${W / 2} ${H + 4}`;
+    pts.forEach(([x, y], i) => { const [px, py] = i ? pts[i - 1] : [W / 2, H + 4]; const my = (py + y) / 2; d += ` C ${px} ${my}, ${x} ${my}, ${x} ${y}`; });
+    const [ux, uy] = pts[N - 1]; d += ` C ${ux} ${uy - 44}, ${W / 2} 0, ${W / 2} -12 L ${W / 2} -400`;
+    // a frente verde vai até o próximo círculo (ele mesmo só fica verde quando for concluído);
+    // no começo de um capítulo, ela já sobe do capítulo anterior completo até o primeiro círculo, sem emenda entre as regiões
+    const anteriorCompleto = c > 0 && TRILHA_NOS[c - 1].every((_, i) => feita(c - 1, i));
+    const frente = (n) => n >= N ? -400 : n <= 0 ? (anteriorCompleto ? pts[0][1] : H + 400) : pts[n][1];
+    const ucCompleto = uc >= 0 && TRILHA_NOS[uc].every((_, i) => feita(uc, i));
+    const entraAgora = c === uc + 1 && feitasCap === 0 && ucCompleto && !s.mov;   // o capítulo acabou de ser liberado: o verde chega junto
+    const yF = frente(feitasCap), anima = (c === uc || entraAgora) && !s.mov, yAnt = entraAgora ? H + 70 : anima ? frente(feitasCap - 1) : yF;
     const premios = cap.map((_, i) => { if (!feita(c, i)) return null; const [x, y] = pts[i], lado = x > W / 2 ? -1 : 1;
       return { x: Math.max(40, Math.min(W - 40, x + lado * 96)), y: y + 24, tipo: PAISAGEM_TIPO[i] }; }).filter(Boolean);
     geo[c] = { W, H, d, pts, premios, yF, yAnt, animar: anima, completo: feitasCap === N };
@@ -1130,6 +1238,7 @@ function desenharTrilha() {
       return `<button type="button" class="no ${cls} t-${m.tipo}${novo ? ' surgiu' : ''}" style="left: ${x}px; top: ${y}px" data-at="${c}-${i}" aria-haspopup="dialog" aria-label="${escH(rot)}">${f ? ICO_K.feito : ICO_K[m.tipo]}${agora ? `<span class="bolha">${{ aula: 'Começar', quiz: 'Quiz', pratica: 'Na prática' }[m.tipo]}</span>` : ''}</button>`;
     }).join('');
     return `<section class="capitulo" data-c="${c}" aria-label="Capítulo ${c + 1}, ${CAP_REGIAO[c]}: ${escH(AULAS[c].n)}">
+      <canvas class="paisagem-chao" aria-hidden="true"></canvas>
       <canvas class="paisagem-cv" aria-hidden="true"></canvas>
       <div class="faixa-cap ${feitasCap === N ? 'feito' : ''}"><span><b>${CAP_REGIAO[c]} · ${AULAS[c].n}</b><small>Capítulo ${c + 1} · ${CAP_BIOMA[c].split(' e ')[0]} · ${AULAS[c].a.length} aulas + prática</small></span><span class="cont">${feitasCap === N ? '✓ completo' : feitasCap + ' de ' + N}</span></div>
       ${feitasCap === N ? `<p class="fim-cap">A paisagem do ${CAP_REGIAO[c]} voltou. O que floresce fica.</p>` : ''}
@@ -1139,7 +1248,7 @@ function desenharTrilha() {
   $('#rol-trilha').innerHTML = html;
   $$('#rol-trilha .capitulo').forEach((sec) => {
     const c = +sec.dataset.c, tr = sec.querySelector('.trilho-cap');
-    montarCena({ canvas: sec.querySelector('.paisagem-cv'), c, trilho: tr, ox: tr.offsetLeft, oy: tr.offsetTop, reduzido: s.mov, escuro: s.escuro, ...geo[c] });
+    montarCena({ canvas: sec.querySelector('.paisagem-cv'), chaoCv: sec.querySelector('.paisagem-chao'), c, trilho: tr, ox: tr.offsetLeft, oy: tr.offsetTop, reduzido: s.mov, escuro: s.escuro, ...geo[c] });
   });
   const px = $('#proxima');
   if (prox) {
@@ -1355,7 +1464,7 @@ function concluirNo() {
   const { c, i, tipo, aula } = licao, k = chaveAt(c, i), antes = trilha.feitas[k];
   if (tipo === 'pratica') {   // guarda a escolha, sem certo ou errado
     licao.nova = !antes; licao.tempo = (Date.now() - licao.inicio) / 1000;
-    trilha.feitas[k] = { em: antes?.em || new Date().toISOString(), escolha: licao.escolha }; guardarTrilha();
+    trilha.feitas[k] = { em: antes?.em || new Date().toISOString(), escolha: licao.escolha }; guardarTrilha(); sincronizarTrilhaConta();
     if (licao.nova) { ultimaConcluida = k; emitirTrilha?.({ capitulo: c, indice: i, modulo: AULAS[c].id, aula: null, tipo, escolha: licao.escolha }); }
     licao.fase = 'fim'; desenharLicao(true); return;
   }
@@ -1363,7 +1472,7 @@ function concluirNo() {
   const reg = { em: new Date().toISOString() };
   if (tipo === 'quiz') { reg.acertos = Math.max(licao.primeira, antes?.acertos ?? 0); reg.total = aula.q.length; }
   trilha.feitas[k] = antes ? { ...antes, ...(tipo === 'quiz' ? { acertos: reg.acertos, total: reg.total } : {}) } : reg;
-  guardarTrilha();
+  guardarTrilha(); sincronizarTrilhaConta();
   if (licao.nova) {
     ultimaConcluida = k;
     emitirTrilha?.({ capitulo: c, indice: i, modulo: AULAS[c].id, aula: aula.id, tipo, acertos: tipo === 'quiz' ? licao.primeira : null, total: tipo === 'quiz' ? aula.q.length : null });
@@ -1431,7 +1540,7 @@ $('#rol-trilha').addEventListener('scroll', () => { $('#chip-regiao-nome').textC
 // o capítulo começa embaixo: rola até o fim dele
 function irAoCapitulo(k, suave = !s.mov) { const el = $(`#rol-trilha .capitulo[data-c="${k}"]`), r = $('#rol-trilha'); if (el) r.scrollTo({ top: Math.max(0, el.offsetTop + el.offsetHeight - r.clientHeight), behavior: suave ? 'smooth' : 'auto' }); }
 function abrirListaRegioes(abrir) {
-  const l = $('#lista-regioes'), atual = capituloVisivel();
+  const l = $('#menu-regioes'), atual = capituloVisivel();
   l.hidden = !abrir; $('#chip-regiao').setAttribute('aria-expanded', String(abrir));
   if (abrir) { l.innerHTML = TRILHA_NOS.map((cap, c) => `<button type="button" data-cap="${c}" aria-current="${c === atual}"><span><b>${CAP_REGIAO[c]}</b><small>${AULAS[c].n}</small></span><span class="n">${cap.filter((_, i) => feita(c, i)).length}/${cap.length}</span></button>`).join(''); l.querySelector('[aria-current="true"]').focus({ preventScroll: true }); }
 }
@@ -1448,9 +1557,9 @@ function subirAoPlaneta() {
 }
 $('#tela-trilha').addEventListener('click', (e) => {
   if (e.target.closest('#subir-planeta')) { subirAoPlaneta(); return; }
-  if (e.target.closest('#chip-regiao')) { abrirListaRegioes($('#lista-regioes').hidden); return; }
+  if (e.target.closest('#chip-regiao')) { abrirListaRegioes($('#menu-regioes').hidden); return; }
   const cp = e.target.closest('[data-cap]'); if (cp) { abrirListaRegioes(false); irAoCapitulo(+cp.dataset.cap); return; }
-  if (!$('#lista-regioes').hidden) abrirListaRegioes(false);
+  if (!$('#menu-regioes').hidden) abrirListaRegioes(false);
   const ab = e.target.closest('[data-abrir]'); if (ab) { const [c, i] = ab.dataset.abrir.split('-').map(Number); abrirNo(c, i); return; }
   const px = e.target.closest('#proxima [data-at]'); if (px) { const [c, i] = px.dataset.at.split('-').map(Number); abrirNo(c, i); return; }
   const b = e.target.closest('.no[data-at]');
@@ -1525,11 +1634,51 @@ let lun = { aba: 'mural', filtro: 'tudo', ident: {}, denun: {}, meus: [], resp: 
 try { const v = JSON.parse(localStorage.getItem('terraforma:luneta')); if (v) lun = { ...lun, ...v, aba: 'mural', filtro: 'tudo' }; } catch {}
 const guardarLun = () => { try { const { aba, filtro, ...resto } = lun; localStorage.setItem('terraforma:luneta', JSON.stringify(resto)); } catch {} };
 let fioAberto = null, convAberta = null, constEscolhida = 'vontade';
+// conversas reais (back NestJS, só com conta). Ids na tela: 'api:<id do chat>'
+let conversasApi = null, carregandoConversas = false, erroConversas = '', convApi = null, avisosConv = {}, relogioConv = null, enviandoConv = false;
+const ehApi = (id) => typeof id === 'string' && id.startsWith('api:');
+const RAPIDAS_API = ['Estou com vontade agora', 'Consegui hoje', 'Obrigado por estar aqui'];
+const horaCurta = (iso) => { const d = new Date(iso), hoje = new Date().toDateString() === d.toDateString();
+  return hoje ? d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }); };
+async function carregarConversas() {
+  if (!B || !conta || carregandoConversas) return;
+  carregandoConversas = true;
+  try { conversasApi = (await B.listarConversas()).itens; erroConversas = ''; }
+  catch (err) { erroConversas = err.message; }
+  finally { carregandoConversas = false; }
+  if (telaAtual === 'luneta' && lun.aba === 'conversas') { lunTopo = false; desenharLuneta(); }
+}
+function blocoConversasApi() {
+  if (!conta) return `<p class="sec-conv">Pessoas reais</p><div class="par-cartao"><b>Converse com quem você conhece</b><p>Com uma conta, você chama outras pessoas pelo nome de usuário. Ninguém vê seu e-mail.</p><button type="button" id="conv-entrar">Entrar ou criar conta</button></div>`;
+  const lista = conversasApi == null ? `<p class="regra-lun">${erroConversas ? esc(erroConversas) : 'Carregando suas conversas…'}</p>`
+    : conversasApi.length ? `<div class="lista-conv">${conversasApi.map((c) => { const outros = c.membros.filter((m) => m.id !== conta.id);
+      return `<button type="button" class="conv-item" data-conv="api:${esc(c.id)}"><span class="ic" style="background: var(--sup)"><span class="av-pl" style="width: 26px; height: 26px; background: ${corUsuario(outros[0]?.username || c.titulo)}"></span></span><span><b>${esc(c.titulo)}</b><small>${outros.length + 1} pessoas · ${esc(outros.map((m) => '@' + m.username).join(', '))}</small></span><span class="hora">${horaCurta(c.updatedAt)}</span></button>`; }).join('')}</div>`
+    : '<p class="regra-lun">Você ainda não tem conversas. Chame alguém pelo nome de usuário.</p>';
+  return `<p class="sec-conv">Suas conversas</p>${lista}
+    <form class="nova-conv" id="nova-conv" autocomplete="off" novalidate><label for="nova-conv-user">Conversar com</label><div class="linha"><input id="nova-conv-user" autocapitalize="none" spellcheck="false" maxlength="200" placeholder="nome de usuário" aria-describedby="dica-nova-conv"><button type="submit">Começar</button></div><p class="regra-lun" id="dica-nova-conv">Para um grupo, separe os nomes por vírgula.</p><p class="erro-conv" id="erro-nova-conv" role="alert"></p></form>`;
+}
+async function abrirConversaApi(id) {
+  convAberta = 'api:' + id; if (convApi?.id !== id) convApi = null;
+  irPara('conversa'); desenharConversa(); await atualizarConversaApi();
+  clearInterval(relogioConv);
+  // sem WebSocket no back: busca mensagens novas a cada 5 s enquanto a conversa estiver aberta
+  relogioConv = setInterval(() => { if (telaAtual !== 'conversa' || !ehApi(convAberta) || !conta) { clearInterval(relogioConv); relogioConv = null; return; } atualizarConversaApi(); }, 5000);
+}
+async function atualizarConversaApi() {
+  const id = convAberta.slice(4);
+  try { const c = await B.abrirConversa(id); if (convAberta !== 'api:' + id) return;
+    const mudou = !convApi || convApi.mensagens.length !== c.mensagens.length || convApi.mensagens.at(-1)?.id !== c.mensagens.at(-1)?.id;
+    convApi = c; if (mudou && telaAtual === 'conversa') desenharConversa(); }
+  catch (err) { if (err.status === 404) { aviso('Essa conversa não existe mais.'); conversasApi = null; lun.aba = 'conversas'; irPara('luneta'); } }
+}
 var emitirLuneta = (d) => __evento('luneta_' + d.tipo, d);   // o app em Next liga isto ao backend
 // o planeta da pessoa: nome e cor escolhidos por ela; o padrão é sorteado uma vez e não muda com os dias
 if (!lun.planeta) { lun.planeta = { nome: 'Verde-' + String(10 + Math.floor(Math.random() * 89)), cor: '#639922' }; guardarLun(); }
 const euNome = () => 'Planeta ' + lun.planeta.nome;
 const corDe = (q) => q === 'eu' ? lun.planeta.cor : (PLANETAS[q] || ['#B4B2A9'])[0];
+// conversas reais: cada nome de usuário ganha sempre a mesma cor da paleta dos planetas
+const CORES_USUARIO = Object.values(PLANETAS).map(([c]) => c);
+const corUsuario = (nome) => { let h = 0; for (const ch of String(nome)) h = (h * 31 + ch.charCodeAt(0)) >>> 0; return CORES_USUARIO[h % CORES_USUARIO.length]; };
 const CORES_PL = [['#639922', 'Verde'], ['#1D9E75', 'Turquesa'], ['#378ADD', 'Azul'], ['#534AB7', 'Índigo'], ['#D4537E', 'Rosa'], ['#D85A30', 'Coral'], ['#EF9F27', 'Âmbar'], ['#888780', 'Cinza']];
 const NOMES_PL = ['Ipê', 'Girassol', 'Jatobá', 'Seriema', 'Aurora', 'Maré Calma', 'Cerrado', 'Vagalume', 'Sabiá', 'Pitanga', 'Brisa', 'Araucária', 'Bem-te-vi', 'Orvalho', 'Jabuticaba', 'Lua Cheia'];
 let rascunhoPl = null;
@@ -1627,7 +1776,7 @@ function desenharLuneta() {
     const filtros = [['tudo', 'Tudo'], ...Object.entries(CONSTELACOES)];
     const posts = [...lun.meus, ...POSTS_DEMO.slice(1)].filter((p) => !lun.bloq[p.quem] && (lun.filtro === 'tudo' ? true : p.c === lun.filtro));
     const rmm = rodaMinha(), fezHoje = lun.mut?.dia === new Date().toDateString(), nMut = Math.min(MUTIRAO.meta, MUTIRAO.base[lun.regiao] + (lun.mut?.n || 0));
-    const mutirao = `<section class="mutirao" aria-label="Mutirão da sua região"><span class="rot" style="color: ${rmm.cor}">Mutirão do ${rmm.n} · esta semana</span><h4>${MUTIRAO.meta} atividades fora das apostas, juntos</h4>
+    const mutirao = `<section class="mutirao" aria-label="Mutirão da sua região"><span class="rot" style="--cor-reg: ${rmm.cor}">Mutirão do ${rmm.n} · esta semana</span><h4>${MUTIRAO.meta} atividades fora das apostas, juntos</h4>
       <div class="barra-mut" role="progressbar" aria-valuemin="0" aria-valuemax="${MUTIRAO.meta}" aria-valuenow="${nMut}" aria-label="Progresso do mutirão"><i style="width: ${nMut / MUTIRAO.meta * 100}%; background: ${rmm.cor}"></i></div>
       <div class="num"><span><b>${nMut}</b> de ${MUTIRAO.meta}</span><span>${rmm.qtd} planetas no grupo</span></div>
       ${fezHoje ? `<span class="fiz">✓ Você somou: ${lun.mut.at.toLowerCase()}. Volte amanhã.</span>` : `<div class="chips" role="group" aria-label="O que você fez hoje?">${MUTIRAO.atividades.map((a) => `<button type="button" data-mut="${a}">+ ${a}</button>`).join('')}</div>`}
@@ -1656,8 +1805,9 @@ function desenharLuneta() {
     const rm = rodaMinha(), nNovas = !lun.msgs.roda ? 3 : 0;
     const minha = `<p class="sec-conv">Na sua região</p><button type="button" class="roda-reg" data-conv="roda"><span class="bio" style="background: ${rm.claro}; color: ${rm.cor}">${ICO_RODA}</span><span><b>Roda do ${rm.n}</b><small>${rm.bio} · sextas, 21h · ${rm.qtd} planetas</small></span><span class="vivo">${nNovas ? nNovas + ' novas' : 'ao vivo'}</span></button>`;
     const outras = `<p class="sec-conv">Outras regiões</p><div class="outras-reg">${REGIOES_LUN.map((r, k) => k === lun.regiao ? '' : `<button type="button" data-outra="${k}"><b><i style="background: ${r[1]}"></i>${r[0]}</b><small>${r[4]} planetas</small></button>`).join('')}</div>`;
-    pn.innerHTML = minha + outras + `<p class="sec-conv">Só vocês dois</p><div class="lista-conv">${item('par')}</div><div class="par-cartao"><b>Quer mais um companheiro de trilha?</b><p>A Luneta sugere alguém com dias de recomeço e horário difícil parecidos com os seus. Os dois aceitam antes, ninguém vê nome ou foto, e qualquer um pode encerrar quando quiser.</p><button type="button" data-aviso="Na demo, a sugestão de companheiro não é feita. No app, chega um convite que a outra pessoa precisa aceitar.">Pedir um companheiro</button></div>`
-      + `<p class="regra-lun">Conversas fictícias na demonstração. A região serve para achar rodas no mesmo fuso e com a mesma realidade; cidade e localização exata nunca aparecem.</p>`;
+    if (conta && conversasApi == null && !erroConversas) carregarConversas();
+    pn.innerHTML = blocoConversasApi() + minha + outras + `<p class="sec-conv">Só vocês dois</p><div class="lista-conv">${item('par')}</div><div class="par-cartao"><b>Quer mais um companheiro de trilha?</b><p>A Luneta sugere alguém com dias de recomeço e horário difícil parecidos com os seus. Os dois aceitam antes, ninguém vê nome ou foto, e qualquer um pode encerrar quando quiser.</p><button type="button" data-aviso="Na demo, a sugestão de companheiro não é feita. No app, chega um convite que a outra pessoa precisa aceitar.">Pedir um companheiro</button></div>`
+      + `<p class="regra-lun">A roda e o companheiro são fictícios na demonstração; suas conversas acima são reais. A região serve para achar rodas no mesmo fuso e com a mesma realidade; cidade e localização exata nunca aparecem.</p>`;
   }
   if (lunTopo) { pn.scrollTop = 0; lunTopo = false; }
 }
@@ -1674,8 +1824,26 @@ function desenharFio() {
   $('#rapidas-fio').innerHTML = rapidas.map((r) => `<button type="button" data-rapida-fio="${r}">${r}</button>`).join('');
   $('#txt-fio').placeholder = p.pergunta ? 'Sua resposta…' : `Responder ao Planeta ${p.quem === 'eu' ? lun.planeta.nome : p.quem}…`;
 }
-function abrirConversa(id) { convAberta = id; irPara('conversa'); desenharConversa(); }
+function abrirConversa(id) { if (ehApi(id)) { abrirConversaApi(id.slice(4)); return; } convAberta = id; irPara('conversa'); desenharConversa(); }
+function desenharConversaApi() {
+  const c = convApi, extra = avisosConv[convAberta] || [];
+  const outros = c ? c.membros.filter((m) => m.id !== conta?.id) : [];
+  $('#conv-tit').textContent = c ? c.titulo : 'Conversa';
+  $('#conv-sub').textContent = c ? outros.map((m) => '@' + m.username).join(', ') + ' · com moderação' : 'Carregando…';
+  $('#txt-conv').placeholder = 'Escreva uma mensagem…'; $('#txt-conv').maxLength = 4000;
+  const msg = (m) => m.autorId && m.autorId === conta?.id
+    ? `<div class="msg minha"><div class="bolha-msg">${esc(m.conteudo)}</div></div>`
+    : `<div class="msg"><span class="de"><span class="av-pl" style="width: 14px; height: 14px; background: ${m.autor ? corUsuario(m.autor.username) : '#B4B2A9'}"></span>${m.autor ? '@' + esc(m.autor.username) : 'Conta apagada'}</span><div class="bolha-msg">${esc(m.conteudo)}</div></div>`;
+  const guard = (conteudo) => `<div class="msg guardiao"><span class="de"><span class="av-pl" style="width: 14px; height: 14px; background: #3C3489"></span>Guardião da Luneta</span>${conteudo}</div>`;
+  const ini = c && !c.mensagens.length ? guard('<div class="bolha-msg">Aqui vale contar como você está. Sem links, valores ou nomes de casas de aposta. Se alguém estiver em risco, a Ajuda fica no menu.</div>') : '';
+  $('#rol-msgs').innerHTML = (c ? ini + c.mensagens.map(msg).join('') : '<p class="regra-lun">Carregando mensagens…</p>')
+    + extra.map(([q, t]) => q === 'crise' ? guard(cartaoCrise()) : guard(`<div class="bolha-msg">${esc(t)}</div>`)).join('');
+  $('#rapidas').innerHTML = RAPIDAS_API.map((r) => `<button type="button" data-rapida="${esc(r)}">${r}</button>`).join('');
+  const r = $('#rol-msgs'); r.scrollTop = r.scrollHeight;
+}
 function desenharConversa(digitando) {
+  if (ehApi(convAberta)) { desenharConversaApi(); return; }
+  $('#txt-conv').maxLength = 300;
   const c = CONVERSAS[convAberta]; if (!c) return;
   const rm = rodaMinha();
   $('#conv-tit').textContent = c.planeta ? 'Planeta ' + c.tit : `Roda do ${rm.n}`; $('#conv-sub').textContent = c.planeta ? c.sub : `${rm.bio} · sextas, 21h · com moderação`;
@@ -1691,8 +1859,20 @@ function desenharConversa(digitando) {
   const r = $('#rol-msgs'); r.scrollTop = r.scrollHeight;
 }
 let respIdx = 0;
+async function enviarMensagemApi(txt) {
+  const aberta = convAberta, extra = (avisosConv[aberta] ||= []);
+  // crise: não vai para o servidor; mostra CVV e SAMU como nas conversas da demo
+  if (CRISE.test(txt)) { extra.push(['crise', '']); desenharConversa(); emitirLuneta?.({ tipo: 'alerta_crise', onde: 'conversa' }); return; }
+  const bloq = checar(txt).filter(([, , b]) => b);
+  if (bloq.length) { extra.push(['g', `Sua mensagem não foi enviada: ${bloq.map(([, rot]) => rot.toLowerCase()).join(', ')}. Aqui a gente conta como está, sem esses detalhes.`]); desenharConversa(); return; }
+  if (enviandoConv) return; enviandoConv = true;
+  try { await B.enviarMensagem(aberta.slice(4), txt); avisosConv[aberta] = []; conversasApi = null; await atualizarConversaApi(); }
+  catch (err) { extra.push(['g', 'Sua mensagem não foi enviada. ' + err.message]); if (convAberta === aberta) desenharConversa(); }
+  finally { enviandoConv = false; }
+}
 function enviarMensagem(txt) {
   txt = txt.trim(); if (!txt) return;
+  if (ehApi(convAberta)) { enviarMensagemApi(txt); return; }
   const lista = (lun.msgs[convAberta] ||= []);
   if (CRISE.test(txt)) { lista.push(['eu', txt], ['crise', '']); guardarLun(); desenharConversa(); emitirLuneta?.({ tipo: 'alerta_crise', onde: 'conversa' }); return; }
   const bloq = checar(txt).filter(([, , b]) => b);
@@ -1728,6 +1908,7 @@ $('#tela-luneta').addEventListener('click', (e) => {
   const mt = t.closest('[data-mut]'); if (mt) { const hoje = new Date().toDateString(); lun.mut = { dia: hoje, at: mt.dataset.mut, n: (lun.mut?.n || 0) + 1 }; guardarLun(); desenharLuneta(); aviso(`${mt.dataset.mut} somada ao mutirão do ${rodaMinha().n}.`); emitirLuneta?.({ tipo: 'mutirao', atividade: mt.dataset.mut }); return; }
   const fi = t.closest('[data-fio]'); if (fi) { abrirFio(fi.dataset.fio); return; }
   const cv = t.closest('[data-conv]'); if (cv) { abrirConversa(cv.dataset.conv); return; }
+  if (t.closest('#conv-entrar')) { modoLogin = 'entrar'; irPara('login'); return; }
   const ou = t.closest('[data-outra]'); if (ou) { aviso(`Você participa da roda da sua região. Para trocar para o ${REGIOES_LUN[+ou.dataset.outra][0]}, toque no seu planeta.`); return; }
   if (t.closest('#escrever') || t.closest('#prompt-post')) { abrirEscrever(); return; }
   if (t.closest('#mandar-forca')) { lun.forca = !lun.forca; guardarLun(); desenharLuneta(); if (lun.forca) { aviso(`Força enviada ao Planeta ${MARCO.quem}.`); emitirLuneta?.({ tipo: 'forca', para: MARCO.quem }); } return; }
@@ -1772,6 +1953,18 @@ $('#compor-fio').addEventListener('submit', (e) => {
   (lun.resp[fioAberto] ||= []).push(txt); guardarLun(); inp.value = ''; desenharFio();
   const r = $('#rol-fio'); r.scrollTop = r.scrollHeight; emitirLuneta?.({ tipo: 'resposta', post: fioAberto, texto: txt });
 });
+$('#tela-luneta').addEventListener('submit', async (e) => {
+  if (e.target.id !== 'nova-conv') return;
+  e.preventDefault();
+  const inp = $('#nova-conv-user'), erro = $('#erro-nova-conv');
+  const nomes = [...new Set(inp.value.split(/[,\s]+/).map((n) => n.replace(/^@/, '').trim().toLowerCase()).filter(Boolean))];
+  if (!nomes.length) { erro.textContent = 'Digite o nome de usuário de quem você quer chamar.'; inp.focus(); return; }
+  if (nomes.includes(conta.username)) { erro.textContent = 'Esse é o seu nome de usuário. Chame outra pessoa.'; inp.focus(); return; }
+  const bt = e.target.querySelector('button[type="submit"]'); bt.disabled = true; erro.textContent = '';
+  try { const c = await B.criarConversa(nomes); conversasApi = null; emitirLuneta?.({ tipo: 'conversa_criada', pessoas: nomes.length + 1 }); abrirConversaApi(c.id); }
+  catch (err) { erro.textContent = err.message; }
+  finally { bt.disabled = false; }
+});
 $('#compor-conv').addEventListener('submit', (e) => { e.preventDefault(); const inp = $('#txt-conv'); enviarMensagem(inp.value); inp.value = ''; });
 $('#tela-conversa').addEventListener('click', (e) => {
   const r = e.target.closest('[data-rapida]'); if (r) { enviarMensagem(r.dataset.rapida); return; }
@@ -1810,8 +2003,17 @@ function aplicar() {
 
 // ---------- início ----------
 aplicar();
-const inicial = (location.hash || '#login').slice(1);   // o app abre pela história
+// link do e-mail de recuperação: /redefinir-senha?token=... abre o login no modo "senha nova"
+try { const q = new URLSearchParams(location.search); if (location.pathname.startsWith('/redefinir-senha') && q.get('token')) { tokenRedefinir = q.get('token'); modoLogin = 'redefinir'; } } catch {}
+const inicial = tokenRedefinir ? 'login' : (location.hash || '#login').slice(1);   // o app abre pela história
 irPara(telas.includes(inicial) ? inicial : 'inicio', { sem: true });
+if (B) {
+  // token vencido, senha trocada em outro aparelho ou conta apagada: volta ao modo sem conta
+  B.quandoDeslogar(() => { if (!conta) return; conta = null; conversasApi = null; convApi = null; aviso('Sua sessão terminou. Entre de novo para ver suas conversas.'); if (telaAtual === 'conversa' && ehApi(convAberta)) { lun.aba = 'conversas'; irPara('luneta'); } });
+  // sessão salva: reconhece a pessoa sem pedir a senha de novo
+  B.sessao().then((u) => { if (!u) return; conta = contaDe(u); trilhaDaConta(); if (telaAtual === 'login' && modoLogin !== 'redefinir') entrarNoApp(); else if (telaAtual === 'perfil') desenharPerfil(); })
+    .catch(() => { /* servidor fora do ar: segue sem conta, o token fica para a próxima vez */ });
+}
 addEventListener('hashchange', () => irPara(location.hash.slice(1)));
 
 try {
@@ -1830,11 +2032,13 @@ try {
   desenharOrbita();
   if (telaAtual === 'mapa') globo.focarRegiao(regiaoSel);
   if (telaAtual === 'mare') { globo.irPara({ opacidade: 0 }, 0); }
-  app.classList.add('pronto');
+  app.classList.add('pronto'); app.removeAttribute('aria-busy');
   setTimeout(() => { try { garantirOceano(); } catch (e) { console.error(e); } }, 1200);
+  setTimeout(() => { aquecerChao(s.escuro).catch(() => {}); }, 3000);   // texturas do chão da trilha, em fatias, antes de a pessoa abrir a trilha
   addEventListener('resize', () => moverGlobo(telaAtual, 0));
 } catch (err) {
   console.error(err);
+  app.classList.add('sem-3d'); app.removeAttribute('aria-busy');   // para de "respirar": o planeta desfocado fica parado
   aviso('Não foi possível desenhar o planeta em 3D neste aparelho.');
 }
 }

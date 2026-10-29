@@ -14,6 +14,9 @@ npm run dev                 # http://localhost:3000
 npm run lint                # tsc --noEmit
 npm run build               # tem que passar antes de qualquer entrega
 node testes/fumaca.mjs      # teste de fumaça (precisa do servidor rodando; ver o arquivo)
+node testes/conta.mjs       # conta, senha e conversas reais (precisa também do back NestJS na 3001)
+node testes/trilha-conta.mjs  # progresso da trilha salvo na conta (front + back NestJS)
+node testes/boas-vindas.mjs   # o tutorial só aparece na primeira vez (front + back NestJS)
 ```
 
 Abrir uma tela direto: `http://localhost:3000/#financas` (lista em `const telas`, em `prototipo/app.js`).
@@ -30,7 +33,8 @@ Abrir uma tela direto: `http://localhost:3000/#financas` (lista em `const telas`
 | `prototipo/trilha-paisagem.js` | paisagem em canvas da trilha (biomas, fauna, flora) |
 | `app/globals.css` | todo o visual. Tokens de cor no topo; layout do produto no fim |
 | `lib/tipos.ts` | contrato de dados e lista `TIPOS_EVENTO` |
-| `lib/api.ts` | cliente da API com fila offline |
+| `lib/api.ts` | cliente da API de eventos/estado com fila offline |
+| `lib/backend.ts` | cliente do back NestJS (`terraforma-backend`): login, cadastro, senha, apagar conta, conversas, progresso da trilha (`sincronizarTrilha`). Chega no motor como `opcoes.backend` (`B` em `app.js`) |
 | `app/api/*` | backend de exemplo em memória (`_memoria.ts` tem as regras de referência) |
 | `dados/trilha-aulas.json` | conteúdo da trilha (cópia legível de `const AULAS` em `app.js`) |
 
@@ -50,7 +54,7 @@ Abrir uma tela direto: `http://localhost:3000/#financas` (lista em `const telas`
 | `Ajustes e acessibilidade` | `aplicarAjustes()`, `desenharPerfil()`, apagar dados |
 | `Trocar a aposta` | Hábitos saudáveis: `TROCAS`, `troca`, `desenharTroca()` |
 | `Trilha` | `AULAS`, `TRILHA_NOS`, `desenharTrilha()`, lição/quiz no modelo do Duolingo |
-| `Luneta` | `PLANETAS`, `POSTS_DEMO`, `CONVERSAS`, `MODERACAO`, `CRISE`, `desenharLuneta()` |
+| `Luneta` | `PLANETAS`, `POSTS_DEMO`, `CONVERSAS`, `MODERACAO`, `CRISE`, `desenharLuneta()`; conversas reais: `conversasApi`, `abrirConversaApi()`, `enviarMensagemApi()` (ids `api:<id>`) |
 | `arrastar para rolar` | rolagem com mouse |
 | `aplicar o estado` / `início` | `aplicar()`, rota inicial, `criarGlobo()` |
 
@@ -92,6 +96,6 @@ Abrir uma tela direto: `http://localhost:3000/#financas` (lista em `const telas`
 
 1. `npm run lint` e `npm run build` sem erro.
 2. `node testes/fumaca.mjs` sem erro (todas as telas abrem, eventos chegam).
-3. Olhar a tela mexida nos temas claro e escuro, em 390 px de largura e no computador.
+3. Olhar a tela mexida nos temas claro e escuro, em 320 e 390 px (celular), 768 px (tablet), 844×390 (celular deitado) e 1440 px (computador). O layout responsivo fica no fim de `app/globals.css` (seção `responsivo`): coluna central a partir de 600 px e barra lateral a partir de 1024 px ou em tela baixa.
 4. Se criou evento, campo de estado ou número com fonte: atualizar `lib/tipos.ts`, `docs/API.md` e `docs/CONTEXTO.md`.
 5. Marcar a tarefa em `docs/BACKLOG.md`.

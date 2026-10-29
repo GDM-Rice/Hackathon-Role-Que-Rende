@@ -3,6 +3,9 @@ import type { EstadoUsuario, Evento, TipoEvento } from './tipos';
 // Se NEXT_PUBLIC_API_URL estiver vazio, usa as rotas de exemplo deste próprio app (/api/...).
 const BASE = (process.env.NEXT_PUBLIC_API_URL ?? '').replace(/\/$/, '') || '/api';
 const FILA = 'terraforma:eventos-pendentes';
+const MAX_FILA = 100; // sem conexão, a fila local guarda só os 100 mais recentes (antes crescia sem limite)
+// next.config.mjs desliga o envio quando não há API de eventos (produção no Vercel sem back de eventos): aí nada é enviado.
+const ENVIA = process.env.NEXT_PUBLIC_EVENTOS_API !== 'off';
 
 async function chamar<T>(caminho: string, init?: RequestInit): Promise<T> {
   const r = await fetch(BASE + caminho, {
@@ -17,13 +20,14 @@ async function chamar<T>(caminho: string, init?: RequestInit): Promise<T> {
 
 /** Envia um evento. Sem conexão, guarda numa fila local e tenta de novo no próximo envio. */
 export async function registrarEvento(tipo: TipoEvento, dados: Record<string, unknown>) {
+  if (!ENVIA) { gravarFila([]); return; } // também limpa o que uma versão anterior possa ter deixado na fila
   const evento: Evento = { tipo, dados: { em: new Date().toISOString(), ...dados } };
   const pendentes = lerFila();
   try {
     for (const e of [...pendentes, evento]) await chamar('/eventos', { method: 'POST', body: JSON.stringify(e) });
     gravarFila([]);
   } catch {
-    gravarFila([...pendentes, evento]);
+    gravarFila([...pendentes, evento].slice(-MAX_FILA));
   }
 }
 

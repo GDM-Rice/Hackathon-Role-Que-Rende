@@ -27,7 +27,7 @@ Leia `AGENTS.md` (mapa do código, regras, armadilhas) e pegue tarefas em `docs/
 3. `app/api/_memoria.ts`: implementação de referência das regras (em memória).
 4. `docs/CONTEXTO.md`: regras do produto e do edital que não podem ser quebradas, e pendências.
 
-Para apontar para o backend real: `NEXT_PUBLIC_API_URL=https://...` no `.env.local`.
+Para apontar para o backend real: `NEXT_PUBLIC_API_URL=https://...` (eventos e estado) e `NEXT_PUBLIC_BACKEND_URL=https://...` (back NestJS: conta, senha e conversas) no `.env.local`. Detalhes em `docs/API.md`.
 
 ## Estrutura
 

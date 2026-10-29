@@ -1,6 +1,6 @@
 # Contrato do backend
 
-O front já chama este contrato. Hoje quem responde são as rotas de exemplo em `app/api/*`, que guardam tudo em memória e perdem os dados ao reiniciar. Para ligar o backend real, defina `NEXT_PUBLIC_API_URL` no `.env.local`; o front passa a chamar `${NEXT_PUBLIC_API_URL}/eventos` e `${NEXT_PUBLIC_API_URL}/estado`.
+O front já chama este contrato. Hoje quem responde são as rotas de exemplo em `app/api/*`, que guardam tudo em memória e perdem os dados ao reiniciar. Elas só existem para desenvolvimento e demonstração: **em produção no Vercel ficam desligadas (404)** e o app não envia eventos (`API_EXEMPLO=1` liga de propósito; ver `app/api/_acesso.ts` e `next.config.mjs`). Onde estão ligadas, o corpo tem no máximo 10 KB, a lista guarda os últimos 1.000 eventos e o app mantém no máximo 100 eventos na fila local enquanto a API não responde. Para ligar o backend real, defina `NEXT_PUBLIC_API_URL` no `.env.local`; o front passa a chamar `${NEXT_PUBLIC_API_URL}/eventos` e `${NEXT_PUBLIC_API_URL}/estado`.
 
 - Tipos em TypeScript: `lib/tipos.ts`
 - Cliente com fila offline: `lib/api.ts`
@@ -32,8 +32,8 @@ Resposta: `201 { "ok": true }`. Tipo desconhecido ou corpo inválido: `400 { "er
 | tipo | dados | regra no servidor |
 | --- | --- | --- |
 | `entrada` | `comConta: false` | pessoa escolheu "Continuar sem conta": dados ficam só no aparelho |
-| `login` | — | o protótipo só valida formato (e-mail e senha ≥ 6). **Autenticação real é do backend** |
-| `conta_criada` | — | idem |
+| `login` | — | só contagem: a autenticação acontece no back NestJS (`POST /auth/login`) |
+| `conta_criada` | — | idem (`POST /user`) |
 | `perfil_criado` | `nome`, `motivo`, `valor` (número ou null), `periodo` (`dia`/`semana`/`mes`) | salva o perfil; zera o progresso: `inicio` = `em`, 1 dia, 0 Marés, rios secos |
 | `pesquisa` | `participa` (bool) | consentimento de pesquisa; só números anônimos |
 | `dados_apagados` | — | "Apagar meus dados" em Ajustes: apagar **tudo** desta pessoa no servidor (LGPD). O front já limpou o aparelho |
@@ -91,6 +91,7 @@ O conteúdo das aulas e do quiz está em `dados/trilha-aulas.json` (e embutido e
 | `luneta_denuncia` | `post` | vai para a moderação |
 | `luneta_bloqueio` | — | a lista de bloqueados vai por `PATCH /estado` |
 | `luneta_planeta_editado` | — | nome, cor, região e "Mostrar meus dias" vão por `PATCH /estado` |
+| `luneta_conversa_criada` | `pessoas` (total, com quem criou) | só contagem; a conversa e as mensagens ficam no back NestJS (`/chats`) |
 | `luneta_alerta_crise` | `onde` (`mural`/`conversa`) | **sem texto, de propósito.** O front já mostrou CVV 188 e SAMU 192. Usar só para contagem e para priorizar moderação |
 
 O front já bloqueia, antes de enviar, texto com link, valor em dinheiro, telefone e termos de aposta (casas, cassino, odds, palpite). As regras estão em `prototipo/app.js`, procure `const MODERACAO`; sinais de crise em `const CRISE`. O servidor precisa repetir essa validação: o front não é barreira de segurança.
@@ -109,7 +110,8 @@ Hoje o protótipo usa `localStorage`. Ao ligar o backend, estes dados passam a v
 
 | chave | conteúdo |
 | --- | --- |
-| `terraforma:trilha-aulas` | progresso da trilha (`trilha.feitas`) |
+| `terraforma:trilha-aulas` | progresso da trilha (`trilha.feitas`; com conta, também `dono` = id da conta e `pendente` = ainda não chegou ao servidor). **Com conta, vai para o back NestJS** (`/trilha`, ver abaixo) |
+| `terraforma:boas-vindas` | tutorial de boas-vindas já feito neste aparelho: `{ feito, dono (id da conta ou null), perfil: { nome, motivo, valor, periodo } }`. Com ele, entrar vai direto ao Início e a saudação mantém o nome. "Apagar meus dados" apaga |
 | `terraforma:luneta` | planeta, região, mostrar dias, bloqueados, mutirão, força, posts, respostas, mensagens, reações, denúncias |
 | `terraforma:orbita` | pessoas da Órbita (nome, relação, telefone) e recados. **Telefone e nome não vão para o servidor sem consentimento explícito** |
 | `terraforma:som` | som ligado/desligado |
@@ -117,10 +119,40 @@ Hoje o protótipo usa `localStorage`. Ao ligar o backend, estes dados passam a v
 
 O restante (perfil, dias, Marés, rios, finanças, ajustes) vive em variáveis dentro de `prototipo/app.js` (`s`, `perfil`, `fin`, `troca`, `ORBITA`) e some ao recarregar. Ligar isso a `GET /estado` é o primeiro passo da fase 2 (`docs/MIGRACAO.md`).
 
+## Back NestJS (`terraforma-backend`)
+
+Conta, senha, conversas entre pessoas e o progresso da trilha já são reais. O front fala com ele por `lib/backend.ts` (URL em `NEXT_PUBLIC_BACKEND_URL`, padrão `http://localhost:3001`; o back precisa ter o endereço do front em `FRONTEND_URL`/`CORS_ORIGINS`). Token JWT em `localStorage` (`terraforma:token`), enviado como `Bearer`.
+
+| tela do protótipo | rota |
+| --- | --- |
+| Login: Entrar | `POST /auth/login`, depois `GET /auth/me` |
+| Login: Criar conta (nome de usuário, e-mail, senha ≥ 8) | `POST /user`, depois login |
+| Login: Esqueci a senha | `POST /auth/forgot-password` |
+| Link do e-mail (`/redefinir-senha?token=`) | `POST /auth/reset-password` |
+| Abrir o app com sessão salva | `GET /auth/me` (401 = volta ao modo sem conta) |
+| Ajustes: Apagar meus dados (com conta) | `DELETE /user/me` antes de limpar o aparelho |
+| Luneta → Conversas: Suas conversas | `GET /chats`, `POST /chats` (`membros`: usernames) |
+| Conversa real | `GET /chats/:id` (a cada 5 s com a tela aberta), `POST /chats/:id/messages` |
+| Trilha: concluir aula, quiz ou "Na prática" (com conta) | `POST /trilha/sincronizar` |
+| Boas-vindas: "Começar a missão" (com conta) | `POST /user/me/boas-vindas` (guarda `boasVindasEm` na primeira vez; `GET /auth/me` devolve o campo e, se preenchido, o login pula o tutorial em qualquer aparelho) |
+| Entrar ou abrir o app com sessão salva | `POST /trilha/sincronizar` com o progresso do aparelho; a resposta é o progresso inteiro da conta |
+
+### Progresso da trilha (`/trilha`)
+
+Tabela `trilha_progresso`: uma linha por atividade concluída (`capitulo`, `indice` = a chave `"c-i"` do front). Apagar a conta apaga o progresso.
+
+- `GET /trilha` → `{ atividades: [{ capitulo, indice, em, acertos, total, escolha }] }` (`acertos`/`total` só no quiz, `escolha` só no "Na prática"; o resto vem `null`).
+- `POST /trilha/sincronizar` com `{ atividades: [{ capitulo, indice, em?, acertos?, total?, escolha? }] }` → mesma resposta do `GET`. Junta com o que já estava salvo sem regredir: fica a data mais antiga (nunca no futuro) e o melhor `acertos`; `total` e `escolha` ficam os mais novos. Pode repetir à vontade (o resultado não muda).
+
+No front (`sincronizarTrilhaConta()` em `app.js`): o aparelho continua sendo a cópia de trabalho; a cada conclusão o mapa inteiro vai para o servidor (são no máximo 35 atividades), uma chamada por vez. Sem rede, marca `pendente` e tenta de novo na próxima conclusão ou ao abrir o app. Ao entrar, o progresso feito sem conta passa para a conta; o de **outra** conta no mesmo aparelho é descartado (já está guardado nela). Ao sair da conta, a trilha sai do aparelho se já estiver no servidor.
+
+Texto com sinal de crise **não é enviado** para `/chats`: o front mostra CVV 188 e SAMU 192, como nas conversas da demo. O back também modera (links, valores, casas de aposta).
+
+Os eventos (`/eventos`) e o resto do estado (`/estado`) ainda **não** existem no NestJS; continuam nas rotas de exemplo do Next.
+
 ## Próximos endpoints sugeridos
 
-- Autenticação (cookie de sessão ou Bearer). O cliente já envia `credentials: 'include'`; ajuste em `lib/api.ts`.
 - `GET /luneta/mural?regiao=&constelacao=`, `GET /luneta/conversas/:id`, `POST /luneta/moderacao/:id` (posts e conversas reais, hoje são fictícios no front).
 - `POST /orbita/pessoas`, `POST /orbita/pessoas/:id/recados`: o recado é escrito pela própria pessoa, nunca gerado pelo app.
 - `GET /metricas/resultado`: agregado anônimo (vontade antes/depois por técnica e por troca), só de quem aceitou a pesquisa.
-- `DELETE /conta`: apagar todos os dados.
+- `DELETE /user/me` já apaga a conta e as conversas; quando `/estado` for para o NestJS, ele precisa apagar esse estado também.
