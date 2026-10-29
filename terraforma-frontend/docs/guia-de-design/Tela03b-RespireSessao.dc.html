@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Respire com a Terra · sessão</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&amp;family=Fraunces:opsz,wght@9..144,400;9..144,600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; position: relative; overflow: hidden; background: #020B16; color: #FFFFFF; font-family: 'Atkinson Hyperlegible', system-ui, sans-serif">
+<img src="/_blob/0c33af81d6ee6dd69e7598d4d1b86911" alt="" style="position: absolute; inset: 0; width: 390px; height: 844px; object-fit: cover">
+<div style="position: absolute; inset: 0; box-sizing: border-box; padding: 16px 16px 20px; display: flex; flex-direction: column; gap: 10px">
+<div style="display: flex; justify-content: space-between; align-items: center; min-height: 44px">
+<a href="Tela02-Inicio.dc.html" style="min-height: 40px; padding: 0 14px; border-radius: 999px; background: rgba(6, 34, 64, 0.82); border: 1px solid rgba(230, 241, 251, 0.16); color: #FFFFFF; font-size: 14px; display: flex; align-items: center; gap: 6px; text-decoration: none"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"></path></svg>Planeta</a>
+<button type="button" aria-pressed="true" aria-label="Som do mar" style="min-height: 40px; padding: 0 14px; border-radius: 999px; border: 0; background: rgba(230, 241, 251, 0.92); color: #042C53; font: inherit; font-size: 14px; display: flex; align-items: center; gap: 6px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4z"></path><path d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12"></path></svg>Som ligado</button>
+</div>
+<div style="flex-grow: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; text-align: center">
+<div style="position: relative; width: 220px; height: 220px" aria-hidden="true">
+<svg width="220" height="220" viewBox="0 0 220 220" style="position: absolute; inset: 0"><circle cx="110" cy="110" r="104" fill="none" stroke="rgba(255,255,255,0.22)" stroke-width="4"></circle><circle cx="110" cy="110" r="104" fill="none" stroke="#FFFFFF" stroke-width="4" stroke-linecap="round" stroke-dasharray="653.5" stroke-dashoffset="440" transform="rotate(-90 110 110)"></circle></svg>
+<div style="position: absolute; inset: 8px; border-radius: 50%; background-color: {{corBolha}}; background-image: radial-gradient(circle at 40% 35%, rgba(255,255,255,0.6), rgba(255,255,255,0) 62%); border: 2px solid {{bordaBolha}}; box-shadow: 0 0 46px {{brilhoBolha}}; transform: scale({{escala}})"></div>
+</div>
+<p style="margin: 0; font-family: 'Fraunces', Georgia, serif; font-size: 46px; line-height: 1; color: {{corTexto}}">{{fase}}</p>
+<p style="margin: 0; font-size: 16px; color: #E6F1FB">{{dica}}</p>
+<p style="margin: 0; max-width: 30ch; font-size: 15px; line-height: 1.45; padding: 10px 14px; border-radius: 14px; background: linear-gradient(180deg, rgba(6, 34, 64, 0.80), rgba(3, 22, 44, 0.88)); border: 1px solid rgba(230, 241, 251, 0.16)">Ela é uma onda: sobe, chega ao pico e desce.</p>
+</div>
+<div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; border-radius: 18px; padding: 8px 8px 8px 16px; background: linear-gradient(180deg, rgba(6, 34, 64, 0.80), rgba(3, 22, 44, 0.88)); border: 1px solid rgba(230, 241, 251, 0.16)">
+<span style="display: flex; flex-direction: column"><b style="font-size: 20px">1:58</b><span style="font-size: 12px; color: #BFD6EC">Surfar a vontade</span></span>
+<span style="display: flex; gap: 6px"><button type="button" style="min-height: 44px; border-radius: 12px; border: 1px solid rgba(230, 241, 251, 0.3); background: transparent; color: #FFFFFF; font: inherit; padding: 0 12px">Pausar</button><a href="Tela03c-RespireFim.dc.html" style="min-height: 44px; border-radius: 12px; border: 1px solid rgba(230, 241, 251, 0.3); color: #FFFFFF; padding: 0 12px; display: flex; align-items: center; text-decoration: none">Encerrar</a></span>
+</div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"fase":{"editor":"enum","default":"inspire","options":["inspire","mais","solte"]},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+renderVals() {
+var fase = this.props.fase ?? 'inspire';
+var f = {
+inspire: { fase: 'Inspire', dica: 'pelo nariz · 3', cor: 'rgba(93, 202, 165, 0.62)', borda: '#B7F2DD', brilho: 'rgba(93, 202, 165, 0.55)', texto: '#C9F5E6', escala: 0.82 },
+mais: { fase: 'Mais um pouco', dica: 'encha o peito · 1', cor: 'rgba(159, 225, 203, 0.78)', borda: '#E1FFF3', brilho: 'rgba(159, 225, 203, 0.65)', texto: '#C9F5E6', escala: 1 },
+solte: { fase: 'Solte', dica: 'devagar · 5', cor: 'rgba(127, 146, 232, 0.55)', borda: '#CECBF6', brilho: 'rgba(127, 146, 232, 0.45)', texto: '#DCDBFB', escala: 0.6 }
+}[fase];
+return { fase: f.fase, dica: f.dica, corBolha: f.cor, bordaBolha: f.borda, brilhoBolha: f.brilho, corTexto: f.texto, escala: f.escala };
+}
+}
+</script>
+</body>
+</html>

@@ -9,28 +9,26 @@ import {
   Post,
   Query,
 } from '@nestjs/common';
-import { MessageRole } from '../generated/prisma/index.js';
 import { CurrentUser } from '../auth/decorators/CurrentUser.decorator.js';
 import { PaginacaoDto } from '../common/paginacao.dto.js';
 import { ChatService } from './chat.service.js';
+import { AddMembroDto } from './dto/add-membro.dto.js';
 import { CreateChatDto } from './dto/create-chat.dto.js';
 import { CreateMessageDto } from './dto/create-message.dto.js';
 
 // Sem @Public(): o AuthGuard global exige token em todas as rotas daqui.
+// Só membros de um chat conseguem vê-lo; para os demais ele responde 404.
 @Controller('chats')
 export class ChatController {
   constructor(private readonly chatService: ChatService) {}
 
   @Post()
   create(@CurrentUser('sub') userId: string, @Body() dto: CreateChatDto) {
-    return this.chatService.create(userId, dto.titulo);
+    return this.chatService.create(userId, dto);
   }
 
   @Get()
-  findAll(
-    @CurrentUser('sub') userId: string,
-    @Query() paginacao: PaginacaoDto,
-  ) {
+  findAll(@CurrentUser('sub') userId: string, @Query() paginacao: PaginacaoDto) {
     return this.chatService.findAll(userId, paginacao);
   }
 
@@ -43,19 +41,29 @@ export class ChatController {
     return this.chatService.findOne(userId, id, paginacao);
   }
 
-  // O cliente só envia mensagens de USER; as de ASSISTANT são criadas pelo servidor.
+  // O autor é sempre quem está logado; o texto passa pela moderação antes de ser gravado.
   @Post(':id/messages')
   addMessage(
     @CurrentUser('sub') userId: string,
     @Param('id') id: string,
     @Body() dto: CreateMessageDto,
   ) {
-    return this.chatService.addMessage(userId, id, MessageRole.USER, dto.conteudo);
+    return this.chatService.addMessage(userId, id, dto.conteudo);
   }
 
+  @Post(':id/membros')
+  addMembro(
+    @CurrentUser('sub') userId: string,
+    @Param('id') id: string,
+    @Body() dto: AddMembroDto,
+  ) {
+    return this.chatService.addMembro(userId, id, dto.username);
+  }
+
+  // Sai da conversa. Ela só é apagada de vez quando o último membro sai.
   @HttpCode(HttpStatus.NO_CONTENT)
   @Delete(':id')
-  async remove(@CurrentUser('sub') userId: string, @Param('id') id: string) {
-    await this.chatService.remove(userId, id);
+  async sair(@CurrentUser('sub') userId: string, @Param('id') id: string) {
+    await this.chatService.sair(userId, id);
   }
 }

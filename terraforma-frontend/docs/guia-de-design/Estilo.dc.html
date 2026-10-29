@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Terraforma · estilo visual e prompt</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&amp;family=Fraunces:opsz,wght@9..144,400;9..144,600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#185FA5}a:hover{color:#042C53}
+</style>
+</helmet>
+<div style="width: 1200px; height: 1500px; box-sizing: border-box; padding: 56px 72px; background: #F4F8FC; color: #0F2340; font-family: 'Atkinson Hyperlegible', system-ui, sans-serif; display: flex; flex-direction: column; gap: 24px">
+
+<header style="display: flex; flex-direction: column; gap: 8px">
+<h1 style="margin: 0; font-family: 'Fraunces', Georgia, serif; font-weight: 600; font-size: 48px; color: #042C53">Estilo: planeta 3D, interface plana</h1>
+<p style="margin: 0; font-size: 19px; max-width: 980px; line-height: 1.45">O planeta e o oceano são 3D (three.js), com foto de satélite da NASA e as regiões do Brasil pintadas por cima. A interface continua plana e calma: cartões, ícones de linha e as fontes abaixo. O planeta em SVG fica como reserva para aparelhos sem 3D.</p>
+</header>
+
+<section style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px">
+<div style="background: #FFFFFF; border: 2px solid #185FA5; border-radius: 16px; padding: 16px; display: flex; flex-direction: column; gap: 6px">
+<p style="margin: 0; font-weight: 700; font-size: 17px; color: #042C53">3D (three.js)</p>
+<p style="margin: 0; font-size: 14px; line-height: 1.4; color: #4A5D75">Pronto no pacote. O canvas recebe descrição em texto para o leitor de tela, e há modo de movimento reduzido.</p>
+<p style="margin: 0; font-size: 14px; font-weight: 700; color: #185FA5">Escolhido para o planeta</p>
+</div>
+<div style="background: #FFFFFF; border: 1px solid #D9E3EE; border-radius: 16px; padding: 16px; display: flex; flex-direction: column; gap: 6px">
+<p style="margin: 0; font-weight: 700; font-size: 17px">Realista</p>
+<p style="margin: 0; font-size: 14px; line-height: 1.4; color: #4A5D75">Imagens geradas por IA de imagem: cada tela sai diferente, arquivos pesados e a transição seco → verde vira várias imagens.</p>
+<p style="margin: 0; font-size: 14px; font-weight: 700; color: #854F0B">Não</p>
+</div>
+<div style="background: #FFFFFF; border: 1px solid #D9E3EE; border-radius: 16px; padding: 16px; display: flex; flex-direction: column; gap: 6px">
+<p style="margin: 0; font-weight: 700; font-size: 17px">Semi-realista</p>
+<p style="margin: 0; font-size: 14px; line-height: 1.4; color: #4A5D75">Pintura digital fica linda num pôster, mas não anima por região e é difícil manter igual entre telas.</p>
+<p style="margin: 0; font-size: 14px; font-weight: 700; color: #854F0B">Só no deck, se der</p>
+</div>
+<div style="background: #FFFFFF; border: 1px solid #D9E3EE; border-radius: 16px; padding: 16px; display: flex; flex-direction: column; gap: 6px">
+<p style="margin: 0; font-weight: 700; font-size: 17px">Vetor 2.5D suave</p>
+<p style="margin: 0; font-size: 14px; line-height: 1.4; color: #4A5D75">SVG leve, funciona sem internet e em aparelho fraco.</p>
+<p style="margin: 0; font-size: 14px; font-weight: 700; color: #854F0B">Reserva sem 3D, ícones</p>
+</div>
+</section>
+
+<section style="display: flex; flex-direction: column; gap: 10px">
+<h2 style="margin: 0; font-size: 22px; color: #042C53">O planeta 3D em 4 momentos (capturas do protótipo)</h2>
+<div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px">
+<div style="background: #FFFFFF; border: 1px solid #D9E3EE; border-radius: 16px; padding: 14px; display: flex; flex-direction: column; align-items: center; gap: 6px">
+<img src="/_blob/90f732ddb132fab8679f3e74f6063c54" alt="Planeta no dia 1" style="width: 210px; height: 210px">
+<p style="margin: 0; font-weight: 700">Dia 1</p><p style="margin: 0; font-size: 13px; color: #4A5D75; text-align: center">Brasil seco e rachado, mar poluído, rios secos, mundo desbotado</p>
+</div>
+<div style="background: #FFFFFF; border: 1px solid #D9E3EE; border-radius: 16px; padding: 14px; display: flex; flex-direction: column; align-items: center; gap: 6px">
+<img src="/_blob/88125662ec0f12c0dd592f83008c2d73" alt="Planeta no dia 21" style="width: 210px; height: 210px">
+<p style="margin: 0; font-weight: 700">Dia 21 (demo)</p><p style="margin: 0; font-size: 13px; color: #4A5D75; text-align: center">Sul e Sudeste verdes, Centro-Oeste brotando</p>
+</div>
+<div style="background: #FFFFFF; border: 1px solid #D9E3EE; border-radius: 16px; padding: 14px; display: flex; flex-direction: column; align-items: center; gap: 6px">
+<img src="/_blob/c943c0b0f7c474cc4bc96bb9d0e75892" alt="Planeta no dia 45" style="width: 210px; height: 210px">
+<p style="margin: 0; font-weight: 700">Dia 45</p><p style="margin: 0; font-size: 13px; color: #4A5D75; text-align: center">Centro-Oeste verde, mar limpo</p>
+</div>
+<div style="background: #FFFFFF; border: 1px solid #D9E3EE; border-radius: 16px; padding: 14px; display: flex; flex-direction: column; align-items: center; gap: 6px">
+<img src="/_blob/e3a429c41573aece12edbd95d1d65c1a" alt="Planeta no dia 90" style="width: 210px; height: 210px">
+<p style="margin: 0; font-weight: 700">Dia 90</p><p style="margin: 0; font-size: 13px; color: #4A5D75; text-align: center">Brasil inteiro verde e vivo, três rios correndo</p>
+</div>
+</div>
+<p style="margin: 0; font-size: 14px; color: #4A5D75">As fronteiras e os rios vêm do Natural Earth (domínio público); a foto da Terra é a Blue Marble da NASA (domínio público). Detalhes técnicos no quadro 5.</p>
+</section>
+
+<section style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px">
+<div style="background: #FFFFFF; border: 1px solid #D9E3EE; border-radius: 16px; padding: 20px; display: flex; flex-direction: column; gap: 10px">
+<h2 style="margin: 0; font-size: 20px; color: #042C53">Cores</h2>
+<p style="margin: 0; font-size: 13px; color: #4A5D75; font-weight: 700">INTERFACE (AZUIS)</p>
+<div style="display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; font-size: 12px">
+<div style="display: flex; flex-direction: column; gap: 4px"><div style="height: 40px; border-radius: 8px; background: #042C53"></div>#042C53 marinho</div>
+<div style="display: flex; flex-direction: column; gap: 4px"><div style="height: 40px; border-radius: 8px; background: #185FA5"></div>#185FA5 azul</div>
+<div style="display: flex; flex-direction: column; gap: 4px"><div style="height: 40px; border-radius: 8px; background: #378ADD"></div>#378ADD destaque</div>
+<div style="display: flex; flex-direction: column; gap: 4px"><div style="height: 40px; border-radius: 8px; background: #E6F1FB; border: 1px solid #D9E3EE"></div>#E6F1FB claro</div>
+<div style="display: flex; flex-direction: column; gap: 4px"><div style="height: 40px; border-radius: 8px; background: #F4F8FC; border: 1px solid #D9E3EE"></div>#F4F8FC fundo</div>
+</div>
+<p style="margin: 6px 0 0; font-size: 13px; color: #4A5D75; font-weight: 700">PLANETA</p>
+<div style="display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; font-size: 12px">
+<div style="display: flex; flex-direction: column; gap: 4px"><div style="height: 40px; border-radius: 8px; background: #C48A3A"></div>#C48A3A seco</div>
+<div style="display: flex; flex-direction: column; gap: 4px"><div style="height: 40px; border-radius: 8px; background: #B5C27A"></div>#B5C27A brotando</div>
+<div style="display: flex; flex-direction: column; gap: 4px"><div style="height: 40px; border-radius: 8px; background: #639922"></div>#639922 verde</div>
+<div style="display: flex; flex-direction: column; gap: 4px"><div style="height: 40px; border-radius: 8px; background: #7C8C88"></div>#7C8C88 mar sujo</div>
+<div style="display: flex; flex-direction: column; gap: 4px"><div style="height: 40px; border-radius: 8px; background: #185FA5"></div>#185FA5 mar limpo</div>
+</div>
+<p style="margin: 6px 0 0; font-size: 13px; line-height: 1.4">Texto #0F2340 sobre branco e #4A5D75 para texto de apoio (ambos acima de 4,5:1). Seco e verde também mudam de textura (rachaduras × árvores), não só de cor.</p>
+</div>
+<div style="background: #FFFFFF; border: 1px solid #D9E3EE; border-radius: 16px; padding: 20px; display: flex; flex-direction: column; gap: 10px">
+<h2 style="margin: 0; font-size: 20px; color: #042C53">Tipografia e componentes</h2>
+<p style="margin: 0; font-family: 'Fraunces', Georgia, serif; font-size: 30px; color: #042C53">Boa tarde, Rafael.</p>
+<p style="margin: 0; font-size: 14px; color: #4A5D75">Fraunces só em títulos e saudações · Atkinson Hyperlegible em todo o resto (as duas com licença livre, OFL)</p>
+<div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap">
+<span style="background: #042C53; color: #FFFFFF; border-radius: 14px; padding: 12px 16px; font-weight: 700; font-size: 15px">Respire com a Terra</span>
+<span style="background: #FFFFFF; color: #042C53; border: 1px solid #378ADD; border-radius: 14px; padding: 12px 16px; font-weight: 700; font-size: 15px">Botão secundário</span>
+<span style="background: #EAF3DE; color: #27500A; border-radius: 999px; padding: 6px 12px; font-weight: 700; font-size: 13px">Sul recuperado</span>
+</div>
+<div style="height: 10px; border-radius: 999px; background: #E6EDF5"><div style="width: 70%; height: 10px; border-radius: 999px; background: #639922"></div></div>
+<p style="margin: 0; font-size: 14px; line-height: 1.45">Cartões brancos, borda 1 px #D9E3EE, cantos 16 a 20 px, sem sombra pesada. Um único cartão escuro por tela (Respire com a Terra). Sobre o mar, painéis marinho translúcido sem desfoque. Ícones de linha, traço 1,5 px. Botões com 44 px ou mais.</p>
+</div>
+</section>
+
+<section style="background: #042C53; color: #E6F1FB; border-radius: 16px; padding: 24px; display: flex; flex-direction: column; gap: 10px">
+<h2 style="margin: 0; font-size: 20px; color: #FFFFFF">Prompt de estilo (cole no Claude junto do pedido de arte ou de tela)</h2>
+<p style="margin: 0; font-size: 14px; line-height: 1.55; white-space: pre-line; font-family: ui-monospace, Menlo, monospace">Você vai criar arte e interface para o Terraforma, um app de celular para quem quer parar de apostar. Cada dia sem apostar recupera um planeta: o Brasil começa seco e rachado nas 5 regiões, com o mar poluído, e volta a ficar verde e azul.
+ESTILO: o planeta e o oceano já existem em 3D (globo.js e oceano.js), não redesenhe. Ícones e ilustrações de apoio: vetor 2.5D suave em SVG, formas simples e arredondadas, no máximo 3 tons do mesmo matiz, contorno no tom mais escuro da cor (1,5 px), nunca preto. Sem gradiente chamativo, sem brilho neon.
+PALETA (use só estas): interface #042C53 #185FA5 #378ADD #E6F1FB #F4F8FC; texto #0F2340 e #4A5D75; terra seca #C48A3A com rachaduras #7A4A12; brotando #B5C27A; verde #639922 com árvores #27500A e borda #3B6D11; mar sujo #7C8C88 com manchas #4A5363; mar limpo #185FA5; rio #378ADD; nuvem #8A94A6.
+PLANETA: globo 3D centrado no Brasil, 5 regiões (Sul, Sudeste, Centro-Oeste, Nordeste, Norte). Seca = ocre rachada. Brotando = verde em manchas. Verde = viva. Nada regride, nunca.
+TOM: calmo, adulto, esperançoso. É um app de saúde, não um cassino.
+PROIBIDO: moedas, fichas, cartas, roleta, confete, fogos, fogo ou fumaça, vermelho de alerta, emoji, marcas, times, atletas, logo do Banco do Brasil, texto dentro da imagem.
+ACESSIBILIDADE: SVG com role="img" e aria-label descrevendo o estado; nada informado só por cor; animações curtas (até 600 ms) e desligadas com prefers-reduced-motion; contraste de texto de 4,5:1 ou mais.
+INTERFACE: Fraunces nos títulos, Atkinson Hyperlegible no texto, cartões brancos com borda #D9E3EE e cantos de 16 a 20 px, um único cartão escuro #042C53 por tela, botões de 44 px ou mais.</p>
+</section>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1200,"height":1500}}'>
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+</body>
+</html>

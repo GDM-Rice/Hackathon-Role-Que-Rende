@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Órbita · deixar um recado</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&amp;family=Fraunces:opsz,wght@9..144,400;9..144,600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#185FA5}a:hover{color:#042C53}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; padding: 16px 20px 20px; background: #F4F8FC; color: #0F2340; font-family: 'Atkinson Hyperlegible', system-ui, sans-serif; display: flex; flex-direction: column; gap: 12px">
+<a href="Tela07-Tripulacao.dc.html" style="align-self: flex-start; min-height: 44px; margin-left: -8px; display: flex; align-items: center; gap: 2px; font-size: 15px; color: #185FA5; text-decoration: none"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"></path></svg>Sua órbita</a>
+<div style="display: flex; align-items: center; gap: 12px">
+<span style="width: 48px; height: 48px; border-radius: 50%; background: #E1F5EE; border: 1.5px solid #0F6E56; color: #04342C; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 18px; flex: none">A</span>
+<div style="display: flex; flex-direction: column; gap: 2px">
+<h1 style="margin: 0; font-family: 'Fraunces', Georgia, serif; font-weight: 400; font-size: 26px; line-height: 1.15; color: #042C53">Ana, deixe um recado para o Rafael</h1>
+</div>
+</div>
+<p style="margin: 0; font-size: 14px; line-height: 1.45; color: #4A5D75">Passe o celular para a Ana. O recado aparece quando o satélite dela der a volta no planeta, de tempos em tempos.</p>
+
+<div style="display: flex; flex-direction: column; gap: 6px">
+<label for="recado" style="font-weight: 700; font-size: 14px">Recado</label>
+<textarea id="recado" rows="4" style="box-sizing: border-box; width: 100%; border: 1.5px solid #378ADD; border-radius: 14px; padding: 12px; font: inherit; font-size: 16px; line-height: 1.45; color: #0F2340; background: #FFFFFF; resize: none">Um dia de cada vez. Tô orgulhosa de você e tô aqui.</textarea>
+<span style="font-size: 12px; color: #4A5D75; text-align: right">52 de 140</span>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 6px">
+<p style="margin: 0; font-size: 13px; color: #4A5D75">Ideias para começar</p>
+<div style="display: flex; flex-wrap: wrap; gap: 6px">
+<button type="button" style="min-height: 36px; border: 1px solid #D9E3EE; border-radius: 999px; background: #FFFFFF; color: #0F2340; font: inherit; font-size: 13px; padding: 0 12px">Tô aqui.</button>
+<button type="button" style="min-height: 36px; border: 1px solid #D9E3EE; border-radius: 999px; background: #FFFFFF; color: #0F2340; font: inherit; font-size: 13px; padding: 0 12px">Lembrei de você hoje.</button>
+<button type="button" style="min-height: 36px; border: 1px solid #D9E3EE; border-radius: 999px; background: #FFFFFF; color: #0F2340; font: inherit; font-size: 13px; padding: 0 12px">Bora tomar um café essa semana?</button>
+<button type="button" style="min-height: 36px; border: 1px solid #D9E3EE; border-radius: 999px; background: #FFFFFF; color: #0F2340; font: inherit; font-size: 13px; padding: 0 12px">Se apertar, me liga.</button>
+</div>
+</div>
+
+<div style="background: #E6F1FB; border-radius: 16px; padding: 12px 14px; display: flex; flex-direction: column; gap: 4px">
+<p style="margin: 0; font-weight: 700; font-size: 14px; color: #042C53">Como apoiar sem julgar</p>
+<ul style="margin: 0; padding-left: 18px; font-size: 13px; line-height: 1.5; color: #042C53">
+<li>Fale de você e do carinho, não das apostas.</li>
+<li>Sem cobrança de dias ou de dinheiro.</li>
+<li>Convide para algo concreto e simples.</li>
+</ul>
+</div>
+
+<button type="button" style="margin-top: auto; min-height: 52px; border: 0; border-radius: 16px; background: #042C53; color: #FFFFFF; font: inherit; font-weight: 700; font-size: 16px">Salvar recado</button>
+<p style="margin: 0; font-size: 12px; color: #4A5D75; text-align: center">O recado fica só neste celular. A Ana pode apagar ou trocar quando quiser.</p>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+</body>
+</html>

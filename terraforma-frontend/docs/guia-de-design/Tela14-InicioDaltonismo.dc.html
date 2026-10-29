@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Início, modo para daltonismo</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&amp;family=Fraunces:opsz,wght@9..144,400;9..144,600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#185FA5}a:hover{color:#042C53}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; padding: 16px 20px 0; background: #F4F8FC; color: #0F2340; font-family: 'Atkinson Hyperlegible', system-ui, sans-serif; display: flex; flex-direction: column; gap: 12px">
+<div style="display: flex; align-items: center; justify-content: space-between">
+<p style="margin: 0; font-weight: 700; color: #185FA5; font-size: 16px">Terraforma</p>
+<a href="Tela11-Perfil.dc.html" aria-label="Seu perfil" style="width: 44px; height: 44px; margin-right: -4px; display: flex; align-items: center; justify-content: center; text-decoration: none"><span style="width: 36px; height: 36px; border-radius: 50%; background: #E6F1FB; border: 1.5px solid #185FA5; color: #042C53; font-weight: 700; font-size: 15px; display: flex; align-items: center; justify-content: center">R</span></a>
+</div>
+<div>
+<h1 style="margin: 0; font-family: 'Fraunces', Georgia, serif; font-weight: 400; font-size: 28px; line-height: 1.15; color: #042C53">Boa tarde, Rafael.</h1>
+<p style="margin: 4px 0 0; font-size: 14px; color: #4A5D75">Para voltar a dormir em paz.</p>
+</div>
+<div style="display: flex; justify-content: center; position: relative; padding: 4px 0">
+<img src="/_blob/438e4c2b7cea12e23a21546a5ec9e9f3" alt="Planeta no modo para daltonismo: 2 de 5 regiões recuperadas (claras), as secas escuras e listradas" style="width: 250px; height: 250px; margin: -18px 0">
+</div>
+<div style="display: flex; justify-content: center; gap: 14px; font-size: 12px; color: #0F2340">
+<span style="display: flex; align-items: center; gap: 6px"><span style="width: 14px; height: 14px; border-radius: 3px; background: #DCEBCB; border: 1.5px solid #27500A"></span>✓ Recuperada (clara)</span>
+<span style="display: flex; align-items: center; gap: 6px"><span style="width: 14px; height: 14px; border-radius: 3px; background: #C7B27A; border: 1.5px solid #5A3208"></span>◐ Brotando</span>
+<span style="display: flex; align-items: center; gap: 6px"><span style="width: 14px; height: 14px; border-radius: 3px; background: repeating-linear-gradient(135deg, #5A3208 0 3px, #8A4F0E 3px 6px)"></span>✕ Seca (escura, listrada)</span>
+</div>
+<div style="display: flex; flex-direction: column; gap: 8px; padding: 0 2px">
+<div style="display: flex; justify-content: space-between; align-items: baseline; font-size: 14px"><span>Próxima região: <b>Centro-Oeste</b></span><span style="color: #4A5D75">faltam 9 dias</span></div>
+<div role="progressbar" aria-label="Centro-Oeste" aria-valuenow="21" aria-valuemin="0" aria-valuemax="30" style="height: 10px; border-radius: 999px; background: #E1E9F2; border: 1px solid #4A5D75"><div style="width: 70%; height: 10px; border-radius: 999px; background: repeating-linear-gradient(135deg, #042C53 0 4px, #185FA5 4px 8px)"></div></div>
+<div style="display: flex; gap: 16px; font-size: 13px; color: #4A5D75"><span><b style="color: #0F2340; font-size: 15px">21</b> dias de recomeço</span><span><b style="color: #0F2340; font-size: 15px">R$ 360</b> longe das apostas</span></div>
+</div>
+<a href="Tela03-Mare.dc.html" style="border-radius: 20px; background: #042C53; color: #FFFFFF; padding: 16px 16px 16px 20px; display: flex; align-items: center; justify-content: space-between; text-decoration: none">
+<span style="display: flex; flex-direction: column; gap: 2px"><span style="font-size: 13px; color: #B5D4F4">A vontade de apostar apareceu? Faça uma meditação.</span><span style="font-size: 19px; font-weight: 700">Respire com a Terra</span></span>
+<span style="flex: none; width: 48px; height: 48px; border-radius: 50%; background: #E6F1FB; color: #042C53; display: flex; align-items: center; justify-content: center"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M3 10c3-3 6 3 9 0s6 3 9 0M3 15c3-3 6 3 9 0s6 3 9 0"></path></svg></span>
+</a>
+<div style="margin: auto -20px 0">
+<dc-import name="Nav" ativo="inicio" hint-size="390px,88px"></dc-import>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+</body>
+</html>

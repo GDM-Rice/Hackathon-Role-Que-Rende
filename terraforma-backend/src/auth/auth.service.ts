@@ -38,11 +38,9 @@ export class AuthService {
       throw new UnauthorizedException('Credenciais inválidas');
     }
 
-    const payload: UserPayload = {
-      email: user.email,
-      sub: user.id,
-      v: user.senhaVersao,
-    };
+    // Só o necessário: o e-mail não entra no token (dado pessoal legível por qualquer um que
+    // tenha o token, e ficava desatualizado depois de uma troca de e-mail).
+    const payload: UserPayload = { sub: user.id, v: user.senhaVersao };
 
     // secret e expiração já vêm do JwtModule.registerAsync
     return { access_token: this.jwtService.sign(payload) };
@@ -86,16 +84,16 @@ export class AuthService {
       this.configService.get<string>('FRONTEND_URL') ?? 'http://localhost:3000';
     const link = `${frontendUrl}/redefinir-senha?token=${token}`;
 
-    try {
-      await this.mailService.enviarRecuperacaoSenha(user.email, link);
-    } catch (error) {
-      // Não propaga: um erro 500 só para e-mails existentes revelaria quem está cadastrado
+    // Não espera o SMTP: com o await, a resposta para um e-mail cadastrado demorava o tempo
+    // do envio (centenas de ms) e a diferença de tempo revelava quem tem conta.
+    void this.mailService.enviarRecuperacaoSenha(user.email, link).catch((error: unknown) => {
+      // Não propaga: um erro 500 só para e-mails existentes também revelaria quem está cadastrado.
       this.logger.error(
         // Só o id: e-mail é dado pessoal e não deve ficar em log.
         `Falha ao enviar e-mail de recuperação (usuário ${user.id})`,
         error,
       );
-    }
+    });
   }
 
   async resetPassword(token: string, novaSenha: string): Promise<void> {

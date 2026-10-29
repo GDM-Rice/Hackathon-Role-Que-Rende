@@ -58,19 +58,27 @@ export class UserService {
       await this.exigirSenhaAtual(id, dto.senhaAtual);
     }
 
+    const trocaCredencial = dto.email !== undefined || dto.senha !== undefined;
+    const data: Prisma.UserUpdateInput = {
+      username: dto.username,
+      email: dto.email,
+      ...(dto.senha !== undefined && {
+        senha: await bcrypt.hash(dto.senha, 10),
+        senhaVersao: { increment: 1 }, // invalida os tokens antigos
+      }),
+    };
+
     try {
-      return await this.prisma.user.update({
-        where: { id },
-        data: {
-          username: dto.username,
-          email: dto.email,
-          ...(dto.senha !== undefined && {
-            senha: await bcrypt.hash(dto.senha, 10),
-            senhaVersao: { increment: 1 }, // invalida os tokens antigos
-          }),
-        },
-        select: publicSelect,
-      });
+      if (!trocaCredencial) {
+        return await this.prisma.user.update({ where: { id }, data, select: publicSelect });
+      }
+      // Trocou e-mail ou senha: links de "esqueci minha senha" pedidos antes deixam de valer.
+      // Sem isso, um link enviado ao e-mail antigo (talvez comprometido) ainda redefinia a senha nova.
+      const [atualizado] = await this.prisma.$transaction([
+        this.prisma.user.update({ where: { id }, data, select: publicSelect }),
+        this.prisma.tokenRecuperacaoSenha.deleteMany({ where: { usuarioId: id } }),
+      ]);
+      return atualizado;
     } catch (error) {
       throw this.traduzirErro(error);
     }
@@ -78,9 +86,20 @@ export class UserService {
 
   async remove(id: string) {
     try {
-      return await this.prisma.user.delete({
-        where: { id },
-        select: publicSelect,
+      return await this.prisma.$transaction(async (tx) => {
+        // Guarda os chats antes: o cascade remove a participação, mas o chat em que a pessoa
+        // era o último membro ficaria órfão (0 membros) para sempre.
+        const participacoes = await tx.chatMembro.findMany({
+          where: { userId: id },
+          select: { chatId: true },
+        });
+        const removido = await tx.user.delete({ where: { id }, select: publicSelect });
+        if (participacoes.length) {
+          await tx.chat.deleteMany({
+            where: { id: { in: participacoes.map((p) => p.chatId) }, membros: { none: {} } },
+          });
+        }
+        return removido;
       });
     } catch (error) {
       throw this.traduzirErro(error);
