@@ -1,6 +1,6 @@
 # Terraforma · Declaração de uso de IA, código aberto e assets
 
-Oct 29, 2026 · @Igor
+Oct 29, 2026
 
 O Terraforma usou IA como apoio, bibliotecas de código aberto e assets de terceiros com licença compatível, e só dados públicos ou fictícios. Esta declaração atende aos itens 8.5 e 9.1 do Edital.
 
