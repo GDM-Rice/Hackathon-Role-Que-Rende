@@ -62,7 +62,7 @@ export const MARCACAO = `<div class="bancada">
           <div class="topo-trilha">
             <button class="voltar-planeta" type="button" id="subir-planeta"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>Planeta</button>
             <button class="chip-regiao" type="button" id="chip-regiao" aria-haspopup="true" aria-expanded="false"><span id="chip-regiao-nome">Sul</span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>
-            <div class="lista-regioes" id="lista-regioes" hidden></div>
+            <div class="menu-regioes" id="menu-regioes" hidden></div>
           </div>
           <div class="cab-trilha">
             <div><h2>Sua trilha</h2><p class="resumo" id="trilha-resumo">0 de 25 atividades</p><p class="vida" id="trilha-vida"></p></div>

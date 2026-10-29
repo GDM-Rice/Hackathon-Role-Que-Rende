@@ -22,6 +22,7 @@ model User {
   tokensRecuperacaoSenha TokenRecuperacaoSenha[]
   participacoes          ChatMembro[]
   mensagens              Message[]
+  trilha                 TrilhaProgresso[]
 
   @@map("users")
 }
@@ -83,4 +84,25 @@ model Message {
   @@index([chatId, createdAt])
   @@index([autorId])
   @@map("messages")
+}
+
+// Progresso da trilha: uma linha por atividade concluída (aula, quiz ou "Na prática").
+// capitulo/indice são a posição do círculo na trilha (a chave "c-i" do front).
+// Nada regride: a data fica a primeira, os acertos ficam o melhor resultado.
+model TrilhaProgresso {
+  userId      String   @map("user_id")
+  capitulo    Int
+  indice      Int
+  concluidaEm DateTime @map("concluida_em")
+  // só no quiz: melhor número de acertos de primeira e total de perguntas
+  acertos     Int?
+  total       Int?
+  // só no "Na prática": índice da opção escolhida
+  escolha     Int?
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([userId, capitulo, indice])
+  @@map("trilha_progresso")
 }

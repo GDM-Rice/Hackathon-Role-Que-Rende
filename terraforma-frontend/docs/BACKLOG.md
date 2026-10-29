@@ -102,3 +102,6 @@ Transformar `testes/fumaca.mjs` em suíte do `@playwright/test`, rodando no CI a
 - [x] 28/10/2026 · "Apagar meus dados" apaga também a Órbita, o som e o modo de vídeo.
 - [x] 28/10/2026 · Quiz revisado (alternativas plausíveis, a certa não é mais sempre a mais longa).
 - [x] 28/10/2026 · Fontes conferidas: CET, números por região (5 regiões no Info).
+- [x] 29/10/2026 · Progresso da trilha salvo na conta (back NestJS, `/trilha`): sobe ao entrar, vai a cada conclusão, volta em outro aparelho (`node testes/trilha-conta.mjs`). Parte de F-01 só para `trilha`.
+- [x] 29/10/2026 · Trilha v2: troca de módulo contínua, estrada emendada entre capítulos, chão sem emendas, fauna nova. Sem o sistema de energia.
+- [x] 29/10/2026 · Mapa-Mundi: a lista de regiões não aparecia (barra vazia sobre o título) porque o menu de regiões da trilha usava o mesmo id; ele agora é `#menu-regioes`.

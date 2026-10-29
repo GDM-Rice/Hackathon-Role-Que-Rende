@@ -8,6 +8,7 @@ import { AuthModule } from './auth/auth.module.js';
 import { AuthGuard } from './auth/guards/auth-guard.js';
 import { ChatModule } from './chat/chat.module.js';
 import { PrismaModule } from './prisma/prisma.module.js';
+import { TrilhaModule } from './trilha/trilha.module.js';
 import { UserModule } from './user/user.module.js';
 
 @Module({
@@ -30,6 +31,7 @@ import { UserModule } from './user/user.module.js';
     UserModule,
     AuthModule,
     ChatModule,
+    TrilhaModule,
   ],
   controllers: [AppController],
   providers: [

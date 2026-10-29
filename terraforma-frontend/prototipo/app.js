@@ -455,7 +455,7 @@ function abrirInfo(abrir) {
 $('#abrir-info').onclick = () => abrirInfo(true);
 $('#fechar-info').onclick = () => abrirInfo(false);
 $('#veu').onclick = () => abrirInfo(false);
-app.addEventListener('keydown', (e) => { if (e.key === 'Escape' && $('#info').classList.contains('aberta')) abrirInfo(false); if (e.key === 'Escape' && !$('#lista-regioes').hidden) { abrirListaRegioes(false); $('#chip-regiao').focus(); } });
+app.addEventListener('keydown', (e) => { if (e.key === 'Escape' && $('#info').classList.contains('aberta')) abrirInfo(false); if (e.key === 'Escape' && !$('#menu-regioes').hidden) { abrirListaRegioes(false); $('#chip-regiao').focus(); } });
 
 let avisoT;
 function aviso(txt) { const a = $('#aviso'); a.textContent = txt; a.classList.add('on'); clearTimeout(avisoT); avisoT = setTimeout(() => a.classList.remove('on'), 2600); }
@@ -860,7 +860,7 @@ $('#form-login').addEventListener('submit', async (e) => {
       aviso('Senha nova salva. Agora é só entrar.'); $('#login-email').focus(); return;
     }
     const u = criar ? await B.criarConta(us, em, se) : await B.entrar(em, se);
-    conta = contaDe(u); $('#login-senha').value = '';
+    conta = contaDe(u); $('#login-senha').value = ''; trilhaDaConta();
     emitir?.(criar ? 'conta_criada' : 'login', {});
     aviso(criar ? 'Conta criada.' : 'Que bom te ver.'); irPara('boas');
   } catch (err) {
@@ -1010,7 +1010,7 @@ $('#tela-perfil').addEventListener('click', (e) => {
   if (e.target.closest('#editar-perfil')) { $('#edicao-perfil').hidden = false; $('#perfil-motivo').hidden = true; $('#ed-nome').value = perfil.nome; $('#ed-motivo').value = perfil.motivo; $('#ed-nome').focus(); return; }
   if (e.target.closest('#cancelar-perfil')) { desenharPerfil(); return; }
   if (e.target.closest('#salvar-perfil')) { const n = $('#ed-nome').value.trim(), m = $('#ed-motivo').value.trim(); if (n) perfil.nome = n; if (m.length >= 3) perfil.motivo = m; desenharPerfil(); atualizarTextos(); aviso('Perfil atualizado.'); return; }
-  if (e.target.closest('#conta-perfil')) { if (conta) { B?.sair(); conta = null; conversasApi = null; convApi = null; aviso('Você saiu da conta. Seus dados ficam neste celular.'); desenharPerfil(); } else { modoLogin = 'entrar'; irPara('login'); } return; }
+  if (e.target.closest('#conta-perfil')) { if (conta) { B?.sair(); conta = null; conversasApi = null; convApi = null; const trilhaNaConta = !trilha.pendente; if (trilhaNaConta) { trilha = { feitas: {} }; guardarTrilha(); } aviso(trilhaNaConta ? 'Você saiu da conta. Sua trilha fica guardada nela; o resto fica neste celular.' : 'Você saiu da conta. Seus dados ficam neste celular.'); desenharPerfil(); } else { modoLogin = 'entrar'; irPara('login'); } return; }
   const pe = e.target.closest('[data-periodo-p]'); if (pe) { $$('#perfil-periodo [data-periodo-p]').forEach((b) => { b.setAttribute('aria-checked', String(b === pe)); b.setAttribute('aria-selected', String(b === pe)); }); return; }
   if (e.target.closest('#salvar-valor')) {
     const v = parseInt($('#perfil-valor').value.replace(/\D/g, ''), 10); perfil.valor = v > 0 ? v : 0;
@@ -1131,6 +1131,39 @@ const escH = (t) => String(t).replace(/&/g, '&amp;').replace(/"/g, '&quot;').rep
 let trilha = { feitas: {} };   // 'c-i' → { em, acertos?, total? }
 try { const v = JSON.parse(localStorage.getItem('terraforma:trilha-aulas')); if (v && v.feitas) trilha = v; } catch {}
 const guardarTrilha = () => { try { localStorage.setItem('terraforma:trilha-aulas', JSON.stringify(trilha)); } catch {} };
+// ---------- progresso da trilha na conta (back NestJS, tabela trilha_progresso) ----------
+// o aparelho continua sendo a cópia de trabalho; com conta, cada conclusão vai para o servidor e, ao entrar, os dois se juntam.
+// trilha.dono = id da conta dona do progresso guardado; trilha.pendente = há algo que ainda não chegou ao servidor
+const mesclarFeita = (a, b) => !a ? b : !b ? a : {
+  ...a, ...b,
+  em: a.em && b.em ? (a.em < b.em ? a.em : b.em) : a.em || b.em,
+  ...(a.acertos != null || b.acertos != null ? { acertos: Math.max(a.acertos ?? 0, b.acertos ?? 0) } : {}),
+};
+let filaTrilha = Promise.resolve();
+function sincronizarTrilhaConta() {
+  if (!B || !conta) return filaTrilha;
+  const dono = conta.id;
+  // uma de cada vez: a resposta de uma não apaga o que foi concluído enquanto a outra viajava
+  filaTrilha = filaTrilha.then(async () => {
+    if (conta?.id !== dono) return;
+    trilha.dono = dono;
+    try {
+      const doServidor = await B.sincronizarTrilha(trilha.feitas);
+      if (conta?.id !== dono) return;
+      const antes = JSON.stringify(trilha.feitas);
+      for (const [k, v] of Object.entries(doServidor)) trilha.feitas[k] = mesclarFeita(v, trilha.feitas[k]);
+      trilha.pendente = false; guardarTrilha();
+      if (JSON.stringify(trilha.feitas) !== antes && telaAtual === 'trilha' && !licao) desenharTrilha();
+    } catch { trilha.pendente = true; guardarTrilha(); }   // fora do ar: tenta de novo na próxima conclusão ou ao abrir o app
+  });
+  return filaTrilha;
+}
+// ao entrar: progresso de outra conta neste aparelho já está guardado nela, então não passa para esta
+function trilhaDaConta() {
+  if (!conta) return;
+  if (trilha.dono && trilha.dono !== conta.id) { trilha = { feitas: {} }; guardarTrilha(); }
+  sincronizarTrilhaConta();
+}
 const chaveAt = (c, i) => `${c}-${i}`;
 const feita = (c, i) => !!trilha.feitas[chaveAt(c, i)];
 const ordemLinear = () => TRILHA_NOS.flatMap((cap, c) => cap.map((_, i) => [c, i]));
@@ -1158,11 +1191,17 @@ function desenharTrilha() {
   const html = ordem.map((c) => {
     const cap = TRILHA_NOS[c], N = cap.length, feitasCap = cap.filter((_, i) => feita(c, i)).length, H = TOPO + N * DY, base = c * N;
     const pts = cap.map((_, i) => [xs(base + i + 1), H - 60 - i * DY]);
-    let d = `M ${W / 2} ${H + 40}`;
-    pts.forEach(([x, y], i) => { const [px, py] = i ? pts[i - 1] : [W / 2, H + 40]; const my = (py + y) / 2; d += ` C ${px} ${my}, ${x} ${my}, ${x} ${y}`; });
-    const [ux, uy] = pts[N - 1]; d += ` C ${ux} ${uy - 44}, ${W / 2} 14, ${W / 2} -90`;
-    const frente = (n) => n <= 0 ? H + 400 : n >= N ? -400 : (pts[n - 1][1] + pts[n][1]) / 2;
-    const yF = frente(feitasCap), anima = c === uc && !s.mov, yAnt = anima ? frente(feitasCap - 1) : yF;
+    // a estrada entra e sai de cada capítulo por uma reta vertical no centro, longe das bordas: emenda perfeita com o capítulo de baixo e o de cima
+    let d = `M ${W / 2} ${H + 400} L ${W / 2} ${H + 4}`;
+    pts.forEach(([x, y], i) => { const [px, py] = i ? pts[i - 1] : [W / 2, H + 4]; const my = (py + y) / 2; d += ` C ${px} ${my}, ${x} ${my}, ${x} ${y}`; });
+    const [ux, uy] = pts[N - 1]; d += ` C ${ux} ${uy - 44}, ${W / 2} 0, ${W / 2} -12 L ${W / 2} -400`;
+    // a frente verde vai até o próximo círculo (ele mesmo só fica verde quando for concluído);
+    // no começo de um capítulo, ela já sobe do capítulo anterior completo até o primeiro círculo, sem emenda entre as regiões
+    const anteriorCompleto = c > 0 && TRILHA_NOS[c - 1].every((_, i) => feita(c - 1, i));
+    const frente = (n) => n >= N ? -400 : n <= 0 ? (anteriorCompleto ? pts[0][1] : H + 400) : pts[n][1];
+    const ucCompleto = uc >= 0 && TRILHA_NOS[uc].every((_, i) => feita(uc, i));
+    const entraAgora = c === uc + 1 && feitasCap === 0 && ucCompleto && !s.mov;   // o capítulo acabou de ser liberado: o verde chega junto
+    const yF = frente(feitasCap), anima = (c === uc || entraAgora) && !s.mov, yAnt = entraAgora ? H + 70 : anima ? frente(feitasCap - 1) : yF;
     const premios = cap.map((_, i) => { if (!feita(c, i)) return null; const [x, y] = pts[i], lado = x > W / 2 ? -1 : 1;
       return { x: Math.max(40, Math.min(W - 40, x + lado * 96)), y: y + 24, tipo: PAISAGEM_TIPO[i] }; }).filter(Boolean);
     geo[c] = { W, H, d, pts, premios, yF, yAnt, animar: anima, completo: feitasCap === N };
@@ -1398,7 +1437,7 @@ function concluirNo() {
   const { c, i, tipo, aula } = licao, k = chaveAt(c, i), antes = trilha.feitas[k];
   if (tipo === 'pratica') {   // guarda a escolha, sem certo ou errado
     licao.nova = !antes; licao.tempo = (Date.now() - licao.inicio) / 1000;
-    trilha.feitas[k] = { em: antes?.em || new Date().toISOString(), escolha: licao.escolha }; guardarTrilha();
+    trilha.feitas[k] = { em: antes?.em || new Date().toISOString(), escolha: licao.escolha }; guardarTrilha(); sincronizarTrilhaConta();
     if (licao.nova) { ultimaConcluida = k; emitirTrilha?.({ capitulo: c, indice: i, modulo: AULAS[c].id, aula: null, tipo, escolha: licao.escolha }); }
     licao.fase = 'fim'; desenharLicao(true); return;
   }
@@ -1406,7 +1445,7 @@ function concluirNo() {
   const reg = { em: new Date().toISOString() };
   if (tipo === 'quiz') { reg.acertos = Math.max(licao.primeira, antes?.acertos ?? 0); reg.total = aula.q.length; }
   trilha.feitas[k] = antes ? { ...antes, ...(tipo === 'quiz' ? { acertos: reg.acertos, total: reg.total } : {}) } : reg;
-  guardarTrilha();
+  guardarTrilha(); sincronizarTrilhaConta();
   if (licao.nova) {
     ultimaConcluida = k;
     emitirTrilha?.({ capitulo: c, indice: i, modulo: AULAS[c].id, aula: aula.id, tipo, acertos: tipo === 'quiz' ? licao.primeira : null, total: tipo === 'quiz' ? aula.q.length : null });
@@ -1474,7 +1513,7 @@ $('#rol-trilha').addEventListener('scroll', () => { $('#chip-regiao-nome').textC
 // o capítulo começa embaixo: rola até o fim dele
 function irAoCapitulo(k, suave = !s.mov) { const el = $(`#rol-trilha .capitulo[data-c="${k}"]`), r = $('#rol-trilha'); if (el) r.scrollTo({ top: Math.max(0, el.offsetTop + el.offsetHeight - r.clientHeight), behavior: suave ? 'smooth' : 'auto' }); }
 function abrirListaRegioes(abrir) {
-  const l = $('#lista-regioes'), atual = capituloVisivel();
+  const l = $('#menu-regioes'), atual = capituloVisivel();
   l.hidden = !abrir; $('#chip-regiao').setAttribute('aria-expanded', String(abrir));
   if (abrir) { l.innerHTML = TRILHA_NOS.map((cap, c) => `<button type="button" data-cap="${c}" aria-current="${c === atual}"><span><b>${CAP_REGIAO[c]}</b><small>${AULAS[c].n}</small></span><span class="n">${cap.filter((_, i) => feita(c, i)).length}/${cap.length}</span></button>`).join(''); l.querySelector('[aria-current="true"]').focus({ preventScroll: true }); }
 }
@@ -1491,9 +1530,9 @@ function subirAoPlaneta() {
 }
 $('#tela-trilha').addEventListener('click', (e) => {
   if (e.target.closest('#subir-planeta')) { subirAoPlaneta(); return; }
-  if (e.target.closest('#chip-regiao')) { abrirListaRegioes($('#lista-regioes').hidden); return; }
+  if (e.target.closest('#chip-regiao')) { abrirListaRegioes($('#menu-regioes').hidden); return; }
   const cp = e.target.closest('[data-cap]'); if (cp) { abrirListaRegioes(false); irAoCapitulo(+cp.dataset.cap); return; }
-  if (!$('#lista-regioes').hidden) abrirListaRegioes(false);
+  if (!$('#menu-regioes').hidden) abrirListaRegioes(false);
   const ab = e.target.closest('[data-abrir]'); if (ab) { const [c, i] = ab.dataset.abrir.split('-').map(Number); abrirNo(c, i); return; }
   const px = e.target.closest('#proxima [data-at]'); if (px) { const [c, i] = px.dataset.at.split('-').map(Number); abrirNo(c, i); return; }
   const b = e.target.closest('.no[data-at]');
@@ -1945,7 +1984,7 @@ if (B) {
   // token vencido, senha trocada em outro aparelho ou conta apagada: volta ao modo sem conta
   B.quandoDeslogar(() => { if (!conta) return; conta = null; conversasApi = null; convApi = null; aviso('Sua sessão terminou. Entre de novo para ver suas conversas.'); if (telaAtual === 'conversa' && ehApi(convAberta)) { lun.aba = 'conversas'; irPara('luneta'); } });
   // sessão salva: reconhece a pessoa sem pedir a senha de novo
-  B.sessao().then((u) => { if (!u) return; conta = contaDe(u); if (telaAtual === 'login' && modoLogin !== 'redefinir') irPara('boas'); else if (telaAtual === 'perfil') desenharPerfil(); })
+  B.sessao().then((u) => { if (!u) return; conta = contaDe(u); trilhaDaConta(); if (telaAtual === 'login' && modoLogin !== 'redefinir') irPara('boas'); else if (telaAtual === 'perfil') desenharPerfil(); })
     .catch(() => { /* servidor fora do ar: segue sem conta, o token fica para a próxima vez */ });
 }
 addEventListener('hashchange', () => irPara(location.hash.slice(1)));

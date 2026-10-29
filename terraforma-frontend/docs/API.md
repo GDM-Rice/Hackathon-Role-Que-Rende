@@ -110,7 +110,7 @@ Hoje o protótipo usa `localStorage`. Ao ligar o backend, estes dados passam a v
 
 | chave | conteúdo |
 | --- | --- |
-| `terraforma:trilha-aulas` | progresso da trilha (`trilha.feitas`) |
+| `terraforma:trilha-aulas` | progresso da trilha (`trilha.feitas`; com conta, também `dono` = id da conta e `pendente` = ainda não chegou ao servidor). **Com conta, vai para o back NestJS** (`/trilha`, ver abaixo) |
 | `terraforma:luneta` | planeta, região, mostrar dias, bloqueados, mutirão, força, posts, respostas, mensagens, reações, denúncias |
 | `terraforma:orbita` | pessoas da Órbita (nome, relação, telefone) e recados. **Telefone e nome não vão para o servidor sem consentimento explícito** |
 | `terraforma:som` | som ligado/desligado |
@@ -120,7 +120,7 @@ O restante (perfil, dias, Marés, rios, finanças, ajustes) vive em variáveis d
 
 ## Back NestJS (`terraforma-backend`)
 
-Conta, senha e conversas entre pessoas já são reais. O front fala com ele por `lib/backend.ts` (URL em `NEXT_PUBLIC_BACKEND_URL`, padrão `http://localhost:3001`; o back precisa ter o endereço do front em `FRONTEND_URL`/`CORS_ORIGINS`). Token JWT em `localStorage` (`terraforma:token`), enviado como `Bearer`.
+Conta, senha, conversas entre pessoas e o progresso da trilha já são reais. O front fala com ele por `lib/backend.ts` (URL em `NEXT_PUBLIC_BACKEND_URL`, padrão `http://localhost:3001`; o back precisa ter o endereço do front em `FRONTEND_URL`/`CORS_ORIGINS`). Token JWT em `localStorage` (`terraforma:token`), enviado como `Bearer`.
 
 | tela do protótipo | rota |
 | --- | --- |
@@ -132,10 +132,21 @@ Conta, senha e conversas entre pessoas já são reais. O front fala com ele por 
 | Ajustes: Apagar meus dados (com conta) | `DELETE /user/me` antes de limpar o aparelho |
 | Luneta → Conversas: Suas conversas | `GET /chats`, `POST /chats` (`membros`: usernames) |
 | Conversa real | `GET /chats/:id` (a cada 5 s com a tela aberta), `POST /chats/:id/messages` |
+| Trilha: concluir aula, quiz ou "Na prática" (com conta) | `POST /trilha/sincronizar` |
+| Entrar ou abrir o app com sessão salva | `POST /trilha/sincronizar` com o progresso do aparelho; a resposta é o progresso inteiro da conta |
+
+### Progresso da trilha (`/trilha`)
+
+Tabela `trilha_progresso`: uma linha por atividade concluída (`capitulo`, `indice` = a chave `"c-i"` do front). Apagar a conta apaga o progresso.
+
+- `GET /trilha` → `{ atividades: [{ capitulo, indice, em, acertos, total, escolha }] }` (`acertos`/`total` só no quiz, `escolha` só no "Na prática"; o resto vem `null`).
+- `POST /trilha/sincronizar` com `{ atividades: [{ capitulo, indice, em?, acertos?, total?, escolha? }] }` → mesma resposta do `GET`. Junta com o que já estava salvo sem regredir: fica a data mais antiga (nunca no futuro) e o melhor `acertos`; `total` e `escolha` ficam os mais novos. Pode repetir à vontade (o resultado não muda).
+
+No front (`sincronizarTrilhaConta()` em `app.js`): o aparelho continua sendo a cópia de trabalho; a cada conclusão o mapa inteiro vai para o servidor (são no máximo 35 atividades), uma chamada por vez. Sem rede, marca `pendente` e tenta de novo na próxima conclusão ou ao abrir o app. Ao entrar, o progresso feito sem conta passa para a conta; o de **outra** conta no mesmo aparelho é descartado (já está guardado nela). Ao sair da conta, a trilha sai do aparelho se já estiver no servidor.
 
 Texto com sinal de crise **não é enviado** para `/chats`: o front mostra CVV 188 e SAMU 192, como nas conversas da demo. O back também modera (links, valores, casas de aposta).
 
-Os eventos (`/eventos`) e o estado (`/estado`) ainda **não** existem no NestJS; continuam nas rotas de exemplo do Next.
+Os eventos (`/eventos`) e o resto do estado (`/estado`) ainda **não** existem no NestJS; continuam nas rotas de exemplo do Next.
 
 ## Próximos endpoints sugeridos
 

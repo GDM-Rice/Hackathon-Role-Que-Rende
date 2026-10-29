@@ -121,3 +121,37 @@ export const criarConversa = (membros: string[], titulo?: string) =>
 export const enviarMensagem = (id: string, conteudo: string) =>
   chamar<Mensagem>(`/chats/${encodeURIComponent(id)}/messages`, { method: 'POST', body: { conteudo } });
 export const sairDaConversa = (id: string) => chamar<void>(`/chats/${encodeURIComponent(id)}`, { method: 'DELETE' });
+
+// ---- Progresso da trilha ----
+// O front guarda um mapa "c-i" → atividade (trilha.feitas); o back guarda uma linha por atividade.
+
+export type FeitaTrilha = { em?: string; acertos?: number; total?: number; escolha?: number | null };
+export type FeitasTrilha = Record<string, FeitaTrilha>;
+type AtividadeTrilha = { capitulo: number; indice: number; em: string; acertos: number | null; total: number | null; escolha: number | null };
+
+const paraMapa = ({ atividades }: { atividades: AtividadeTrilha[] }): FeitasTrilha =>
+  Object.fromEntries(atividades.map((a) => [`${a.capitulo}-${a.indice}`, {
+    em: a.em,
+    ...(a.acertos != null && { acertos: a.acertos }),
+    ...(a.total != null && { total: a.total }),
+    ...(a.escolha != null && { escolha: a.escolha }),
+  }]));
+
+/** Progresso salvo na conta. */
+export const lerTrilha = async () => paraMapa(await chamar<{ atividades: AtividadeTrilha[] }>('/trilha'));
+
+/** Envia o progresso do aparelho; o servidor junta com o da conta (nada regride) e devolve tudo. */
+export async function sincronizarTrilha(feitas: FeitasTrilha): Promise<FeitasTrilha> {
+  const atividades = Object.entries(feitas).flatMap(([k, f]) => {
+    const m = /^(\d+)-(\d+)$/.exec(k);
+    if (!m || !f) return [];
+    return [{
+      capitulo: +m[1], indice: +m[2],
+      ...(typeof f.em === 'string' && { em: f.em }),
+      ...(Number.isInteger(f.acertos) && { acertos: f.acertos }),
+      ...(Number.isInteger(f.total) && { total: f.total }),
+      ...(Number.isInteger(f.escolha) && { escolha: f.escolha }),
+    }];
+  });
+  return paraMapa(await chamar<{ atividades: AtividadeTrilha[] }>('/trilha/sincronizar', { method: 'POST', body: { atividades } }));
+}
