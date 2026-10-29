@@ -464,6 +464,13 @@ export async function criarGlobo(container, opcoes = {}) {
   const aoTocarRegiao = opcoes.aoTocarRegiao ?? (() => {});
   let estado = estadoDoPlaneta();
 
+  // durante a "queda" (zoom até a trilha ou o mar) o planeta enche a tela inteira com o shader mais pesado do app, em movimento
+  // rápido: em tela 3x são milhões de pixels por quadro. Nesse trecho a imagem renderiza em resolução menor e volta ao normal no fim
+  let dprAtual = dpr;
+  function resolucao(r) {
+    if (r === dprAtual) return;
+    dprAtual = r; renderer.setPixelRatio(r); renderer.setSize(largura, altura, false);
+  }
   function medir() {
     const r = container.getBoundingClientRect();
     largura = Math.max(1, r.width); altura = Math.max(1, r.height);
@@ -492,6 +499,7 @@ export async function criarGlobo(container, opcoes = {}) {
     if (reduzido || ms <= 0 || vista.r === 0) { Object.assign(vista, para); alvoVista = null; return; }
     alvoVista = { de: { ...vista }, para, t0: performance.now(), dur: ms, curva };
     intro = null; ocioso = false;
+    if (curva === 'queda') resolucao(Math.min(dpr, 1.25));
   }
 
   // ---------- interação ----------
@@ -641,6 +649,7 @@ export async function criarGlobo(container, opcoes = {}) {
       st.sat.rotation.set(0.25 * Math.sin(a * 2 + i), -a, 0.15);   // painéis voltados ao longo da órbita, com leve oscilação
       st.anel.uniforms.uAng.value = a;
     }
+    if (!alvoVista) resolucao(dpr);
     aplicarCamera();
     uHalo.uSil.value *= escala;
     if (vista.opacidade > 0.01) renderer.render(cena, camera);
