@@ -12,9 +12,10 @@ export const metadata: Metadata = {
 };
 export const viewport: Viewport = { width: 'device-width', initialScale: 1, themeColor: [{ media: '(prefers-color-scheme: light)', color: '#F7F5F0' }, { media: '(prefers-color-scheme: dark)', color: '#121513' }] };
 
+// fundo escuro no <html> desde o primeiro quadro: o app abre no login, que é escuro (antes piscava branco)
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="pt-BR">
+    <html lang="pt-BR" style={{ backgroundColor: '#030A15' }}>
       <head>
         {/* Texturas leves do planeta: baixam em paralelo com o JavaScript. A de 2K segura a entrada do planeta */}
         <link rel="preload" href="/terra/terra-dia-2k.webp" as="image" type="image/webp" />

@@ -17,6 +17,9 @@ export async function iniciar(opcoes = {}) {
   const $ = (s, el = document) => el.querySelector(s);
 const $$ = (s, el = document) => [...el.querySelectorAll(s)];
 const app = $('#app');
+// de onde a pessoa chegou na Órbita: o botão voltar leva de volta para lá (antes era sempre "Perfil")
+const VOLTA_ORBITA = { perfil: 'Perfil', troca: 'Hábitos saudáveis', inicio: 'Início', mapa: 'Mapa-Mundi', financas: 'Finanças', divida: 'Dívida', luneta: 'Luneta', ajuda: 'Ajuda' };
+let origemOrbita = 'perfil';
 const telas = ['ajustes', 'login', 'boas', 'troca', 'trilha', 'atividade', 'fio', 'conversa', 'inicio', 'mapa', 'mare', 'tempestade', 'ajuda', 'luneta', 'financas', 'perfil', 'orbita', 'recado', 'divida'];
 const mq = (q) => { try { return matchMedia(q).matches; } catch { return false; } };
 
@@ -131,6 +134,8 @@ function atualizarTextos() {
 function setBarra(el, pct) { el.setAttribute('aria-valuenow', pct); el.firstElementChild.style.width = pct + '%'; }
 
 // ---------- navegação com continuidade ----------
+// enquanto o 3D carrega, o planeta desfocado (.slot::before) ocupa exatamente o lugar e o tamanho do planeta que vai entrar
+function medirMarcador(sec) { $$('[data-slot]', sec).forEach((sl) => { const r = sl.getBoundingClientRect(); const d = sl.dataset.zoom ? r.width * 2.04 : sl.dataset.orbita ? 128 : Math.min(r.width, r.height) - 16; if (d > 0) sl.style.setProperty('--d', d + 'px'); }); }
 function lugarDo(tela) {
   const sec = $(`#tela-${tela}`), slot = sec && $('[data-slot]', sec);
   const base = app.getBoundingClientRect();
@@ -142,7 +147,7 @@ function lugarDo(tela) {
   return { cx, cy, r: Math.min(r.width, r.height) / 2 - 8, opacidade: 1 };
 }
 let pararMare = null, oceano = null, mergulhando = false;
-function irPara(tela, { sem = false, jaSaiu = false, desceu = false } = {}) {
+function irPara(tela, { sem = false, jaSaiu = false, desceu = false, manterGlobo = false } = {}) {
   if (!telas.includes(tela)) tela = 'inicio';
   if (tela === 'atividade' && !abertaAt) tela = 'trilha';
   if (tela === 'divida' && !fin.dividas.some((d) => d.id === dividaAberta)) tela = 'financas';
@@ -165,10 +170,15 @@ function irPara(tela, { sem = false, jaSaiu = false, desceu = false } = {}) {
     depois.hidden = false; depois.classList.add('entrando'); deslizarIndicador(tela);
     [...depois.children].forEach((c, k) => { c.style.transitionDelay = reduzido ? '0ms' : `${k * 40}ms`; });
     requestAnimationFrame(() => requestAnimationFrame(() => depois.classList.remove('entrando')));
-    if (globo && tela !== 'mare') moverGlobo(tela, reduzido ? 0 : 850);
+    if (globo && tela !== 'mare' && !manterGlobo) moverGlobo(tela, reduzido ? 0 : 850);
+    if (!app.classList.contains('pronto')) medirMarcador(depois);
   }, reduzido || !antes ? 0 : 120);
   if (telaAtual === 'mare' && pararMare) pararMare();
   if (telaAtual === 'tempestade' && tempestade) { tempestade = false; aplicar(); } // as nuvens passam
+  if (tela === 'orbita' && telaAtual !== 'recado') {
+    origemOrbita = VOLTA_ORBITA[telaAtual] ? telaAtual : (telaAtual === 'tempestade' || telaAtual === 'mare' ? 'inicio' : 'perfil');
+    const vb = $('#tela-orbita .voltar'); if (vb) { vb.dataset.ir = origemOrbita; vb.lastChild.textContent = VOLTA_ORBITA[origemOrbita]; }
+  }
   telaAtual = tela; app.dataset.tela = tela;
   $$('[data-nav] button[data-item]').forEach((b) => b.setAttribute('aria-current', b.dataset.item === navDe(tela) ? 'page' : 'false'));
   if (tela === 'tempestade') { tempestade = true; aplicar(); __evento('tempestade', {}); }
@@ -186,6 +196,7 @@ function irPara(tela, { sem = false, jaSaiu = false, desceu = false } = {}) {
   if (tela === 'luneta') desenharLuneta();
   if (tela !== 'luneta') { $('#folha-escrever').hidden = true; $('#folha-planeta').hidden = true; $('#folha-acoes').hidden = true; }
   if (tela !== 'financas') $('#folha-divida').hidden = true;
+  $('#confirma-tempestade').hidden = true;
   if (tela !== 'orbita') { $('#folha-orbita').hidden = true; $('#folha-preciso').hidden = true; }
   if (tela === 'troca') desenharTroca(); else $('#passou')?.classList.remove('on');
   if (tela === 'divida') desenharDivida();
@@ -205,9 +216,16 @@ function descerNaTerra(regiao) {
   globo.irPara({ cx: base.width / 2, cy: base.height * 0.46, r: 4500, opacidade: 1 }, 1500, 'queda');
   posicionarSombra(lugarDo(telaAtual), false);
   setTimeout(() => {
-    descendo = false; irPara('trilha', { sem: true, desceu: true });
+    // a trilha entra por cima do planeta ainda ampliado (antes o planeta sumia num quadro e a tela piscava);
+    // depois o planeta grande se apaga e o pequeno aparece no cabeçalho
+    descendo = false; irPara('trilha', { sem: true, desceu: true, manterGlobo: true });
     antiga.style.opacity = ''; antiga.style.pointerEvents = ''; antiga.style.transition = '';
     const t = $('#tela-trilha'); t.classList.remove('chegou'); void t.offsetWidth; t.classList.add('chegou');
+    setTimeout(() => {
+      if (telaAtual !== 'trilha' || descendo) return;
+      globo.irPara({ opacidade: 0 }, 300);
+      setTimeout(() => { if (telaAtual !== 'trilha' || descendo) return; globo.irPara({ ...lugarDo('trilha'), opacidade: 0 }, 0); moverGlobo('trilha', 450); }, 320);
+    }, 540);
     if (regiao != null) setTimeout(() => irAoCapitulo(regiao, false), 200);
   }, 1450);
 }
@@ -459,7 +477,17 @@ $('#veu').onclick = () => abrirInfo(false);
 app.addEventListener('keydown', (e) => { if (e.key === 'Escape' && $('#info').classList.contains('aberta')) abrirInfo(false); if (e.key === 'Escape' && !$('#menu-regioes').hidden) { abrirListaRegioes(false); $('#chip-regiao').focus(); } });
 
 let avisoT;
-function aviso(txt) { const a = $('#aviso'); a.textContent = txt; a.classList.add('on'); clearTimeout(avisoT); avisoT = setTimeout(() => a.classList.remove('on'), 2600); }
+// "Apostei hoje" pede confirmação: um toque sem querer não registra a tempestade
+function confirmarTempestade(abrir) { const c = $('#confirma-tempestade'); c.hidden = !abrir; if (abrir) $('#ct-sim').focus({ preventScroll: true }); else $('#apostei-hoje')?.focus({ preventScroll: true }); }
+$('#apostei-hoje').onclick = () => confirmarTempestade(true);
+$('#ct-nao').onclick = () => confirmarTempestade(false);
+$('#ct-sim').onclick = () => { $('#confirma-tempestade').hidden = true; irPara('tempestade'); };
+$('#confirma-tempestade').addEventListener('click', (e) => { if (e.target.id === 'confirma-tempestade') confirmarTempestade(false); });
+app.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !$('#confirma-tempestade').hidden) confirmarTempestade(false); });
+// os cartões de recado e de rio ficam fora da árvore de acessibilidade quando fechados (CSS: visibility);
+// o leitor de tela recebe o texto por esta região viva, que existe sempre
+function anunciar(txt) { const a = $('#anuncio'); if (!a) return; a.textContent = ''; setTimeout(() => { a.textContent = txt; }, 80); }
+function aviso(txt) { const a = $('#aviso'); a.textContent = txt; a.classList.toggle('no-topo', !!document.querySelector('.folha-lun:not([hidden]), .sair-sheet:not([hidden])')); a.classList.add('on'); clearTimeout(avisoT); avisoT = setTimeout(() => a.classList.remove('on'), 2600); }
 
 // cliques delegados
 app.addEventListener('click', (e) => {
@@ -502,7 +530,7 @@ function desenharOrbita() {
   $('#lista-orbita').innerHTML = (vazia ? '<li class="vazia-orb"><span class="quem"><b>Ninguém na sua órbita ainda</b><small>Escolha até 3 pessoas de confiança. Cada uma vira um satélite que traz os recados dela.</small></span></li>' : '') + ORBITA.map((p, i) => {
     const t = globo?.proximaVolta(i), m = t == null ? '' : t >= 60 ? `${Math.ceil(t / 60)} min` : `${Math.ceil(t)} s`;
     const tirar = tirandoOrb === i;
-    return `<li><span class="ini" style="background:${p.fundo};border-color:${p.borda};color:${p.borda}">${esc(p.nome[0].toUpperCase())}</span><span class="quem"><b>${esc(p.nome)}${p.relacao ? ' · ' + esc(p.relacao) : ''}</b><small>${p.recados.length} recado${p.recados.length === 1 ? '' : 's'}${m ? ` · próxima volta em ${m}` : ''}</small></span><button class="acao-lin" type="button" data-escrever="${i}">Escrever</button><button class="acao-lin tirar-orb" type="button" data-tirar-orb="${i}" aria-label="${tirar ? 'Confirmar: tirar ' : 'Tirar '}${esc(p.nome)} da órbita">${tirar ? 'Tirar?' : '×'}</button></li>`;
+    return `<li><span class="ini" style="background:${p.fundo};border-color:${p.borda};color:${p.borda}">${esc(p.nome[0].toUpperCase())}</span><span class="quem"><b>${esc(p.nome)}${p.relacao ? ' · ' + esc(p.relacao) : ''}</b><small>${p.recados.length ? `${p.recados.length} recado${p.recados.length === 1 ? '' : 's'}${m ? ` · próxima volta em ${m}` : ''}` : 'Ainda sem recado: toque em Escrever e passe o celular'}</small></span><button class="acao-lin" type="button" data-escrever="${i}">Escrever</button><button class="acao-lin tirar-orb" type="button" data-tirar-orb="${i}" aria-label="${tirar ? 'Confirmar: tirar ' : 'Tirar '}${esc(p.nome)} da órbita">${tirar ? 'Tirar?' : '×'}</button></li>`;
   }).join('') + (ORBITA.length < 3 ? '<li style="border-style: dashed; justify-content: center"><button class="acao-lin" type="button" id="add-orbita">+ Colocar alguém na órbita</button></li>' : '');
   $('#preciso').disabled = false;
 }
@@ -580,7 +608,7 @@ function mostrarRecado(i) {
   $('#recado-quando').textContent = `Recado escrito em ${r.quando}`;
   $('#recado-txt').textContent = `“${r.txt}”`;
   $('#recado-responder').textContent = `Responder para ${p.nome}`;
-  $('#recado').classList.add('on');
+  $('#recado').classList.add('on'); anunciar(`${p.nome} passou pela sua órbita: ${r.txt}`);
   clearTimeout(recadoT); recadoT = setTimeout(fecharRecado, 15000);
 }
 function fecharRecado() { $('#recado').classList.remove('on'); clearTimeout(recadoT); }
@@ -689,7 +717,7 @@ function desenharFin() {
     p.innerHTML = `
       <div class="intro-rios"><h3 class="tit-fin">Barreiras trazem os rios de volta</h3><p class="dica-fin">Cada barreira que você ativa protege o seu dinheiro e faz um rio voltar a correr no seu planeta.</p><div id="lugar-rios"></div></div>
       ${item('pix', 'Pix menor à noite', '<p>Baixar o limite vale na hora; aumentar leva 24 horas. A espera protege de madrugada.</p><ol><li>No app do banco, abra o Pix.</li><li>Entre em "Meus limites".</li><li>Baixe o valor do período noturno.</li></ol><p class="fonte">Banco Central: noite das 20h às 6h, limite padrão de R$ 1.000.</p>', b.pix)}
-      ${item('bloqueador', 'Bloqueador de sites', '<p>Sites ilegais continuam no ar. Um bloqueador no celular fecha a porta antes da vontade. Há opções gratuitas.</p>', b.bloqueador)}
+      ${item('bloqueador', 'Bloqueador de sites', '<p>Sites ilegais continuam no ar. Um bloqueador no celular fecha a porta antes da vontade. Dá para fazer de graça, com o que já vem no celular:</p><ol><li><b>iPhone:</b> Ajustes › Tempo de Uso › Conteúdo e Privacidade › Conteúdo da Web. Escolha “Limitar sites adultos” e adicione os sites em “Nunca permitir”.</li><li><b>Android:</b> o Family Link, do Google, bloqueia sites no Chrome. Uma pessoa da sua Órbita pode ficar com a senha.</li></ol><p class="fonte">Recursos gratuitos da Apple (Tempo de Uso) e do Google (Family Link).</p>', b.bloqueador)}
       ${item('combinado', 'Combinar com alguém da Órbita', '<p>Por exemplo: "Se eu quiser aumentar o limite do Pix, te aviso antes." O app não toca no seu dinheiro.</p>', b.combinado)}
       <details class="saber conferir"><summary><span class="lado"><span class="ico">${ICO.auto}</span>Autoexclusão</span><span class="est">se voltarem</span></summary><div class="corpo"><p>As apostas estão proibidas pela MP 1.394/2026, e o STF discute a medida. Se voltarem a ser permitidas, bloquear o próprio CPF pelo gov.br é uma barreira forte.</p><p class="fonte">MP 1.394/2026, Planalto</p></div></details>
       ${rodape}`;
@@ -705,7 +733,10 @@ function abrirNovaDivida() {
   $('#tipos-div').innerHTML = TIPOS_DIV.map(([n]) => `<button type="button" role="radio" data-tipo-div="${n}" aria-checked="false">${n}</button>`).join('');
   $('#folha-divida').hidden = false; validarNovaDiv(); setTimeout(() => $('#tipos-div button')?.focus(), 60);
 }
-function validarNovaDiv() { $('#salvar-divida').disabled = !novaDiv.tipo || (novaDiv.tipo === 'Pessoa próxima' && $('#div-quem').value.trim().length < 2); }
+function validarNovaDiv() {
+  const falta = !novaDiv.tipo ? 'Escolha o tipo da dívida para anotar.' : (novaDiv.tipo === 'Pessoa próxima' && $('#div-quem').value.trim().length < 2) ? 'Escreva com quem é a dívida (o primeiro nome basta).' : '';
+  $('#salvar-divida').disabled = !!falta; $('#dica-salvar-div').textContent = falta;
+}
 $('#div-quem').addEventListener('input', validarNovaDiv);
 $('#div-valor').addEventListener('input', (e) => { const n = e.target.value.replace(/\D/g, ''); e.target.value = n ? (+n).toLocaleString('pt-BR') : ''; });
 $('#folha-divida').addEventListener('keydown', (e) => { if (e.key === 'Escape') { $('#folha-divida').hidden = true; $('#add-divida')?.focus(); } });
@@ -747,7 +778,7 @@ function verificarRios() {
   if (novo) {
     const txt = { amazonas: ['O Amazonas voltou a correr', 'Você baixou o Pix da noite.'], saoFrancisco: ['O São Francisco voltou a correr', 'Você ativou um bloqueador de sites.'], parana: ['O Paraná voltou a correr', 'Você combinou com alguém da sua Órbita.'] }[novo];
     $('#rio-titulo').textContent = txt[0]; $('#rio-sub').textContent = txt[1];
-    $('#rio-volta').classList.add('on');
+    $('#rio-volta').classList.add('on'); anunciar(`${txt[0]}. ${txt[1]}`);
   }
 }
 const fecharRio = () => $('#rio-volta').classList.remove('on');
@@ -928,7 +959,7 @@ function desenharBoas() {
       <div class="campo-boas surgir" style="--d: 500ms"><label for="boas-nome">Como quer ser chamado?</label><input id="boas-nome" type="text" autocomplete="nickname" maxlength="24" value="${perfil.nome}"></div>
       <div class="campo-boas surgir" style="--d: 620ms"><span class="rot" id="rot-motivo">Seu motivo para recomeçar</span>
         <div class="motivos" role="group" aria-labelledby="rot-motivo">${MOTIVOS.map((m) => `<button type="button" data-motivo="${m}" aria-pressed="${perfil.motivo === m}">${m}</button>`).join('')}<button type="button" class="outro" id="motivo-outro-bt" aria-pressed="${!MOTIVOS.includes(perfil.motivo)}" aria-expanded="${!MOTIVOS.includes(perfil.motivo)}">+ Outro motivo</button></div>
-        <div class="motivo-outro" id="motivo-outro" ${MOTIVOS.includes(perfil.motivo) ? 'hidden' : ''}><label class="sr-only" for="motivo-txt">Seu motivo, com suas palavras</label><input id="motivo-txt" type="text" maxlength="60" placeholder="Com suas palavras. Ex.: Para pagar a faculdade" value="${MOTIVOS.includes(perfil.motivo) ? '' : perfil.motivo}"></div></div>
+        <div class="motivo-outro" id="motivo-outro" ${MOTIVOS.includes(perfil.motivo) ? 'hidden' : ''}><label class="sr-only" for="motivo-txt">Seu motivo, com suas palavras</label><input id="motivo-txt" type="text" maxlength="60" placeholder="Ex.: pagar a faculdade" aria-describedby="erro-motivo" value="${MOTIVOS.includes(perfil.motivo) ? '' : perfil.motivo}"></div><p class="erro-login erro-motivo" id="erro-motivo" role="alert"></p></div>
       <div class="campo-boas surgir" style="--d: 680ms"><label for="boas-valor">Quanto você apostava? <small style="font-weight: 400">opcional</small></label>
         <div class="valor-periodo"><span class="pref-boas"><b aria-hidden="true">R$</b><input id="boas-valor" inputmode="numeric" maxlength="7" autocomplete="off" placeholder="pode pular"></span>
         <div class="seg-login periodo" role="radiogroup" aria-label="Por período">${[['dia', 'por dia'], ['semana', 'por semana'], ['mes', 'por mês']].map(([k, n]) => `<button type="button" role="radio" data-periodo="${k}" aria-checked="${(perfil.periodo || 'semana') === k}">${n}</button>`).join('')}</div></div>
@@ -957,7 +988,7 @@ function lapsoDeTempo() {
 function comecarMissao() {
   const n = ($('#boas-nome')?.value || '').trim(); perfil.nome = n || 'você';
   const v = parseInt(($('#boas-valor')?.value || '').replace(/\D/g, ''), 10); perfil.valor = v > 0 ? v : 0;
-  if ($('#motivo-outro-bt')?.getAttribute('aria-pressed') === 'true') { const mt = $('#motivo-txt').value.trim(); if (mt.length < 3) { $('#motivo-txt').focus(); aviso('Escreva seu motivo ou escolha um da lista.'); return; } perfil.motivo = mt; }
+  if ($('#motivo-outro-bt')?.getAttribute('aria-pressed') === 'true') { const mt = $('#motivo-txt').value.trim(); if (mt.length < 3) { const tx = $('#motivo-txt'); $('#erro-motivo').textContent = 'Escreva seu motivo (3 letras ou mais) ou escolha um da lista.'; tx.setAttribute('aria-invalid', 'true'); tx.scrollIntoView({ block: 'center', behavior: s.mov ? 'auto' : 'smooth' }); tx.focus({ preventScroll: true }); return; } perfil.motivo = mt; }
   __evento('perfil_criado', { nome: perfil.nome, motivo: perfil.motivo, valor: perfil.valor || null, periodo: perfil.periodo });
   Object.assign(s, { dias: 1, mares: 0, rios: { amazonas: false, saoFrancisco: false, parana: false } });
   boasVindas = { feito: true, dono: conta?.id ?? null }; guardarBoasVindas();
@@ -1047,12 +1078,12 @@ $('#tela-perfil').addEventListener('click', (e) => {
 $('#pesquisa-on').addEventListener('change', (e) => { perfil.pesquisa = e.target.checked; aviso(e.target.checked ? 'Obrigado. Só números anônimos são enviados.' : 'Você saiu da pesquisa.'); emitir?.('pesquisa', { participa: e.target.checked }); });
 const mascaraReais = (e) => { const n = e.target.value.replace(/\D/g, ''); e.target.value = n ? (+n).toLocaleString('pt-BR') : ''; };
 $('#perfil-valor').addEventListener('input', mascaraReais);
-app.addEventListener('input', (e) => { if (e.target.id === 'boas-valor') mascaraReais(e); });
+app.addEventListener('input', (e) => { if (e.target.id === 'boas-valor') mascaraReais(e); if (e.target.id === 'motivo-txt' && $('#erro-motivo')?.textContent) { $('#erro-motivo').textContent = ''; e.target.removeAttribute('aria-invalid'); } });
 $('#tela-boas').addEventListener('click', (e) => {
   const t = e.target;
   if (t.closest('#boas-seguir')) { passoBoas(boasPasso + 1); return; }
   if (t.closest('#boas-pular')) { passoBoas(2); return; }
-  const m = t.closest('[data-motivo]'); if (m) { perfil.motivo = m.dataset.motivo; $$('#tela-boas [data-motivo]').forEach((b) => b.setAttribute('aria-pressed', String(b === m))); $('#motivo-outro-bt').setAttribute('aria-pressed', 'false'); $('#motivo-outro-bt').setAttribute('aria-expanded', 'false'); $('#motivo-outro').hidden = true; return; }
+  const m = t.closest('[data-motivo]'); if (m) { perfil.motivo = m.dataset.motivo; $$('#tela-boas [data-motivo]').forEach((b) => b.setAttribute('aria-pressed', String(b === m))); $('#motivo-outro-bt').setAttribute('aria-pressed', 'false'); $('#motivo-outro-bt').setAttribute('aria-expanded', 'false'); $('#motivo-outro').hidden = true; if ($('#erro-motivo')) $('#erro-motivo').textContent = ''; return; }
   const pe = t.closest('[data-periodo]'); if (pe) { perfil.periodo = pe.dataset.periodo; $$('#tela-boas [data-periodo]').forEach((b) => { b.setAttribute('aria-checked', String(b === pe)); }); return; }
   if (t.closest('#motivo-outro-bt')) {
     $$('#tela-boas [data-motivo]').forEach((b) => b.setAttribute('aria-pressed', 'false'));
@@ -1790,7 +1821,7 @@ function desenharLuneta() {
     const feed = posts.map((p, k) => cartaoPost(p, k)), meio = [];
     feed.forEach((h, k) => { meio.push(h); if (tudo && k === 0) meio.push(mutirao); if (tudo && k === 2) meio.push(pergunta); if (tudo && k === 5) meio.push(marco); });
     pn.innerHTML = (tudo ? `<button type="button" class="prompt-post" id="prompt-post"><span class="av" style="background: ${lun.planeta.cor}"></span><span class="q">Como está seu recomeço hoje?</span><span class="ir">Escrever</span></button>
-      <button type="button" class="presenca" data-conv="roda"><span class="pilha-lun">${roda.map((q) => `<span class="av" style="background: ${corDe(q)}"></span>`).join('')}</span><span><b>Roda do ${rodaMinha().n}</b><small>4 planetas da sua região agora</small></span><span class="vivo">ao vivo</span></button>
+      <button type="button" class="presenca" data-conv="roda"><span class="pilha-lun">${roda.map((q) => `<span class="av" style="background: ${corDe(q)}"></span>`).join('')}</span><span><b>Roda do ${rodaMinha().n}</b><small>4 planetas da sua região</small></span><span class="vivo demo">exemplo</span></button>
 ` : '')
       + `<div class="chips" role="group" aria-label="Constelações">${filtros.map(([k, n]) => `<button type="button" data-filtro="${k}" aria-pressed="${lun.filtro === k}">${n}</button>`).join('')}</div>`
       + (meio.join('') || '<p class="fim-feed">Ninguém escreveu nesta constelação ainda. Que tal ser o primeiro?</p>')
@@ -1803,7 +1834,7 @@ function desenharLuneta() {
       const novas = !lun.msgs[id] && c.novas ? `<span class="novas">${c.novas} novas</span>` : '';
       return `<button type="button" class="conv-item" data-conv="${id}">${icone}<span><b>${c.tit}</b><small>${c.sub}</small><small>${esc(prev)}</small></span><span class="hora">${c.quando}${novas ? '<br>' + novas : ''}</span></button>`; };
     const rm = rodaMinha(), nNovas = !lun.msgs.roda ? 3 : 0;
-    const minha = `<p class="sec-conv">Na sua região</p><button type="button" class="roda-reg" data-conv="roda"><span class="bio" style="background: ${rm.claro}; color: ${rm.cor}">${ICO_RODA}</span><span><b>Roda do ${rm.n}</b><small>${rm.bio} · sextas, 21h · ${rm.qtd} planetas</small></span><span class="vivo">${nNovas ? nNovas + ' novas' : 'ao vivo'}</span></button>`;
+    const minha = `<p class="sec-conv">Na sua região</p><button type="button" class="roda-reg" data-conv="roda"><span class="bio" style="background: ${rm.claro}; color: ${rm.cor}">${ICO_RODA}</span><span><b>Roda do ${rm.n}</b><small>${rm.bio} · sextas, 21h · ${rm.qtd} planetas</small></span><span class="vivo${nNovas ? '' : ' demo'}">${nNovas ? nNovas + ' novas' : 'exemplo'}</span></button>`;
     const outras = `<p class="sec-conv">Outras regiões</p><div class="outras-reg">${REGIOES_LUN.map((r, k) => k === lun.regiao ? '' : `<button type="button" data-outra="${k}"><b><i style="background: ${r[1]}"></i>${r[0]}</b><small>${r[4]} planetas</small></button>`).join('')}</div>`;
     if (conta && conversasApi == null && !erroConversas) carregarConversas();
     pn.innerHTML = blocoConversasApi() + minha + outras + `<p class="sec-conv">Só vocês dois</p><div class="lista-conv">${item('par')}</div><div class="par-cartao"><b>Quer mais um companheiro de trilha?</b><p>A Luneta sugere alguém com dias de recomeço e horário difícil parecidos com os seus. Os dois aceitam antes, ninguém vê nome ou foto, e qualquer um pode encerrar quando quiser.</p><button type="button" data-aviso="Na demo, a sugestão de companheiro não é feita. No app, chega um convite que a outra pessoa precisa aceitar.">Pedir um companheiro</button></div>`
@@ -2032,6 +2063,7 @@ try {
   desenharOrbita();
   if (telaAtual === 'mapa') globo.focarRegiao(regiaoSel);
   if (telaAtual === 'mare') { globo.irPara({ opacidade: 0 }, 0); }
+  await Promise.race([globo.primeiroQuadro, new Promise((ok) => setTimeout(ok, 2500))]);
   app.classList.add('pronto'); app.removeAttribute('aria-busy');
   setTimeout(() => { try { garantirOceano(); } catch (e) { console.error(e); } }, 1200);
   setTimeout(() => { aquecerChao(s.escuro).catch(() => {}); }, 3000);   // texturas do chão da trilha, em fatias, antes de a pessoa abrir a trilha

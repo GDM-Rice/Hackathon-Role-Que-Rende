@@ -4,7 +4,7 @@ export const MARCACAO = `<div class="bancada">
   
 
   <div class="celular">
-    <div class="app" id="app" data-tela="inicio" aria-busy="true">
+    <div class="app no-boas" id="app" data-tela="login" aria-busy="true">
       <div class="sombra-globo" id="sombra" aria-hidden="true"></div>
       <div class="estrelas" aria-hidden="true"></div>
       <div class="camada-globo" id="camada"></div>
@@ -39,7 +39,7 @@ export const MARCACAO = `<div class="bancada">
         </section>
 
         <!-- INÍCIO -->
-        <section class="tela" id="tela-inicio" data-tela="inicio" aria-label="Início">
+        <section class="tela" id="tela-inicio" data-tela="inicio" aria-label="Início" hidden>
           <div class="topo"><p class="marca">Terraforma</p><button class="avatar" type="button" data-ir="perfil" aria-label="Seu perfil"><span>R</span></button></div>
           <div><h2 class="saudacao" id="saudacao">Boa noite, Rafael.</h2><p class="sub">Para voltar a dormir em paz.</p></div>
           <div class="slot" data-slot style="height: 286px">
@@ -54,7 +54,7 @@ export const MARCACAO = `<div class="bancada">
           </div>
           <button class="cartao-mare" type="button" data-ir="mare"><span><small>A vontade de apostar apareceu? Respire uns minutos.</small><strong>Respire com a Terra</strong></span><i><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M3 10c3-3 6 3 9 0s6 3 9 0M3 15c3-3 6 3 9 0s6 3 9 0"></path></svg></i></button>
           <button class="botao-troca" type="button" data-ir="troca"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 19c0-8 5-14 15-14 0 10-6 15-14 15"/><path d="M5 19c3-4 6-7 10-9"/></svg>Hábitos saudáveis</button>
-          <button class="link-baixo" type="button" data-ir="tempestade">Apostei hoje. Contar sem medo</button>
+          <button class="link-baixo" type="button" id="apostei-hoje" aria-haspopup="dialog">Apostei hoje. Contar sem medo</button>
           </div>
           <nav class="nav" aria-label="Menu principal" data-nav></nav>
         </section>
@@ -384,7 +384,7 @@ export const MARCACAO = `<div class="bancada">
               <div class="chips chips-fin" id="tipos-div" role="radiogroup" aria-label="Tipo de dívida"></div>
               <label class="campo-fin" id="campo-quem" hidden><span>Com quem? <small>só o primeiro nome ou apelido</small></span><input id="div-quem" maxlength="24" autocomplete="off"></label>
               <label class="campo-fin"><span>Valor aproximado <small>opcional</small></span><span class="com-pref"><b aria-hidden="true">R$</b><input id="div-valor" inputmode="numeric" maxlength="9" autocomplete="off" placeholder="não sei ainda"></span></label>
-              <button type="button" class="botao fin" id="salvar-divida" disabled>Anotar dívida</button>
+              <p class="dica-fin dica-salvar" id="dica-salvar-div" aria-live="polite">Escolha o tipo da dívida para anotar.</p><button type="button" class="botao fin" id="salvar-divida" aria-describedby="dica-salvar-div" disabled>Anotar dívida</button>
             </div>
           </div>
           <nav class="nav" aria-label="Menu principal" data-nav style="margin: 0"></nav>
@@ -443,13 +443,17 @@ export const MARCACAO = `<div class="bancada">
         <div class="pilha" style="margin-top: 8px"><button class="botao contorno" type="button" id="fechar-info" style="text-align: center">Entendi</button></div>
       </div>
       <div class="aviso" id="aviso" role="status"></div>
-      <div class="recado" id="recado" role="status" aria-live="polite">
+      <p class="sr-only" id="anuncio" role="status" aria-live="polite"></p>
+      <div class="sair-sheet" id="confirma-tempestade" hidden><div class="folha" role="alertdialog" aria-modal="true" aria-labelledby="ct-tit" aria-describedby="ct-txt">
+        <h4 id="ct-tit">Contar que apostou hoje?</h4><p id="ct-txt">Tudo bem. Nada do que você recuperou se perde: os dias, o mar e os rios continuam.</p>
+        <button class="botao cheio" type="button" id="ct-sim">Sim, contar</button><button class="botao contorno" type="button" id="ct-nao" style="text-align: center">Toquei sem querer</button></div></div>
+      <div class="recado" id="recado" role="group" aria-labelledby="recado-quem">
         <div class="cab"><span class="ini" id="recado-ini">A</span><span class="quem"><b id="recado-quem">Ana passou pela sua órbita</b><small id="recado-quando">Recado que ela escreveu</small></span><button class="fechar" type="button" id="recado-fechar" aria-label="Fechar recado">×</button></div>
         <blockquote id="recado-txt"></blockquote>
         <div class="botoes"><button class="botao cheio" type="button" id="recado-responder">Responder</button><button class="botao contorno" type="button" id="recado-ok" style="text-align: center">Obrigado</button></div>
       </div>
       <div class="nevoa" id="nevoa" aria-hidden="true"></div>
-      <div class="recado" id="rio-volta" role="status" aria-live="polite" style="border-color: #85B7EB">
+      <div class="recado" id="rio-volta" role="group" aria-labelledby="rio-titulo" style="border-color: #85B7EB">
         <div class="cab"><span class="ini" style="background: #E6F1FB; border-color: #185FA5; color: #185FA5">≈</span><span class="quem"><b id="rio-titulo">O Amazonas voltou a correr</b><small id="rio-sub">Você ativou uma Barreira.</small></span><button class="fechar" type="button" id="rio-fechar" aria-label="Fechar">×</button></div>
         <div class="botoes"><button class="botao cheio" type="button" id="rio-ver">Ver no planeta</button><button class="botao contorno" type="button" id="rio-ok" style="text-align: center">Continuar aqui</button></div>
       </div>

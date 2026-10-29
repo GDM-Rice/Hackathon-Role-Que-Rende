@@ -308,6 +308,9 @@ export async function criarGlobo(container, opcoes = {}) {
 
   // em telas densas (celular) o pixel já é pequeno: o MSAA quase não aparece e pesa muito na GPU
   const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  // no celular a queda (planeta enchendo a tela) roda em resolução 1x: a GPU do aparelho não dá conta do shader em tela cheia a 2x
+  const celular = (() => { try { return matchMedia('(pointer: coarse)').matches || Math.min(screen.width, screen.height) < 600; } catch { return false; } })();
+  const dprQueda = Math.min(dpr, celular ? 1 : 1.25);
   const renderer = new THREE.WebGLRenderer({ antialias: dpr < 1.5, alpha: true, powerPreference: 'high-performance' });
   renderer.setPixelRatio(dpr);
   renderer.setClearColor(0x000000, 0);
@@ -499,7 +502,7 @@ export async function criarGlobo(container, opcoes = {}) {
     if (reduzido || ms <= 0 || vista.r === 0) { Object.assign(vista, para); alvoVista = null; return; }
     alvoVista = { de: { ...vista }, para, t0: performance.now(), dur: ms, curva };
     intro = null; ocioso = false;
-    if (curva === 'queda') resolucao(Math.min(dpr, 1.25));
+    if (curva === 'queda') resolucao(dprQueda);
   }
 
   // ---------- interação ----------
@@ -575,6 +578,8 @@ export async function criarGlobo(container, opcoes = {}) {
   function quadro(agora) {
     // no máximo 60 quadros por segundo (em tela de 120 Hz seria o dobro de trabalho); parado, só balançando, 30 bastam
     if (agora - anterior < (ocioso ? 28 : 12)) return;
+    // a animação de entrada conta a partir do primeiro quadro de verdade (no celular, compilar os shaders leva tempo e o giro começava pela metade)
+    if (!desenhou && intro) intro.t0 = agora;
     const dt = Math.min(0.05, (agora - anterior) / 1000); anterior = agora;
     const lon0 = vista.lon, lat0 = vista.lat;
     const anima = !reduzido && !pausado;
@@ -649,10 +654,14 @@ export async function criarGlobo(container, opcoes = {}) {
       st.sat.rotation.set(0.25 * Math.sin(a * 2 + i), -a, 0.15);   // painéis voltados ao longo da órbita, com leve oscilação
       st.anel.uniforms.uAng.value = a;
     }
-    if (!alvoVista) resolucao(dpr);
+    // parado mas ainda maior que a tela (fim da queda, enquanto a trilha entra por cima): continua na resolução leve
+    if (!alvoVista) resolucao(vista.r > Math.max(largura, altura) ? dprQueda : dpr);
     aplicarCamera();
     uHalo.uSil.value *= escala;
-    if (vista.opacidade > 0.01) renderer.render(cena, camera);
+    if (vista.opacidade > 0.01) {
+      renderer.render(cena, camera);
+      if (!desenhou) { desenhou = true; requestAnimationFrame(() => avisarPrimeiro()); }
+    }
     // ocioso: nada em transição, ninguém arrastando e o planeta girando devagar (o balanço anda ~3°/s)
     let mudando = Math.abs(atual.mar - alvo.mar) + Math.abs(atual.tempestade - alvo.tempestade) + Math.abs(forcaNuvens - uNuvens.uForca.value);
     for (let i = 0; i < 5; i++) mudando += Math.abs(atual.rec[i] - alvo.rec[i]);
@@ -660,16 +669,24 @@ export async function criarGlobo(container, opcoes = {}) {
     const giro = (Math.abs(vista.lon - lon0) + Math.abs(vista.lat - lat0)) / Math.max(dt, 1e-3);
     ocioso = !alvoVista && !intro && !arrastando && respirarDesde === null && !orbita.visible && mudando < 0.01 && giro < 6;
   }
+  // primeiro quadro desenhado: o app só tira o marcador (planeta desfocado) depois disso, para não ficar um buraco na tela
+  let desenhou = false, avisarPrimeiro = () => {};
+  const primeiroQuadro = new Promise((ok) => { avisarPrimeiro = ok; });
   renderer.setAnimationLoop(quadro);
   // só mostra o canvas depois do primeiro quadro desenhado com textura (entra com fade, por cima do marcador)
   requestAnimationFrame(() => requestAnimationFrame(() => { canvas.style.opacity = '1'; }));
   // a versão em alta chega em segundo plano
   const trocar = (t, im) => { t.dispose(); t.image = im; t.needsUpdate = true; };   // dispose: a textura muda de tamanho e precisa ser recriada na GPU
+  // subir textura grande para a GPU trava um quadro: no celular isso aparecia como tranco no meio do giro de entrada.
+  // Por isso as trocas esperam o giro terminar, e no celular a de 4K nem baixa (a de 2K já cobre a tela do aparelho)
+  const depoisDaEntrada = primeiroQuadro.then(() => new Promise((ok) => setTimeout(ok, reduzido ? 300 : 2600)));
   (async () => {
-    if (!imNitida) { const im = await nitida; if (im) trocar(texturas[0], im); }   // a rede foi lenta: a de 2K entra no lugar da leve
-    carregarImagem(base + 'terra-dia-4k.webp').then((im) => trocar(texturas[0], im)).catch(() => {});
+    if (!imNitida) { const im = await nitida; if (im) { await depoisDaEntrada; trocar(texturas[0], im); } }   // a rede foi lenta: a de 2K entra no lugar da leve
+    if (celular) return;
+    const im4k = await carregarImagem(base + 'terra-dia-4k.webp').catch(() => null);
+    if (im4k) { await depoisDaEntrada; trocar(texturas[0], im4k); }
   })();
-  carregarImagem(base + 'brasil-rios.png').then((im) => trocar(texturas[4], im)).catch(() => {});
+  carregarImagem(base + 'brasil-rios.png').then(async (im) => { await depoisDaEntrada; trocar(texturas[4], im); }).catch(() => {});
 
   function setEstado(e) {
     estado = e;
@@ -682,6 +699,7 @@ export async function criarGlobo(container, opcoes = {}) {
 
   return {
     canvas,
+    primeiroQuadro,
     setEstado,
     irPara,
     focar(lonlat, comBalanco = false) { foco = { ...lonlat }; balanco = comBalanco; ultimoToque = -1e9; },
