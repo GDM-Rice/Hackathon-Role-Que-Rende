@@ -62,3 +62,8 @@ src/generated/prisma
 
 # Vercel (vercel link / vercel build)
 .vercel
+
+# Skills de agentes de IA (instaladas por ferramenta, não fazem parte do app)
+.agents/
+.claude/
+skills-lock.json
