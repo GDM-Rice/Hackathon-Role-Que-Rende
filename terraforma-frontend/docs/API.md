@@ -1,6 +1,6 @@
 # Contrato do backend
 
-O front já chama este contrato. Hoje quem responde são as rotas de exemplo em `app/api/*`, que guardam tudo em memória e perdem os dados ao reiniciar. Para ligar o backend real, defina `NEXT_PUBLIC_API_URL` no `.env.local`; o front passa a chamar `${NEXT_PUBLIC_API_URL}/eventos` e `${NEXT_PUBLIC_API_URL}/estado`.
+O front já chama este contrato. Hoje quem responde são as rotas de exemplo em `app/api/*`, que guardam tudo em memória e perdem os dados ao reiniciar. Elas só existem para desenvolvimento e demonstração: **em produção no Vercel ficam desligadas (404)** e o app não envia eventos (`API_EXEMPLO=1` liga de propósito; ver `app/api/_acesso.ts` e `next.config.mjs`). Onde estão ligadas, o corpo tem no máximo 10 KB, a lista guarda os últimos 1.000 eventos e o app mantém no máximo 100 eventos na fila local enquanto a API não responde. Para ligar o backend real, defina `NEXT_PUBLIC_API_URL` no `.env.local`; o front passa a chamar `${NEXT_PUBLIC_API_URL}/eventos` e `${NEXT_PUBLIC_API_URL}/estado`.
 
 - Tipos em TypeScript: `lib/tipos.ts`
 - Cliente com fila offline: `lib/api.ts`

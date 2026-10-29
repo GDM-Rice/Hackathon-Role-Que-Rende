@@ -3,6 +3,8 @@
 import type { EstadoUsuario, Evento, Barreira, Rios } from '@/lib/tipos';
 
 export const eventos: Evento[] = [];
+/** Teto da lista de eventos: passou disso, os mais antigos saem (a memória da instância não cresce sem limite). */
+export const MAX_EVENTOS = 1000;
 
 export const estado: EstadoUsuario = {
   conta: null,
@@ -69,6 +71,7 @@ export function aplicarEvento(e: Evento) {
     }
     case 'luneta_post':
       estado.luneta.meus.unshift({ id: d.id, constelacao: d.constelacao, texto: d.texto, em: d.em, emRevisao: !!d.revisao });
+      estado.luneta.meus.length = Math.min(estado.luneta.meus.length, 200);
       break;
     default: break; // demais eventos da Luneta: registro, contagem e fila de moderação
   }
