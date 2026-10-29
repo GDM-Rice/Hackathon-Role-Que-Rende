@@ -67,3 +67,5 @@ src/generated/prisma
 .agents/
 .claude/
 skills-lock.json
+.env*
+!.env.example

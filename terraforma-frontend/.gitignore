@@ -8,3 +8,5 @@ testes/capturas/
 
 # Vercel (vercel link / vercel build)
 .vercel
+.env*
+!.env.example
