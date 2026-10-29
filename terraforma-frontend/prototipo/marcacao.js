@@ -4,7 +4,7 @@ export const MARCACAO = `<div class="bancada">
   
 
   <div class="celular">
-    <div class="app" id="app" data-tela="inicio">
+    <div class="app" id="app" data-tela="inicio" aria-busy="true">
       <div class="sombra-globo" id="sombra" aria-hidden="true"></div>
       <div class="estrelas" aria-hidden="true"></div>
       <div class="camada-globo" id="camada"></div>

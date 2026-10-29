@@ -2031,11 +2031,12 @@ try {
   desenharOrbita();
   if (telaAtual === 'mapa') globo.focarRegiao(regiaoSel);
   if (telaAtual === 'mare') { globo.irPara({ opacidade: 0 }, 0); }
-  app.classList.add('pronto');
+  app.classList.add('pronto'); app.removeAttribute('aria-busy');
   setTimeout(() => { try { garantirOceano(); } catch (e) { console.error(e); } }, 1200);
   addEventListener('resize', () => moverGlobo(telaAtual, 0));
 } catch (err) {
   console.error(err);
+  app.classList.add('sem-3d'); app.removeAttribute('aria-busy');   // para de "respirar": o planeta desfocado fica parado
   aviso('Não foi possível desenhar o planeta em 3D neste aparelho.');
 }
 }
