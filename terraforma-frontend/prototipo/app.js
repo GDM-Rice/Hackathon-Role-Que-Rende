@@ -931,7 +931,7 @@ function desenharBoas() {
         <div class="motivo-outro" id="motivo-outro" ${MOTIVOS.includes(perfil.motivo) ? 'hidden' : ''}><label class="sr-only" for="motivo-txt">Seu motivo, com suas palavras</label><input id="motivo-txt" type="text" maxlength="60" placeholder="Com suas palavras. Ex.: Para pagar a faculdade" value="${MOTIVOS.includes(perfil.motivo) ? '' : perfil.motivo}"></div></div>
       <div class="campo-boas surgir" style="--d: 680ms"><label for="boas-valor">Quanto você apostava? <small style="font-weight: 400">opcional</small></label>
         <div class="valor-periodo"><span class="pref-boas"><b aria-hidden="true">R$</b><input id="boas-valor" inputmode="numeric" maxlength="7" autocomplete="off" placeholder="pode pular"></span>
-        <div class="seg-login periodo" role="radiogroup" aria-label="Por período">${[['dia', 'por dia'], ['semana', 'por semana'], ['mes', 'por mês']].map(([k, n]) => `<button type="button" role="radio" data-periodo="${k}" aria-checked="${(perfil.periodo || 'semana') === k}" aria-selected="${(perfil.periodo || 'semana') === k}">${n}</button>`).join('')}</div></div>
+        <div class="seg-login periodo" role="radiogroup" aria-label="Por período">${[['dia', 'por dia'], ['semana', 'por semana'], ['mes', 'por mês']].map(([k, n]) => `<button type="button" role="radio" data-periodo="${k}" aria-checked="${(perfil.periodo || 'semana') === k}">${n}</button>`).join('')}</div></div>
         <small class="dica-boas">Só para mostrar o dinheiro que fica com você. Pode ser aproximado.</small></div>
       <p class="privado surgir" style="--d: 740ms"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>${conta ? 'Seu motivo fica na sua conta. Ninguém mais vê.' : 'Tudo fica só neste celular.'}</p>
       <button class="boas-botao surgir" style="--d: 860ms" type="button" id="boas-comecar">Começar a missão</button>
@@ -1029,7 +1029,7 @@ function desenharPerfil() {
     return `<details><summary><span>${q}</span><span class="resp${r ? ' dada' : ''}">${r || 'Responder'}</span></summary><div class="ops" role="radiogroup" aria-label="${q}">${ops.map((o) => `<button type="button" role="radio" data-sobre="${k}" data-op="${o}" aria-pressed="${r === o}" aria-checked="${r === o}">${o}</button>`).join('')}</div></details>`; }).join('');
   $('#pesquisa-on').checked = !!perfil.pesquisa;
   $('#perfil-valor').value = perfil.valor ? perfil.valor.toLocaleString('pt-BR') : '';
-  $('#perfil-periodo').innerHTML = [['dia', 'por dia'], ['semana', 'por semana'], ['mes', 'por mês']].map(([k, n]) => `<button type="button" role="radio" data-periodo-p="${k}" aria-checked="${(perfil.periodo || 'semana') === k}" aria-selected="${(perfil.periodo || 'semana') === k}">${n}</button>`).join('');
+  $('#perfil-periodo').innerHTML = [['dia', 'por dia'], ['semana', 'por semana'], ['mes', 'por mês']].map(([k, n]) => `<button type="button" role="radio" data-periodo-p="${k}" aria-checked="${(perfil.periodo || 'semana') === k}">${n}</button>`).join('');
 }
 $('#tela-perfil').addEventListener('click', (e) => {
   const sb = e.target.closest('[data-sobre]'); if (sb) { perfil.sobre[sb.dataset.sobre] = sb.dataset.op; const aberto = sb.closest('details'); desenharPerfil(); if (sb.dataset.op === 'Quero buscar') { aviso('A Ajuda mostra como falar com um psicólogo pelo SUS.'); setTimeout(() => irPara('ajuda'), 700); } return; }
@@ -1037,7 +1037,7 @@ $('#tela-perfil').addEventListener('click', (e) => {
   if (e.target.closest('#cancelar-perfil')) { desenharPerfil(); return; }
   if (e.target.closest('#salvar-perfil')) { const n = $('#ed-nome').value.trim(), m = $('#ed-motivo').value.trim(); if (n) perfil.nome = n; if (m.length >= 3) perfil.motivo = m; guardarBoasVindas(); desenharPerfil(); atualizarTextos(); aviso('Perfil atualizado.'); return; }
   if (e.target.closest('#conta-perfil')) { if (conta) { B?.sair(); conta = null; conversasApi = null; convApi = null; const trilhaNaConta = !trilha.pendente; if (trilhaNaConta) { trilha = { feitas: {} }; guardarTrilha(); } aviso(trilhaNaConta ? 'Você saiu da conta. Sua trilha fica guardada nela; o resto fica neste celular.' : 'Você saiu da conta. Seus dados ficam neste celular.'); desenharPerfil(); } else { modoLogin = 'entrar'; irPara('login'); } return; }
-  const pe = e.target.closest('[data-periodo-p]'); if (pe) { $$('#perfil-periodo [data-periodo-p]').forEach((b) => { b.setAttribute('aria-checked', String(b === pe)); b.setAttribute('aria-selected', String(b === pe)); }); return; }
+  const pe = e.target.closest('[data-periodo-p]'); if (pe) { $$('#perfil-periodo [data-periodo-p]').forEach((b) => { b.setAttribute('aria-checked', String(b === pe)); }); return; }
   if (e.target.closest('#salvar-valor')) {
     const v = parseInt($('#perfil-valor').value.replace(/\D/g, ''), 10); perfil.valor = v > 0 ? v : 0;
     perfil.periodo = $('#perfil-periodo [aria-checked="true"]')?.dataset.periodoP || 'semana';
@@ -1053,7 +1053,7 @@ $('#tela-boas').addEventListener('click', (e) => {
   if (t.closest('#boas-seguir')) { passoBoas(boasPasso + 1); return; }
   if (t.closest('#boas-pular')) { passoBoas(2); return; }
   const m = t.closest('[data-motivo]'); if (m) { perfil.motivo = m.dataset.motivo; $$('#tela-boas [data-motivo]').forEach((b) => b.setAttribute('aria-pressed', String(b === m))); $('#motivo-outro-bt').setAttribute('aria-pressed', 'false'); $('#motivo-outro-bt').setAttribute('aria-expanded', 'false'); $('#motivo-outro').hidden = true; return; }
-  const pe = t.closest('[data-periodo]'); if (pe) { perfil.periodo = pe.dataset.periodo; $$('#tela-boas [data-periodo]').forEach((b) => { b.setAttribute('aria-checked', String(b === pe)); b.setAttribute('aria-selected', String(b === pe)); }); return; }
+  const pe = t.closest('[data-periodo]'); if (pe) { perfil.periodo = pe.dataset.periodo; $$('#tela-boas [data-periodo]').forEach((b) => { b.setAttribute('aria-checked', String(b === pe)); }); return; }
   if (t.closest('#motivo-outro-bt')) {
     $$('#tela-boas [data-motivo]').forEach((b) => b.setAttribute('aria-pressed', 'false'));
     $('#motivo-outro-bt').setAttribute('aria-pressed', 'true'); $('#motivo-outro-bt').setAttribute('aria-expanded', 'true');
@@ -1776,7 +1776,7 @@ function desenharLuneta() {
     const filtros = [['tudo', 'Tudo'], ...Object.entries(CONSTELACOES)];
     const posts = [...lun.meus, ...POSTS_DEMO.slice(1)].filter((p) => !lun.bloq[p.quem] && (lun.filtro === 'tudo' ? true : p.c === lun.filtro));
     const rmm = rodaMinha(), fezHoje = lun.mut?.dia === new Date().toDateString(), nMut = Math.min(MUTIRAO.meta, MUTIRAO.base[lun.regiao] + (lun.mut?.n || 0));
-    const mutirao = `<section class="mutirao" aria-label="Mutirão da sua região"><span class="rot" style="color: ${rmm.cor}">Mutirão do ${rmm.n} · esta semana</span><h4>${MUTIRAO.meta} atividades fora das apostas, juntos</h4>
+    const mutirao = `<section class="mutirao" aria-label="Mutirão da sua região"><span class="rot" style="--cor-reg: ${rmm.cor}">Mutirão do ${rmm.n} · esta semana</span><h4>${MUTIRAO.meta} atividades fora das apostas, juntos</h4>
       <div class="barra-mut" role="progressbar" aria-valuemin="0" aria-valuemax="${MUTIRAO.meta}" aria-valuenow="${nMut}" aria-label="Progresso do mutirão"><i style="width: ${nMut / MUTIRAO.meta * 100}%; background: ${rmm.cor}"></i></div>
       <div class="num"><span><b>${nMut}</b> de ${MUTIRAO.meta}</span><span>${rmm.qtd} planetas no grupo</span></div>
       ${fezHoje ? `<span class="fiz">✓ Você somou: ${lun.mut.at.toLowerCase()}. Volte amanhã.</span>` : `<div class="chips" role="group" aria-label="O que você fez hoje?">${MUTIRAO.atividades.map((a) => `<button type="button" data-mut="${a}">+ ${a}</button>`).join('')}</div>`}
