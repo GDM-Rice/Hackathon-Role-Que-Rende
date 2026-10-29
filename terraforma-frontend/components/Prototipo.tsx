@@ -2,12 +2,14 @@
 import { useEffect } from 'react';
 import { MARCACAO } from '@/prototipo/marcacao';
 import { registrarEvento } from '@/lib/api';
+import * as backend from '@/lib/backend';
 import type { TipoEvento } from '@/lib/tipos';
 
 /**
  * Fase 1 da migração: o app inteiro roda dentro do Next como está.
  * A marcação vem pronta e o motor (prototipo/app.js) liga o comportamento no navegador.
  * Cada ação que importa para o backend chega em registrarEvento() (ver docs/API.md).
+ * Conta, senha e conversas reais vão para o back NestJS por lib/backend.ts.
  */
 export default function Prototipo() {
   useEffect(() => {
@@ -17,6 +19,7 @@ export default function Prototipo() {
       if (!ativo) return;
       iniciar({
         assets: '/terra/',
+        backend,
         aoEvento: (tipo: TipoEvento, dados: Record<string, unknown>) => { void registrarEvento(tipo, dados); },
       });
     });

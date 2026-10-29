@@ -14,6 +14,7 @@ npm run dev                 # http://localhost:3000
 npm run lint                # tsc --noEmit
 npm run build               # tem que passar antes de qualquer entrega
 node testes/fumaca.mjs      # teste de fumaça (precisa do servidor rodando; ver o arquivo)
+node testes/conta.mjs       # conta, senha e conversas reais (precisa também do back NestJS na 3001)
 ```
 
 Abrir uma tela direto: `http://localhost:3000/#financas` (lista em `const telas`, em `prototipo/app.js`).
@@ -30,7 +31,8 @@ Abrir uma tela direto: `http://localhost:3000/#financas` (lista em `const telas`
 | `prototipo/trilha-paisagem.js` | paisagem em canvas da trilha (biomas, fauna, flora) |
 | `app/globals.css` | todo o visual. Tokens de cor no topo; layout do produto no fim |
 | `lib/tipos.ts` | contrato de dados e lista `TIPOS_EVENTO` |
-| `lib/api.ts` | cliente da API com fila offline |
+| `lib/api.ts` | cliente da API de eventos/estado com fila offline |
+| `lib/backend.ts` | cliente do back NestJS (`terraforma-backend`): login, cadastro, senha, apagar conta, conversas. Chega no motor como `opcoes.backend` (`B` em `app.js`) |
 | `app/api/*` | backend de exemplo em memória (`_memoria.ts` tem as regras de referência) |
 | `dados/trilha-aulas.json` | conteúdo da trilha (cópia legível de `const AULAS` em `app.js`) |
 
@@ -50,7 +52,7 @@ Abrir uma tela direto: `http://localhost:3000/#financas` (lista em `const telas`
 | `Ajustes e acessibilidade` | `aplicarAjustes()`, `desenharPerfil()`, apagar dados |
 | `Trocar a aposta` | Hábitos saudáveis: `TROCAS`, `troca`, `desenharTroca()` |
 | `Trilha` | `AULAS`, `TRILHA_NOS`, `desenharTrilha()`, lição/quiz no modelo do Duolingo |
-| `Luneta` | `PLANETAS`, `POSTS_DEMO`, `CONVERSAS`, `MODERACAO`, `CRISE`, `desenharLuneta()` |
+| `Luneta` | `PLANETAS`, `POSTS_DEMO`, `CONVERSAS`, `MODERACAO`, `CRISE`, `desenharLuneta()`; conversas reais: `conversasApi`, `abrirConversaApi()`, `enviarMensagemApi()` (ids `api:<id>`) |
 | `arrastar para rolar` | rolagem com mouse |
 | `aplicar o estado` / `início` | `aplicar()`, rota inicial, `criarGlobo()` |
 

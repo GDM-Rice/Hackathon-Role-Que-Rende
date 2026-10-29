@@ -108,7 +108,7 @@ export const TIPOS_EVENTO = [
   'trilha_aula', 'trilha_quiz', 'trilha_pratica',
   // luneta
   'luneta_post', 'luneta_resposta', 'luneta_mensagem', 'luneta_identifico', 'luneta_forca', 'luneta_mutirao',
-  'luneta_denuncia', 'luneta_bloqueio', 'luneta_planeta_editado', 'luneta_alerta_crise',
+  'luneta_denuncia', 'luneta_bloqueio', 'luneta_planeta_editado', 'luneta_alerta_crise', 'luneta_conversa_criada',
 ] as const;
 export type TipoEvento = (typeof TIPOS_EVENTO)[number];
 

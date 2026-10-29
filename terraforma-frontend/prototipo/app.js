@@ -2,6 +2,7 @@
 // iniciar() roda no navegador, depois que MARCACAO já está no DOM.
 // opcoes.assets            pasta pública das texturas e do som (padrão /terra/)
 // opcoes.aoEvento(tipo, d) chamado nas ações que o backend deve guardar (ver docs/API.md)
+// opcoes.backend           cliente do back NestJS (lib/backend.ts): conta, senha e conversas. Sem ele, só o modo sem conta
 // Leia AGENTS.md antes de editar. Mapa das seções: docs/BACKLOG.md e AGENTS.md.
 import { criarGlobo, estadoDoPlaneta, REGIOES, LIMIARES, RIOS } from './globo.js';
 import { criarOceano, criarSomDoMar, ceuDaHora, corDaNevoa } from './oceano.js';
@@ -11,6 +12,7 @@ let iniciado = false;
 export async function iniciar(opcoes = {}) {
   if (iniciado) return; iniciado = true;   // o React em modo estrito monta duas vezes no desenvolvimento
   const ASSETS = opcoes.assets ?? '/terra/';
+  const B = opcoes.backend ?? null;
   const __evento = (tipo, dados) => { try { opcoes.aoEvento?.(tipo, { ...dados, em: new Date().toISOString() }); } catch (e) { console.error(e); } };
   const $ = (s, el = document) => el.querySelector(s);
 const $$ = (s, el = document) => [...el.querySelectorAll(s)];
@@ -808,31 +810,62 @@ const ICO_H = {
 };
 function pararLapso() { if (lapso) { clearInterval(lapso); lapso = null; } }
 function planetaBoas(e) { estadoBoas = e; if (globo) globo.setEstado(e); }
-let conta = null, modoLogin = 'entrar';
+// conta = { id, username, email } quando há sessão no back; null = modo sem conta (tudo fica no aparelho)
+let conta = null, modoLogin = 'entrar', tokenRedefinir = null, enviandoLogin = false;
+const EMAIL_OK = /^[^\s@]+@[^\s@]+\.[^\s@]+$/, USUARIO_OK = /^[a-z0-9._-]{3,30}$/;
+const contaDe = (u) => ({ id: u.id, username: u.username, email: u.email });
 function desenharLogin() {
+  const redef = modoLogin === 'redefinir';
   $$('#tela-login [data-login]').forEach((b) => b.setAttribute('aria-selected', String(b.dataset.login === modoLogin)));
-  $('#login-ok').textContent = modoLogin === 'entrar' ? 'Entrar' : 'Criar conta';
+  $('#abas-login').hidden = redef; $('#campo-email').hidden = redef; $('#login-priv').parentElement.hidden = redef; $('#ou-login').hidden = redef; $('#sem-conta').hidden = redef;
+  $('#campo-usuario').hidden = modoLogin !== 'criar';
+  $('#login-tit').textContent = redef ? 'Crie uma senha nova.' : 'Um lugar para recomeçar.';
+  $('#rot-senha').textContent = redef ? 'Senha nova' : 'Senha';
+  $('#login-ok').textContent = redef ? 'Salvar senha nova' : modoLogin === 'entrar' ? 'Entrar' : 'Criar conta';
   $('#login-senha').autocomplete = modoLogin === 'entrar' ? 'current-password' : 'new-password';
   $('#esqueci').hidden = modoLogin !== 'entrar'; $('#erro-login').textContent = '';
 }
-$('#tela-login').addEventListener('click', (e) => {
+function semBackend() { $('#erro-login').textContent = 'A conta não está disponível nesta versão. Você pode continuar sem conta.'; }
+$('#tela-login').addEventListener('click', async (e) => {
   const t = e.target;
   const md = t.closest('[data-login]'); if (md) { modoLogin = md.dataset.login; desenharLogin(); return; }
   const v = t.closest('#ver-senha'); if (v) { const on = v.getAttribute('aria-pressed') !== 'true'; v.setAttribute('aria-pressed', String(on)); v.setAttribute('aria-label', on ? 'Esconder senha' : 'Mostrar senha'); $('#login-senha').type = on ? 'text' : 'password'; return; }
   if (t.closest('#esqueci')) {
     const em = $('#login-email').value.trim();
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)) { $('#erro-login').textContent = 'Digite seu e-mail acima para receber o link.'; $('#login-email').focus(); return; }
-    emitir?.('senha_esquecida', {}); aviso('Se esse e-mail tiver conta, chega um link para criar uma senha nova.'); return;
+    if (!EMAIL_OK.test(em)) { $('#erro-login').textContent = 'Digite seu e-mail acima para receber o link.'; $('#login-email').focus(); return; }
+    if (!B) { semBackend(); return; }
+    try { await B.esqueciSenha(em); emitir?.('senha_esquecida', {}); aviso('Se esse e-mail tiver conta, chega um link para criar uma senha nova.'); }
+    catch (err) { $('#erro-login').textContent = err.message; }
+    return;
   }
   if (t.closest('#sem-conta')) { conta = null; emitir?.('entrada', { comConta: false }); irPara('boas'); }
 });
-$('#form-login').addEventListener('submit', (e) => {
-  e.preventDefault();
-  const em = $('#login-email').value.trim(), se = $('#login-senha').value;
-  const erro = !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em) ? 'Confira o e-mail.' : se.length < 6 ? 'A senha precisa ter pelo menos 6 caracteres.' : '';
-  $('#erro-login').textContent = erro; if (erro) { (erro.includes('e-mail') ? $('#login-email') : $('#login-senha')).focus(); return; }
-  conta = { email: em }; emitir?.(modoLogin === 'entrar' ? 'login' : 'conta_criada', {});
-  aviso(modoLogin === 'entrar' ? 'Que bom te ver.' : 'Conta criada.'); irPara('boas');
+$('#form-login').addEventListener('submit', async (e) => {
+  e.preventDefault(); if (enviandoLogin) return;
+  const em = $('#login-email').value.trim(), se = $('#login-senha').value, us = $('#login-usuario').value.trim().toLowerCase();
+  const redef = modoLogin === 'redefinir', criar = modoLogin === 'criar';
+  const erro = !redef && !EMAIL_OK.test(em) ? 'Confira o e-mail.'
+    : criar && !USUARIO_OK.test(us) ? 'O nome de usuário precisa ter de 3 a 30 letras minúsculas, números, ponto, hífen ou sublinhado.'
+    : se.length < 8 ? 'A senha precisa ter pelo menos 8 caracteres.' : '';
+  $('#erro-login').textContent = erro;
+  if (erro) { (erro.includes('e-mail') ? $('#login-email') : erro.includes('usuário') ? $('#login-usuario') : $('#login-senha')).focus(); return; }
+  if (!B) { semBackend(); return; }
+  const bt = $('#login-ok'), rotulo = bt.textContent;
+  enviandoLogin = true; bt.disabled = true; bt.textContent = 'Um instante…';
+  try {
+    if (redef) {
+      await B.redefinirSenha(tokenRedefinir, se);
+      tokenRedefinir = null; try { history.replaceState(null, '', '/#login'); } catch {}
+      modoLogin = 'entrar'; desenharLogin(); $('#login-senha').value = '';
+      aviso('Senha nova salva. Agora é só entrar.'); $('#login-email').focus(); return;
+    }
+    const u = criar ? await B.criarConta(us, em, se) : await B.entrar(em, se);
+    conta = contaDe(u); $('#login-senha').value = '';
+    emitir?.(criar ? 'conta_criada' : 'login', {});
+    aviso(criar ? 'Conta criada.' : 'Que bom te ver.'); irPara('boas');
+  } catch (err) {
+    $('#erro-login').textContent = err.status === 401 ? 'E-mail ou senha não conferem.' : err.message;
+  } finally { enviandoLogin = false; bt.disabled = false; if (bt.textContent === 'Um instante…') bt.textContent = rotulo; }
 });
 function abrirBoas() { boasPasso = 0; desenharBoas(); }
 function passoBoas(n) {
@@ -928,16 +961,26 @@ function desenharAjustes() {
   $('#aj-contraste').checked = !!s.contraste; $('#aj-dalt').checked = !!s.dalt; $('#aj-espaco').checked = !!s.espaco;
   $('#aj-som').checked = somLigado; $('#aj-legendas').checked = !!s.legendas;
 }
-$('#tela-ajustes').addEventListener('click', (e) => {
+$('#tela-ajustes').addEventListener('click', async (e) => {
   const b = e.target.closest('[data-aj]'); if (b) { const k = b.dataset.aj; s[k] = k === 'texto' ? +b.dataset.v : b.dataset.v; aplicarAjustes(); desenharAjustes(); return; }
   if (e.target.closest('#aj-fontes')) { abrirInfo(true); return; }
   const ap = e.target.closest('#aj-apagar'); if (ap) {
-    if (!ap.classList.contains('confirmar')) { ap.classList.add('confirmar'); ap.textContent = 'Toque de novo para apagar tudo'; return; }
+    if (!ap.classList.contains('confirmar')) { ap.classList.add('confirmar'); ap.textContent = conta ? 'Toque de novo para apagar tudo, inclusive a conta' : 'Toque de novo para apagar tudo'; return; }
+    if (ap.disabled) return;
+    // com conta, apaga primeiro no servidor: se falhar, nada some do aparelho e a pessoa pode tentar de novo
+    if (conta && B) {
+      ap.disabled = true;
+      try { await B.apagarConta(); }
+      catch (err) { aviso('Não deu para apagar sua conta agora. ' + err.message); return; }
+      finally { ap.disabled = false; }
+    }
+    try { localStorage.removeItem('terraforma:token'); } catch {}
+    conversasApi = null; convApi = null;
     try { ['terraforma:trilha-aulas', 'terraforma:luneta', 'terraforma:orbita', 'terraforma:som', 'terraforma:video'].forEach((k) => localStorage.removeItem(k)); } catch {}
     ORBITA.splice(0); guardarOrbita(); troca.minhas = []; Object.assign(perfil, { nome: '', valor: 0 }); emitir?.('dados_apagados', {});
     trilha = { feitas: {} }; lun = { aba: 'mural', filtro: 'tudo', ident: {}, denun: {}, meus: [], resp: {}, msgs: {}, planeta: lun.planeta, regiao: lun.regiao, mostrarDias: true, bloq: {} };
     fin = JSON.parse(JSON.stringify(FIN_PADRAO)); Object.assign(s, { dias: 1, mares: 0, rios: { amazonas: false, saoFrancisco: false, parana: false } });
-    perfil.sobre = {}; perfil.pesquisa = false; conta = null; aplicar(); aviso('Seus dados foram apagados deste celular.'); irPara('login');
+    perfil.sobre = {}; perfil.pesquisa = false; const tinhaConta = !!conta; conta = null; aplicar(); aviso(tinhaConta ? 'Sua conta e seus dados foram apagados.' : 'Seus dados foram apagados deste celular.'); irPara('login');
   }
 });
 $('#tela-ajustes').addEventListener('change', (e) => {
@@ -955,7 +998,7 @@ function desenharPerfil() {
   $('#perfil-bola').style.background = lun.planeta.cor; $('#perfil-luneta').textContent = 'Na Luneta: ' + euNome();
   $('#edicao-perfil').hidden = true; $('#perfil-motivo').hidden = false;
   $('#sobre-onde').textContent = conta ? 'Fica só na sua conta.' : 'Fica só neste celular.';
-  $('#conta-perfil').textContent = conta ? 'Sair da conta' : 'Entrar ou criar conta';
+  $('#conta-perfil').textContent = conta ? `Sair da conta (@${conta.username})` : 'Entrar ou criar conta';
   $('#sobre').innerHTML = SOBRE.map(([k, q, ops]) => { const r = perfil.sobre[k];
     return `<details><summary><span>${q}</span><span class="resp${r ? ' dada' : ''}">${r || 'Responder'}</span></summary><div class="ops" role="radiogroup" aria-label="${q}">${ops.map((o) => `<button type="button" role="radio" data-sobre="${k}" data-op="${o}" aria-pressed="${r === o}" aria-checked="${r === o}">${o}</button>`).join('')}</div></details>`; }).join('');
   $('#pesquisa-on').checked = !!perfil.pesquisa;
@@ -967,7 +1010,7 @@ $('#tela-perfil').addEventListener('click', (e) => {
   if (e.target.closest('#editar-perfil')) { $('#edicao-perfil').hidden = false; $('#perfil-motivo').hidden = true; $('#ed-nome').value = perfil.nome; $('#ed-motivo').value = perfil.motivo; $('#ed-nome').focus(); return; }
   if (e.target.closest('#cancelar-perfil')) { desenharPerfil(); return; }
   if (e.target.closest('#salvar-perfil')) { const n = $('#ed-nome').value.trim(), m = $('#ed-motivo').value.trim(); if (n) perfil.nome = n; if (m.length >= 3) perfil.motivo = m; desenharPerfil(); atualizarTextos(); aviso('Perfil atualizado.'); return; }
-  if (e.target.closest('#conta-perfil')) { if (conta) { conta = null; aviso('Você saiu da conta. Seus dados ficam neste celular.'); desenharPerfil(); } else { modoLogin = 'entrar'; irPara('login'); } return; }
+  if (e.target.closest('#conta-perfil')) { if (conta) { B?.sair(); conta = null; conversasApi = null; convApi = null; aviso('Você saiu da conta. Seus dados ficam neste celular.'); desenharPerfil(); } else { modoLogin = 'entrar'; irPara('login'); } return; }
   const pe = e.target.closest('[data-periodo-p]'); if (pe) { $$('#perfil-periodo [data-periodo-p]').forEach((b) => { b.setAttribute('aria-checked', String(b === pe)); b.setAttribute('aria-selected', String(b === pe)); }); return; }
   if (e.target.closest('#salvar-valor')) {
     const v = parseInt($('#perfil-valor').value.replace(/\D/g, ''), 10); perfil.valor = v > 0 ? v : 0;
@@ -1525,11 +1568,51 @@ let lun = { aba: 'mural', filtro: 'tudo', ident: {}, denun: {}, meus: [], resp: 
 try { const v = JSON.parse(localStorage.getItem('terraforma:luneta')); if (v) lun = { ...lun, ...v, aba: 'mural', filtro: 'tudo' }; } catch {}
 const guardarLun = () => { try { const { aba, filtro, ...resto } = lun; localStorage.setItem('terraforma:luneta', JSON.stringify(resto)); } catch {} };
 let fioAberto = null, convAberta = null, constEscolhida = 'vontade';
+// conversas reais (back NestJS, só com conta). Ids na tela: 'api:<id do chat>'
+let conversasApi = null, carregandoConversas = false, erroConversas = '', convApi = null, avisosConv = {}, relogioConv = null, enviandoConv = false;
+const ehApi = (id) => typeof id === 'string' && id.startsWith('api:');
+const RAPIDAS_API = ['Estou com vontade agora', 'Consegui hoje', 'Obrigado por estar aqui'];
+const horaCurta = (iso) => { const d = new Date(iso), hoje = new Date().toDateString() === d.toDateString();
+  return hoje ? d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }); };
+async function carregarConversas() {
+  if (!B || !conta || carregandoConversas) return;
+  carregandoConversas = true;
+  try { conversasApi = (await B.listarConversas()).itens; erroConversas = ''; }
+  catch (err) { erroConversas = err.message; }
+  finally { carregandoConversas = false; }
+  if (telaAtual === 'luneta' && lun.aba === 'conversas') { lunTopo = false; desenharLuneta(); }
+}
+function blocoConversasApi() {
+  if (!conta) return `<p class="sec-conv">Pessoas reais</p><div class="par-cartao"><b>Converse com quem você conhece</b><p>Com uma conta, você chama outras pessoas pelo nome de usuário. Ninguém vê seu e-mail.</p><button type="button" id="conv-entrar">Entrar ou criar conta</button></div>`;
+  const lista = conversasApi == null ? `<p class="regra-lun">${erroConversas ? esc(erroConversas) : 'Carregando suas conversas…'}</p>`
+    : conversasApi.length ? `<div class="lista-conv">${conversasApi.map((c) => { const outros = c.membros.filter((m) => m.id !== conta.id);
+      return `<button type="button" class="conv-item" data-conv="api:${esc(c.id)}"><span class="ic" style="background: var(--sup)"><span class="av-pl" style="width: 26px; height: 26px; background: ${corUsuario(outros[0]?.username || c.titulo)}"></span></span><span><b>${esc(c.titulo)}</b><small>${outros.length + 1} pessoas · ${esc(outros.map((m) => '@' + m.username).join(', '))}</small></span><span class="hora">${horaCurta(c.updatedAt)}</span></button>`; }).join('')}</div>`
+    : '<p class="regra-lun">Você ainda não tem conversas. Chame alguém pelo nome de usuário.</p>';
+  return `<p class="sec-conv">Suas conversas</p>${lista}
+    <form class="nova-conv" id="nova-conv" autocomplete="off" novalidate><label for="nova-conv-user">Conversar com</label><div class="linha"><input id="nova-conv-user" autocapitalize="none" spellcheck="false" maxlength="200" placeholder="nome de usuário" aria-describedby="dica-nova-conv"><button type="submit">Começar</button></div><p class="regra-lun" id="dica-nova-conv">Para um grupo, separe os nomes por vírgula.</p><p class="erro-conv" id="erro-nova-conv" role="alert"></p></form>`;
+}
+async function abrirConversaApi(id) {
+  convAberta = 'api:' + id; if (convApi?.id !== id) convApi = null;
+  irPara('conversa'); desenharConversa(); await atualizarConversaApi();
+  clearInterval(relogioConv);
+  // sem WebSocket no back: busca mensagens novas a cada 5 s enquanto a conversa estiver aberta
+  relogioConv = setInterval(() => { if (telaAtual !== 'conversa' || !ehApi(convAberta) || !conta) { clearInterval(relogioConv); relogioConv = null; return; } atualizarConversaApi(); }, 5000);
+}
+async function atualizarConversaApi() {
+  const id = convAberta.slice(4);
+  try { const c = await B.abrirConversa(id); if (convAberta !== 'api:' + id) return;
+    const mudou = !convApi || convApi.mensagens.length !== c.mensagens.length || convApi.mensagens.at(-1)?.id !== c.mensagens.at(-1)?.id;
+    convApi = c; if (mudou && telaAtual === 'conversa') desenharConversa(); }
+  catch (err) { if (err.status === 404) { aviso('Essa conversa não existe mais.'); conversasApi = null; lun.aba = 'conversas'; irPara('luneta'); } }
+}
 var emitirLuneta = (d) => __evento('luneta_' + d.tipo, d);   // o app em Next liga isto ao backend
 // o planeta da pessoa: nome e cor escolhidos por ela; o padrão é sorteado uma vez e não muda com os dias
 if (!lun.planeta) { lun.planeta = { nome: 'Verde-' + String(10 + Math.floor(Math.random() * 89)), cor: '#639922' }; guardarLun(); }
 const euNome = () => 'Planeta ' + lun.planeta.nome;
 const corDe = (q) => q === 'eu' ? lun.planeta.cor : (PLANETAS[q] || ['#B4B2A9'])[0];
+// conversas reais: cada nome de usuário ganha sempre a mesma cor da paleta dos planetas
+const CORES_USUARIO = Object.values(PLANETAS).map(([c]) => c);
+const corUsuario = (nome) => { let h = 0; for (const ch of String(nome)) h = (h * 31 + ch.charCodeAt(0)) >>> 0; return CORES_USUARIO[h % CORES_USUARIO.length]; };
 const CORES_PL = [['#639922', 'Verde'], ['#1D9E75', 'Turquesa'], ['#378ADD', 'Azul'], ['#534AB7', 'Índigo'], ['#D4537E', 'Rosa'], ['#D85A30', 'Coral'], ['#EF9F27', 'Âmbar'], ['#888780', 'Cinza']];
 const NOMES_PL = ['Ipê', 'Girassol', 'Jatobá', 'Seriema', 'Aurora', 'Maré Calma', 'Cerrado', 'Vagalume', 'Sabiá', 'Pitanga', 'Brisa', 'Araucária', 'Bem-te-vi', 'Orvalho', 'Jabuticaba', 'Lua Cheia'];
 let rascunhoPl = null;
@@ -1656,8 +1739,9 @@ function desenharLuneta() {
     const rm = rodaMinha(), nNovas = !lun.msgs.roda ? 3 : 0;
     const minha = `<p class="sec-conv">Na sua região</p><button type="button" class="roda-reg" data-conv="roda"><span class="bio" style="background: ${rm.claro}; color: ${rm.cor}">${ICO_RODA}</span><span><b>Roda do ${rm.n}</b><small>${rm.bio} · sextas, 21h · ${rm.qtd} planetas</small></span><span class="vivo">${nNovas ? nNovas + ' novas' : 'ao vivo'}</span></button>`;
     const outras = `<p class="sec-conv">Outras regiões</p><div class="outras-reg">${REGIOES_LUN.map((r, k) => k === lun.regiao ? '' : `<button type="button" data-outra="${k}"><b><i style="background: ${r[1]}"></i>${r[0]}</b><small>${r[4]} planetas</small></button>`).join('')}</div>`;
-    pn.innerHTML = minha + outras + `<p class="sec-conv">Só vocês dois</p><div class="lista-conv">${item('par')}</div><div class="par-cartao"><b>Quer mais um companheiro de trilha?</b><p>A Luneta sugere alguém com dias de recomeço e horário difícil parecidos com os seus. Os dois aceitam antes, ninguém vê nome ou foto, e qualquer um pode encerrar quando quiser.</p><button type="button" data-aviso="Na demo, a sugestão de companheiro não é feita. No app, chega um convite que a outra pessoa precisa aceitar.">Pedir um companheiro</button></div>`
-      + `<p class="regra-lun">Conversas fictícias na demonstração. A região serve para achar rodas no mesmo fuso e com a mesma realidade; cidade e localização exata nunca aparecem.</p>`;
+    if (conta && conversasApi == null && !erroConversas) carregarConversas();
+    pn.innerHTML = blocoConversasApi() + minha + outras + `<p class="sec-conv">Só vocês dois</p><div class="lista-conv">${item('par')}</div><div class="par-cartao"><b>Quer mais um companheiro de trilha?</b><p>A Luneta sugere alguém com dias de recomeço e horário difícil parecidos com os seus. Os dois aceitam antes, ninguém vê nome ou foto, e qualquer um pode encerrar quando quiser.</p><button type="button" data-aviso="Na demo, a sugestão de companheiro não é feita. No app, chega um convite que a outra pessoa precisa aceitar.">Pedir um companheiro</button></div>`
+      + `<p class="regra-lun">A roda e o companheiro são fictícios na demonstração; suas conversas acima são reais. A região serve para achar rodas no mesmo fuso e com a mesma realidade; cidade e localização exata nunca aparecem.</p>`;
   }
   if (lunTopo) { pn.scrollTop = 0; lunTopo = false; }
 }
@@ -1674,8 +1758,26 @@ function desenharFio() {
   $('#rapidas-fio').innerHTML = rapidas.map((r) => `<button type="button" data-rapida-fio="${r}">${r}</button>`).join('');
   $('#txt-fio').placeholder = p.pergunta ? 'Sua resposta…' : `Responder ao Planeta ${p.quem === 'eu' ? lun.planeta.nome : p.quem}…`;
 }
-function abrirConversa(id) { convAberta = id; irPara('conversa'); desenharConversa(); }
+function abrirConversa(id) { if (ehApi(id)) { abrirConversaApi(id.slice(4)); return; } convAberta = id; irPara('conversa'); desenharConversa(); }
+function desenharConversaApi() {
+  const c = convApi, extra = avisosConv[convAberta] || [];
+  const outros = c ? c.membros.filter((m) => m.id !== conta?.id) : [];
+  $('#conv-tit').textContent = c ? c.titulo : 'Conversa';
+  $('#conv-sub').textContent = c ? outros.map((m) => '@' + m.username).join(', ') + ' · com moderação' : 'Carregando…';
+  $('#txt-conv').placeholder = 'Escreva uma mensagem…'; $('#txt-conv').maxLength = 4000;
+  const msg = (m) => m.autorId && m.autorId === conta?.id
+    ? `<div class="msg minha"><div class="bolha-msg">${esc(m.conteudo)}</div></div>`
+    : `<div class="msg"><span class="de"><span class="av-pl" style="width: 14px; height: 14px; background: ${m.autor ? corUsuario(m.autor.username) : '#B4B2A9'}"></span>${m.autor ? '@' + esc(m.autor.username) : 'Conta apagada'}</span><div class="bolha-msg">${esc(m.conteudo)}</div></div>`;
+  const guard = (conteudo) => `<div class="msg guardiao"><span class="de"><span class="av-pl" style="width: 14px; height: 14px; background: #3C3489"></span>Guardião da Luneta</span>${conteudo}</div>`;
+  const ini = c && !c.mensagens.length ? guard('<div class="bolha-msg">Aqui vale contar como você está. Sem links, valores ou nomes de casas de aposta. Se alguém estiver em risco, a Ajuda fica no menu.</div>') : '';
+  $('#rol-msgs').innerHTML = (c ? ini + c.mensagens.map(msg).join('') : '<p class="regra-lun">Carregando mensagens…</p>')
+    + extra.map(([q, t]) => q === 'crise' ? guard(cartaoCrise()) : guard(`<div class="bolha-msg">${esc(t)}</div>`)).join('');
+  $('#rapidas').innerHTML = RAPIDAS_API.map((r) => `<button type="button" data-rapida="${esc(r)}">${r}</button>`).join('');
+  const r = $('#rol-msgs'); r.scrollTop = r.scrollHeight;
+}
 function desenharConversa(digitando) {
+  if (ehApi(convAberta)) { desenharConversaApi(); return; }
+  $('#txt-conv').maxLength = 300;
   const c = CONVERSAS[convAberta]; if (!c) return;
   const rm = rodaMinha();
   $('#conv-tit').textContent = c.planeta ? 'Planeta ' + c.tit : `Roda do ${rm.n}`; $('#conv-sub').textContent = c.planeta ? c.sub : `${rm.bio} · sextas, 21h · com moderação`;
@@ -1691,8 +1793,20 @@ function desenharConversa(digitando) {
   const r = $('#rol-msgs'); r.scrollTop = r.scrollHeight;
 }
 let respIdx = 0;
+async function enviarMensagemApi(txt) {
+  const aberta = convAberta, extra = (avisosConv[aberta] ||= []);
+  // crise: não vai para o servidor; mostra CVV e SAMU como nas conversas da demo
+  if (CRISE.test(txt)) { extra.push(['crise', '']); desenharConversa(); emitirLuneta?.({ tipo: 'alerta_crise', onde: 'conversa' }); return; }
+  const bloq = checar(txt).filter(([, , b]) => b);
+  if (bloq.length) { extra.push(['g', `Sua mensagem não foi enviada: ${bloq.map(([, rot]) => rot.toLowerCase()).join(', ')}. Aqui a gente conta como está, sem esses detalhes.`]); desenharConversa(); return; }
+  if (enviandoConv) return; enviandoConv = true;
+  try { await B.enviarMensagem(aberta.slice(4), txt); avisosConv[aberta] = []; conversasApi = null; await atualizarConversaApi(); }
+  catch (err) { extra.push(['g', 'Sua mensagem não foi enviada. ' + err.message]); if (convAberta === aberta) desenharConversa(); }
+  finally { enviandoConv = false; }
+}
 function enviarMensagem(txt) {
   txt = txt.trim(); if (!txt) return;
+  if (ehApi(convAberta)) { enviarMensagemApi(txt); return; }
   const lista = (lun.msgs[convAberta] ||= []);
   if (CRISE.test(txt)) { lista.push(['eu', txt], ['crise', '']); guardarLun(); desenharConversa(); emitirLuneta?.({ tipo: 'alerta_crise', onde: 'conversa' }); return; }
   const bloq = checar(txt).filter(([, , b]) => b);
@@ -1728,6 +1842,7 @@ $('#tela-luneta').addEventListener('click', (e) => {
   const mt = t.closest('[data-mut]'); if (mt) { const hoje = new Date().toDateString(); lun.mut = { dia: hoje, at: mt.dataset.mut, n: (lun.mut?.n || 0) + 1 }; guardarLun(); desenharLuneta(); aviso(`${mt.dataset.mut} somada ao mutirão do ${rodaMinha().n}.`); emitirLuneta?.({ tipo: 'mutirao', atividade: mt.dataset.mut }); return; }
   const fi = t.closest('[data-fio]'); if (fi) { abrirFio(fi.dataset.fio); return; }
   const cv = t.closest('[data-conv]'); if (cv) { abrirConversa(cv.dataset.conv); return; }
+  if (t.closest('#conv-entrar')) { modoLogin = 'entrar'; irPara('login'); return; }
   const ou = t.closest('[data-outra]'); if (ou) { aviso(`Você participa da roda da sua região. Para trocar para o ${REGIOES_LUN[+ou.dataset.outra][0]}, toque no seu planeta.`); return; }
   if (t.closest('#escrever') || t.closest('#prompt-post')) { abrirEscrever(); return; }
   if (t.closest('#mandar-forca')) { lun.forca = !lun.forca; guardarLun(); desenharLuneta(); if (lun.forca) { aviso(`Força enviada ao Planeta ${MARCO.quem}.`); emitirLuneta?.({ tipo: 'forca', para: MARCO.quem }); } return; }
@@ -1772,6 +1887,18 @@ $('#compor-fio').addEventListener('submit', (e) => {
   (lun.resp[fioAberto] ||= []).push(txt); guardarLun(); inp.value = ''; desenharFio();
   const r = $('#rol-fio'); r.scrollTop = r.scrollHeight; emitirLuneta?.({ tipo: 'resposta', post: fioAberto, texto: txt });
 });
+$('#tela-luneta').addEventListener('submit', async (e) => {
+  if (e.target.id !== 'nova-conv') return;
+  e.preventDefault();
+  const inp = $('#nova-conv-user'), erro = $('#erro-nova-conv');
+  const nomes = [...new Set(inp.value.split(/[,\s]+/).map((n) => n.replace(/^@/, '').trim().toLowerCase()).filter(Boolean))];
+  if (!nomes.length) { erro.textContent = 'Digite o nome de usuário de quem você quer chamar.'; inp.focus(); return; }
+  if (nomes.includes(conta.username)) { erro.textContent = 'Esse é o seu nome de usuário. Chame outra pessoa.'; inp.focus(); return; }
+  const bt = e.target.querySelector('button[type="submit"]'); bt.disabled = true; erro.textContent = '';
+  try { const c = await B.criarConversa(nomes); conversasApi = null; emitirLuneta?.({ tipo: 'conversa_criada', pessoas: nomes.length + 1 }); abrirConversaApi(c.id); }
+  catch (err) { erro.textContent = err.message; }
+  finally { bt.disabled = false; }
+});
 $('#compor-conv').addEventListener('submit', (e) => { e.preventDefault(); const inp = $('#txt-conv'); enviarMensagem(inp.value); inp.value = ''; });
 $('#tela-conversa').addEventListener('click', (e) => {
   const r = e.target.closest('[data-rapida]'); if (r) { enviarMensagem(r.dataset.rapida); return; }
@@ -1810,8 +1937,17 @@ function aplicar() {
 
 // ---------- início ----------
 aplicar();
-const inicial = (location.hash || '#login').slice(1);   // o app abre pela história
+// link do e-mail de recuperação: /redefinir-senha?token=... abre o login no modo "senha nova"
+try { const q = new URLSearchParams(location.search); if (location.pathname.startsWith('/redefinir-senha') && q.get('token')) { tokenRedefinir = q.get('token'); modoLogin = 'redefinir'; } } catch {}
+const inicial = tokenRedefinir ? 'login' : (location.hash || '#login').slice(1);   // o app abre pela história
 irPara(telas.includes(inicial) ? inicial : 'inicio', { sem: true });
+if (B) {
+  // token vencido, senha trocada em outro aparelho ou conta apagada: volta ao modo sem conta
+  B.quandoDeslogar(() => { if (!conta) return; conta = null; conversasApi = null; convApi = null; aviso('Sua sessão terminou. Entre de novo para ver suas conversas.'); if (telaAtual === 'conversa' && ehApi(convAberta)) { lun.aba = 'conversas'; irPara('luneta'); } });
+  // sessão salva: reconhece a pessoa sem pedir a senha de novo
+  B.sessao().then((u) => { if (!u) return; conta = contaDe(u); if (telaAtual === 'login' && modoLogin !== 'redefinir') irPara('boas'); else if (telaAtual === 'perfil') desenharPerfil(); })
+    .catch(() => { /* servidor fora do ar: segue sem conta, o token fica para a próxima vez */ });
+}
 addEventListener('hashchange', () => irPara(location.hash.slice(1)));
 
 try {

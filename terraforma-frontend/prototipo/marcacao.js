@@ -17,15 +17,16 @@ export const MARCACAO = `<div class="bancada">
           <div class="slot" data-slot style="height: 150px"></div>
           <div class="boas-corpo login-corpo">
             <div><h2 class="boas-tit" id="login-tit">Um lugar para recomeçar.</h2><p class="boas-sub" style="margin-top: 6px">Apoio para quem quer parar de apostar. Sem julgamento.</p></div>
-            <div class="seg-login" role="tablist" aria-label="Entrar ou criar conta"><button type="button" role="tab" data-login="entrar" aria-selected="true">Entrar</button><button type="button" role="tab" data-login="criar" aria-selected="false">Criar conta</button></div>
+            <div class="seg-login" id="abas-login" role="tablist" aria-label="Entrar ou criar conta"><button type="button" role="tab" data-login="entrar" aria-selected="true">Entrar</button><button type="button" role="tab" data-login="criar" aria-selected="false">Criar conta</button></div>
             <form class="form-login" id="form-login" novalidate>
-              <div class="campo-boas"><label for="login-email">E-mail</label><input id="login-email" type="email" autocomplete="email" inputmode="email" placeholder="voce@email.com"></div>
-              <div class="campo-boas"><label for="login-senha">Senha</label><span class="com-olho"><input id="login-senha" type="password" autocomplete="current-password" placeholder="mínimo 6 caracteres"><button type="button" id="ver-senha" aria-label="Mostrar senha" aria-pressed="false"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button></span></div>
+              <div class="campo-boas" id="campo-usuario" hidden><label for="login-usuario">Nome de usuário</label><input id="login-usuario" type="text" autocomplete="username" autocapitalize="none" spellcheck="false" maxlength="30" placeholder="ex.: verde.27" aria-describedby="dica-usuario"><small class="dica-boas" id="dica-usuario">Letras minúsculas, números, ponto, hífen ou sublinhado. É por ele que outras pessoas te chamam para conversar. Não use seu nome real.</small></div>
+              <div class="campo-boas" id="campo-email"><label for="login-email">E-mail</label><input id="login-email" type="email" autocomplete="email" inputmode="email" placeholder="voce@email.com"></div>
+              <div class="campo-boas"><label for="login-senha" id="rot-senha">Senha</label><span class="com-olho"><input id="login-senha" type="password" autocomplete="current-password" placeholder="mínimo 8 caracteres"><button type="button" id="ver-senha" aria-label="Mostrar senha" aria-pressed="false"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button></span></div>
               <p class="erro-login" id="erro-login" role="alert"></p>
               <button class="boas-botao" type="submit" id="login-ok">Entrar</button>
               <button class="link-login" type="button" id="esqueci">Esqueci a senha</button>
             </form>
-            <div class="ou"><span>ou</span></div>
+            <div class="ou" id="ou-login"><span>ou</span></div>
             <button class="botao-sem-conta" type="button" id="sem-conta">Continuar sem conta</button>
             <p class="privado"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg><span id="login-priv">Sem conta, tudo fica só neste celular.</span></p>
           </div>

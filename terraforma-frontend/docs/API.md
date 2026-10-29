@@ -32,8 +32,8 @@ Resposta: `201 { "ok": true }`. Tipo desconhecido ou corpo inválido: `400 { "er
 | tipo | dados | regra no servidor |
 | --- | --- | --- |
 | `entrada` | `comConta: false` | pessoa escolheu "Continuar sem conta": dados ficam só no aparelho |
-| `login` | — | o protótipo só valida formato (e-mail e senha ≥ 6). **Autenticação real é do backend** |
-| `conta_criada` | — | idem |
+| `login` | — | só contagem: a autenticação acontece no back NestJS (`POST /auth/login`) |
+| `conta_criada` | — | idem (`POST /user`) |
 | `perfil_criado` | `nome`, `motivo`, `valor` (número ou null), `periodo` (`dia`/`semana`/`mes`) | salva o perfil; zera o progresso: `inicio` = `em`, 1 dia, 0 Marés, rios secos |
 | `pesquisa` | `participa` (bool) | consentimento de pesquisa; só números anônimos |
 | `dados_apagados` | — | "Apagar meus dados" em Ajustes: apagar **tudo** desta pessoa no servidor (LGPD). O front já limpou o aparelho |
@@ -91,6 +91,7 @@ O conteúdo das aulas e do quiz está em `dados/trilha-aulas.json` (e embutido e
 | `luneta_denuncia` | `post` | vai para a moderação |
 | `luneta_bloqueio` | — | a lista de bloqueados vai por `PATCH /estado` |
 | `luneta_planeta_editado` | — | nome, cor, região e "Mostrar meus dias" vão por `PATCH /estado` |
+| `luneta_conversa_criada` | `pessoas` (total, com quem criou) | só contagem; a conversa e as mensagens ficam no back NestJS (`/chats`) |
 | `luneta_alerta_crise` | `onde` (`mural`/`conversa`) | **sem texto, de propósito.** O front já mostrou CVV 188 e SAMU 192. Usar só para contagem e para priorizar moderação |
 
 O front já bloqueia, antes de enviar, texto com link, valor em dinheiro, telefone e termos de aposta (casas, cassino, odds, palpite). As regras estão em `prototipo/app.js`, procure `const MODERACAO`; sinais de crise em `const CRISE`. O servidor precisa repetir essa validação: o front não é barreira de segurança.
@@ -117,10 +118,28 @@ Hoje o protótipo usa `localStorage`. Ao ligar o backend, estes dados passam a v
 
 O restante (perfil, dias, Marés, rios, finanças, ajustes) vive em variáveis dentro de `prototipo/app.js` (`s`, `perfil`, `fin`, `troca`, `ORBITA`) e some ao recarregar. Ligar isso a `GET /estado` é o primeiro passo da fase 2 (`docs/MIGRACAO.md`).
 
+## Back NestJS (`terraforma-backend`)
+
+Conta, senha e conversas entre pessoas já são reais. O front fala com ele por `lib/backend.ts` (URL em `NEXT_PUBLIC_BACKEND_URL`, padrão `http://localhost:3001`; o back precisa ter o endereço do front em `FRONTEND_URL`/`CORS_ORIGINS`). Token JWT em `localStorage` (`terraforma:token`), enviado como `Bearer`.
+
+| tela do protótipo | rota |
+| --- | --- |
+| Login: Entrar | `POST /auth/login`, depois `GET /auth/me` |
+| Login: Criar conta (nome de usuário, e-mail, senha ≥ 8) | `POST /user`, depois login |
+| Login: Esqueci a senha | `POST /auth/forgot-password` |
+| Link do e-mail (`/redefinir-senha?token=`) | `POST /auth/reset-password` |
+| Abrir o app com sessão salva | `GET /auth/me` (401 = volta ao modo sem conta) |
+| Ajustes: Apagar meus dados (com conta) | `DELETE /user/me` antes de limpar o aparelho |
+| Luneta → Conversas: Suas conversas | `GET /chats`, `POST /chats` (`membros`: usernames) |
+| Conversa real | `GET /chats/:id` (a cada 5 s com a tela aberta), `POST /chats/:id/messages` |
+
+Texto com sinal de crise **não é enviado** para `/chats`: o front mostra CVV 188 e SAMU 192, como nas conversas da demo. O back também modera (links, valores, casas de aposta).
+
+Os eventos (`/eventos`) e o estado (`/estado`) ainda **não** existem no NestJS; continuam nas rotas de exemplo do Next.
+
 ## Próximos endpoints sugeridos
 
-- Autenticação (cookie de sessão ou Bearer). O cliente já envia `credentials: 'include'`; ajuste em `lib/api.ts`.
 - `GET /luneta/mural?regiao=&constelacao=`, `GET /luneta/conversas/:id`, `POST /luneta/moderacao/:id` (posts e conversas reais, hoje são fictícios no front).
 - `POST /orbita/pessoas`, `POST /orbita/pessoas/:id/recados`: o recado é escrito pela própria pessoa, nunca gerado pelo app.
 - `GET /metricas/resultado`: agregado anônimo (vontade antes/depois por técnica e por troca), só de quem aceitou a pesquisa.
-- `DELETE /conta`: apagar todos os dados.
+- `DELETE /user/me` já apaga a conta e as conversas; quando `/estado` for para o NestJS, ele precisa apagar esse estado também.
