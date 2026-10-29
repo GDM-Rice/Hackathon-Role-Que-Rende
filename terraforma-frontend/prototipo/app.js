@@ -6,7 +6,7 @@
 // Leia AGENTS.md antes de editar. Mapa das seções: docs/BACKLOG.md e AGENTS.md.
 import { criarGlobo, estadoDoPlaneta, REGIOES, LIMIARES, RIOS } from './globo.js';
 import { criarOceano, criarSomDoMar, ceuDaHora, corDaNevoa } from './oceano.js';
-import { carregarTexturas, montarCena, limparCenas, definirAtivo, retomar, destaque, BIOMAS, NOMES } from './trilha-paisagem.js';
+import { carregarTexturas, montarCena, limparCenas, definirAtivo, retomar, destaque, aquecerChao, BIOMAS, NOMES } from './trilha-paisagem.js';
 
 let iniciado = false;
 export async function iniciar(opcoes = {}) {
@@ -1238,6 +1238,7 @@ function desenharTrilha() {
       return `<button type="button" class="no ${cls} t-${m.tipo}${novo ? ' surgiu' : ''}" style="left: ${x}px; top: ${y}px" data-at="${c}-${i}" aria-haspopup="dialog" aria-label="${escH(rot)}">${f ? ICO_K.feito : ICO_K[m.tipo]}${agora ? `<span class="bolha">${{ aula: 'Começar', quiz: 'Quiz', pratica: 'Na prática' }[m.tipo]}</span>` : ''}</button>`;
     }).join('');
     return `<section class="capitulo" data-c="${c}" aria-label="Capítulo ${c + 1}, ${CAP_REGIAO[c]}: ${escH(AULAS[c].n)}">
+      <canvas class="paisagem-chao" aria-hidden="true"></canvas>
       <canvas class="paisagem-cv" aria-hidden="true"></canvas>
       <div class="faixa-cap ${feitasCap === N ? 'feito' : ''}"><span><b>${CAP_REGIAO[c]} · ${AULAS[c].n}</b><small>Capítulo ${c + 1} · ${CAP_BIOMA[c].split(' e ')[0]} · ${AULAS[c].a.length} aulas + prática</small></span><span class="cont">${feitasCap === N ? '✓ completo' : feitasCap + ' de ' + N}</span></div>
       ${feitasCap === N ? `<p class="fim-cap">A paisagem do ${CAP_REGIAO[c]} voltou. O que floresce fica.</p>` : ''}
@@ -1247,7 +1248,7 @@ function desenharTrilha() {
   $('#rol-trilha').innerHTML = html;
   $$('#rol-trilha .capitulo').forEach((sec) => {
     const c = +sec.dataset.c, tr = sec.querySelector('.trilho-cap');
-    montarCena({ canvas: sec.querySelector('.paisagem-cv'), c, trilho: tr, ox: tr.offsetLeft, oy: tr.offsetTop, reduzido: s.mov, escuro: s.escuro, ...geo[c] });
+    montarCena({ canvas: sec.querySelector('.paisagem-cv'), chaoCv: sec.querySelector('.paisagem-chao'), c, trilho: tr, ox: tr.offsetLeft, oy: tr.offsetTop, reduzido: s.mov, escuro: s.escuro, ...geo[c] });
   });
   const px = $('#proxima');
   if (prox) {
@@ -2033,6 +2034,7 @@ try {
   if (telaAtual === 'mare') { globo.irPara({ opacidade: 0 }, 0); }
   app.classList.add('pronto'); app.removeAttribute('aria-busy');
   setTimeout(() => { try { garantirOceano(); } catch (e) { console.error(e); } }, 1200);
+  setTimeout(() => { aquecerChao(s.escuro).catch(() => {}); }, 3000);   // texturas do chão da trilha, em fatias, antes de a pessoa abrir a trilha
   addEventListener('resize', () => moverGlobo(telaAtual, 0));
 } catch (err) {
   console.error(err);

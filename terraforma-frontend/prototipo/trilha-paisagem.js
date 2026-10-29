@@ -495,49 +495,75 @@ const PAL = {
 function mistura(a, b, k) { const p = (h) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16)), A = p(a), B = p(b); return `rgb(${A.map((v, i) => Math.round(v + (B[i] - v) * k)).join(',')})`; }
 const PADROES = {};
 // rachaduras que se emendam sozinhas: células de Voronoi num ladrilho que "dá a volta" nas bordas,
-// então a textura repete sem nenhuma costura (nem na vertical, nem na horizontal, nem entre capítulos)
-function rachaduras(c, T, d, celulas, cor, larg, alfa, pular, seed) {
+// então a textura repete sem nenhuma costura (nem na vertical, nem na horizontal, nem entre capítulos).
+// Escreve direto no buffer de pixels (px): ler de um canvas com getImageData devolve os dados da GPU e travava
+// o navegador por segundos no celular. É um gerador: cede a vez a cada poucas linhas, para dar para fazer em pedaços.
+function* rachaduras(px, T, d, celulas, cor, larg, alfa, pular, seed) {
   const rnd = semente(seed), g = Math.round(Math.sqrt(celulas)), pts = [];
   for (let i = 0; i < g; i++) for (let j = 0; j < g; j++) pts.push([(i + 0.15 + rnd() * 0.7) * T / g, (j + 0.15 + rnd() * 0.7) * T / g]);
   const n = pts.length, peso = (i, k) => { const h = Math.sin((Math.min(i, k) * 73.1 + Math.max(i, k) * 19.7) * 12.9898) * 43758.5453; return h - Math.floor(h); };
-  const N = T * d, img = c.getImageData(0, 0, N, N), px = img.data, [r, gg, b] = [1, 3, 5].map((k) => parseInt(cor.slice(k, k + 2), 16)), aa = 0.75;
-  for (let yy = 0; yy < N; yy++) for (let xx = 0; xx < N; xx++) {
-    const x = (xx + 0.5) / d, y = (yy + 0.5) / d; let d1 = 1e9, d2 = 1e9, i1 = 0, i2 = 0;
-    for (let k = 0; k < n; k++) { let dx = Math.abs(x - pts[k][0]), dy = Math.abs(y - pts[k][1]); if (dx > T / 2) dx = T - dx; if (dy > T / 2) dy = T - dy;
-      const dd = dx * dx + dy * dy; if (dd < d1) { d2 = d1; i2 = i1; d1 = dd; i1 = k; } else if (dd < d2) { d2 = dd; i2 = k; } }
-    const h = peso(i1, i2); if (h < pular) continue;   // algumas rachaduras ficam pela metade, como na terra de verdade
-    const borda = (Math.sqrt(d2) - Math.sqrt(d1)) / 2, w = larg * (0.55 + 0.8 * h), a = Math.max(0, Math.min(1, (w / 2 + aa - borda) / aa)) * alfa;
-    if (a <= 0) continue;
-    const o = (yy * N + xx) * 4, ja = px[o + 3] / 255, na = a + ja * (1 - a);
-    px[o] = (r * a + px[o] * ja * (1 - a)) / na; px[o + 1] = (gg * a + px[o + 1] * ja * (1 - a)) / na; px[o + 2] = (b * a + px[o + 2] * ja * (1 - a)) / na; px[o + 3] = na * 255;
+  const N = T * d, [r, gg, b] = [1, 3, 5].map((k) => parseInt(cor.slice(k, k + 2), 16)), aa = 0.75;
+  for (let yy = 0; yy < N; yy++) {
+    for (let xx = 0; xx < N; xx++) {
+      const x = (xx + 0.5) / d, y = (yy + 0.5) / d; let d1 = 1e9, d2 = 1e9, i1 = 0, i2 = 0;
+      for (let k = 0; k < n; k++) { let dx = Math.abs(x - pts[k][0]), dy = Math.abs(y - pts[k][1]); if (dx > T / 2) dx = T - dx; if (dy > T / 2) dy = T - dy;
+        const dd = dx * dx + dy * dy; if (dd < d1) { d2 = d1; i2 = i1; d1 = dd; i1 = k; } else if (dd < d2) { d2 = dd; i2 = k; } }
+      const h = peso(i1, i2); if (h < pular) continue;   // algumas rachaduras ficam pela metade, como na terra de verdade
+      const borda = (Math.sqrt(d2) - Math.sqrt(d1)) / 2, w = larg * (0.55 + 0.8 * h), a = Math.max(0, Math.min(1, (w / 2 + aa - borda) / aa)) * alfa;
+      if (a <= 0) continue;
+      const o = (yy * N + xx) * 4, ja = px[o + 3] / 255, na = a + ja * (1 - a);
+      px[o] = (r * a + px[o] * ja * (1 - a)) / na; px[o + 1] = (gg * a + px[o + 1] * ja * (1 - a)) / na; px[o + 2] = (b * a + px[o + 2] * ja * (1 - a)) / na; px[o + 3] = na * 255;
+    }
+    if ((yy & 7) === 7) yield;
   }
-  c.putImageData(img, 0, 0);
 }
 // ladrilho de cada textura (em unidades da tela) e a escala do padrão: rachas e estrada são geradas em dobro para ficarem nítidas
 const LADRILHO = { rachas: [220, 0.5], estrada: [72, 0.5], grama: [46, 1] };
-function padrao(nome, P) {
-  const chave = nome + P.seco; if (PADROES[chave]) return PADROES[chave];
+function* construirPadrao(nome, P) {
   const cv = document.createElement('canvas'), d = 2;
   if (nome === 'rachas') {
-    const T = LADRILHO.rachas[0]; cv.width = cv.height = T * d; const c = cv.getContext('2d');
-    rachaduras(c, T, d, 81, P.racha, 0.75, 0.5, 0.45, 11);   // fissuras finas por baixo
-    rachaduras(c, T, d, 16, P.racha, 1.9, 1, 0.1, 7);         // rachaduras principais
+    const T = LADRILHO.rachas[0], N = T * d; cv.width = cv.height = N; const img = new ImageData(N, N);
+    yield* rachaduras(img.data, T, d, 81, P.racha, 0.75, 0.5, 0.45, 11);   // fissuras finas por baixo
+    yield* rachaduras(img.data, T, d, 16, P.racha, 1.9, 1, 0.1, 7);         // rachaduras principais
+    cv.getContext('2d').putImageData(img, 0, 0);
   } else if (nome === 'estrada') {
-    const T = LADRILHO.estrada[0]; cv.width = cv.height = T * d; const c = cv.getContext('2d');
-    c.fillStyle = P.eSeca; c.fillRect(0, 0, cv.width, cv.height);
-    rachaduras(c, T, d, 9, P.eSecaB, 1.4, 1, 0.15, 5);
+    const T = LADRILHO.estrada[0], N = T * d; cv.width = cv.height = N; const img = new ImageData(N, N), px = img.data;
+    const [r, g, b] = [1, 3, 5].map((k) => parseInt(P.eSeca.slice(k, k + 2), 16));
+    for (let o = 0; o < px.length; o += 4) { px[o] = r; px[o + 1] = g; px[o + 2] = b; px[o + 3] = 255; }
+    yield* rachaduras(px, T, d, 9, P.eSecaB, 1.4, 1, 0.15, 5);
+    cv.getContext('2d').putImageData(img, 0, 0);
   } else {
     const t = LADRILHO.grama[0]; cv.width = cv.height = t * d; const c = cv.getContext('2d'); c.scale(d, d); c.lineCap = 'round';
     c.strokeStyle = P.grama2; c.lineWidth = 1.5; ['M6 30q1-4 3-7M10 30q0-5-2-8', 'M30 12q1-4 3-6M34 12q0-4-2-7', 'M36 40q1-3 3-5'].forEach((s) => c.stroke(new Path2D(s)));
     c.fillStyle = P.grama3; [[20, 22, 1.3], [42, 26, 1]].forEach(([x, y, r]) => { c.beginPath(); c.arc(x, y, r, 0, Math.PI * 2); c.fill(); });
   }
-  return (PADROES[chave] = cv);
+  return cv;
+}
+function padrao(nome, P) {
+  const chave = nome + P.seco; if (PADROES[chave]) return PADROES[chave];
+  const g = construirPadrao(nome, P); let r; do { r = g.next(); } while (!r.done);
+  return (PADROES[chave] = r.value);
+}
+// Gera as texturas do chão em segundo plano, em fatias de ~6 ms, para que abrir a trilha não precise calculá-las
+// (no celular era um bloqueio de centenas de milissegundos no meio da animação de entrada).
+export async function aquecerChao(escuro) {
+  const P = escuro ? PAL.escuro : PAL.claro;
+  for (const nome of ['grama', 'estrada', 'rachas']) {
+    const chave = nome + P.seco; if (PADROES[chave]) continue;
+    const g = construirPadrao(nome, P); let r;
+    do {
+      const t0 = performance.now();
+      do { r = g.next(); } while (!r.done && performance.now() - t0 < 6);
+      if (!r.done) await new Promise((ok) => setTimeout(ok));
+    } while (!r.done);
+    PADROES[chave] ??= r.value;   // se a trilha já precisou antes, vale a que ela fez
+  }
 }
 
 // ---------- uma cena por capítulo ----------
 let OFF = null;
 export class CenaTrilha {
-  // cfg: { canvas, c, W, H, ox, oy, d (caminho SVG), pts, premios: [{x, y, tipo, feito, novo}], completo, yF, yAnt, animar, reduzido, escuro }
+  // cfg: { canvas, chaoCv (canvas do chão, atrás do canvas), c, W, H, ox, oy, d (caminho SVG), pts, premios: [{x, y, tipo, feito, novo}], completo, yF, yAnt, animar, reduzido, escuro }
   constructor(cfg) {
     Object.assign(this, cfg);
     this.bio = BIOMAS[this.c];
@@ -599,6 +625,7 @@ export class CenaTrilha {
   dimensionar() {
     const dpr = DPR(), cw = this.canvas.clientWidth, ch = this.canvas.clientHeight;
     this.cw = cw; this.ch = ch; this.canvas.width = Math.round(cw * dpr); this.canvas.height = Math.round(ch * dpr); this.dpr = dpr;
+    if (this.chaoCv) { this.chaoCv.width = this.canvas.width; this.chaoCv.height = this.canvas.height; }   // o chão tem canvas próprio, atrás deste
   }
   frente(x) { return this.yCur + Math.sin(x * 0.045 + this.c) * 12 + Math.sin(x * 0.11 + this.c * 2) * 6; }
   atualizarVivos(seg, inicio) {
@@ -616,14 +643,14 @@ export class CenaTrilha {
     if (this.animar && !r) { const k = clamp((seg - 0.35) / 2.6); this.yCur = this.yAnt + (this.yF - this.yAnt) * vaiVolta(k); }
     else this.yCur = this.yF;
     this.atualizarVivos(seg, false);
-    // o chão só muda quando a frente anda, o tema troca ou o layout mexe: fica guardado numa imagem
-    // (antes eram duas camadas em tela cheia compostas a cada quadro)
+    // o chão só muda quando a frente anda, o tema troca ou o layout mexe: tem um canvas só dele, atrás deste, e é
+    // pintado só nessas horas. Este aqui fica transparente e só leva plantas e bichos (o navegador junta os dois,
+    // sem copiar o chão inteiro a cada quadro)
     const yMundo = (this.canvas.parentElement?.offsetTop || 0) + this.oy;
     const chave = [this.canvas.width, this.canvas.height, this.ox, this.oy, this.yCur, this.escuro, yMundo].join('|');
     if (this.chaoChave !== chave) { this.pintarChao(yMundo); this.chaoChave = chave; }
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-    ctx.drawImage(this.chao, 0, 0);
     ctx.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
     ctx.translate(this.ox, this.oy);
     // revoadas: sombra no chão primeiro
@@ -648,9 +675,7 @@ export class CenaTrilha {
     return !r;
   }
   pintarChao(yMundo) {
-    const o = this.chao || (this.chao = document.createElement('canvas'));
-    if (o.width !== this.canvas.width || o.height !== this.canvas.height) { o.width = this.canvas.width; o.height = this.canvas.height; }
-    const ctx = o.getContext('2d');
+    const ctx = this.chaoCv.getContext('2d');
     ctx.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
     ctx.clearRect(0, 0, this.cw, this.ch);
     ctx.translate(this.ox, this.oy);
@@ -661,8 +686,16 @@ export class CenaTrilha {
     ctx.fillStyle = gr; ctx.fillRect(x0, y0, W0, H0);
     // texturas alinhadas à rolagem inteira (não a cada capítulo): rachaduras e grama continuam de um capítulo para o outro
     const alinhar = (pat, nome) => { const k = LADRILHO[nome][1]; try { pat.setTransform(new DOMMatrix([k, 0, 0, k, 0, -yMundo])); } catch {} return pat; };
-    this.camada(ctx, (c) => { c.fillStyle = alinhar(c.createPattern(padrao('rachas', P), 'repeat'), 'rachas'); c.fillRect(x0, y0, W0, H0); }, true, x0, y0, W0, H0);
-    this.camada(ctx, (c) => { c.fillStyle = alinhar(c.createPattern(padrao('grama', P), 'repeat'), 'grama'); c.fillRect(x0, y0, W0, H0); }, false, x0, y0, W0, H0);
+    // a transição entre o seco e a grama é uma faixa de 2*M em volta da frente: acima dela as rachaduras aparecem inteiras
+    // e abaixo dela só há grama. Só a faixa precisa de máscara (antes eram dois canvases inteiros copiados a cada vez)
+    const preenche = (c, nome, ya, yb) => { if (yb > ya) { c.fillStyle = alinhar(c.createPattern(padrao(nome, P), 'repeat'), nome); c.fillRect(x0, ya, W0, yb - ya); } };
+    const faixaA = Math.max(y0, Math.min(y1, yc - M)), faixaB = Math.max(y0, Math.min(y1, yc + M));
+    preenche(ctx, 'rachas', y0, faixaA);
+    preenche(ctx, 'grama', faixaB, y1);
+    if (faixaB > faixaA) {
+      this.camada(ctx, (c) => preenche(c, 'rachas', faixaA, faixaB), true, x0, faixaA, W0, faixaB - faixaA);
+      this.camada(ctx, (c) => preenche(c, 'grama', faixaA, faixaB), false, x0, faixaA, W0, faixaB - faixaA);
+    }
     // estrada: rachada e cinza onde falta; verde onde a pessoa já passou
     ctx.lineCap = 'round'; ctx.lineJoin = 'round';
     ctx.strokeStyle = P.eSecaB; ctx.lineWidth = 30; ctx.stroke(this.caminho);
@@ -676,14 +709,18 @@ export class CenaTrilha {
     const o = OFF ?? (OFF = document.createElement('canvas'));   // uma só para todas as cenas: só é usada enquanto o chão é refeito
     if (o.width !== this.canvas.width || o.height !== this.canvas.height) { o.width = this.canvas.width; o.height = this.canvas.height; }
     const c = o.getContext('2d'), yc = this.yCur, M = 64;
-    c.setTransform(1, 0, 0, 1, 0, 0); c.globalCompositeOperation = 'source-over'; c.clearRect(0, 0, o.width, o.height);
+    // só o retângulo da faixa (em pixels do canvas, com 1 de folga) é limpo, desenhado e copiado
+    const dpr = this.dpr, sx = Math.max(0, Math.floor((x0 + this.ox) * dpr) - 1), sy = Math.max(0, Math.floor((y0 + this.oy) * dpr) - 1);
+    const sw = Math.min(o.width - sx, Math.ceil(W0 * dpr) + 3), sh = Math.min(o.height - sy, Math.ceil(H0 * dpr) + 3);
+    if (sw <= 0 || sh <= 0) return;
+    c.setTransform(1, 0, 0, 1, 0, 0); c.globalCompositeOperation = 'source-over'; c.clearRect(sx, sy, sw, sh);
     c.setTransform(this.dpr, 0, 0, this.dpr, 0, 0); c.translate(this.ox, this.oy);
     desenha(c);
     c.globalCompositeOperation = 'destination-in';
     const g = c.createLinearGradient(0, yc - M, 0, yc + M);
     g.addColorStop(0, deCima ? 'rgba(0,0,0,1)' : 'rgba(0,0,0,0)'); g.addColorStop(1, deCima ? 'rgba(0,0,0,0)' : 'rgba(0,0,0,1)');
     c.fillStyle = g; c.fillRect(x0, y0, W0, H0);
-    ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.drawImage(o, 0, 0); ctx.restore();
+    ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.drawImage(o, sx, sy, sw, sh, sx, sy, sw, sh); ctx.restore();
   }
   moverFauna(seg, dt) {
     const fx = this.faixaViva(), rnd = this.rnd;
@@ -788,14 +825,18 @@ export class CenaTrilha {
 
 // ---------- motor: pinta só o que está na tela ----------
 const cenas = new Set(); let raf = 0, ultimo = 0, ativo = () => true;
-const visiveis = new IntersectionObserver((es) => es.forEach((e) => { const c = e.target.__cena; if (c) c.visivel = e.isIntersecting; }), { rootMargin: '120px' });
+const visiveis = new IntersectionObserver((es) => es.forEach((e) => { const c = e.target.__cena; if (c) { c.visivel = e.isIntersecting; c.io = true; } }), { rootMargin: '120px' });
 function laco(agora) {
   raf = 0;
   if (agora - ultimo < 12) { if (!document.hidden) raf = requestAnimationFrame(laco); return; }   // no máximo 60 quadros por segundo, mesmo em tela de 120 Hz
   ultimo = agora;
   let continuar = false;
+  // a primeira pintura de um capítulo é a cara (chão, plantas, bichos): no máximo uma por quadro, os visíveis primeiro,
+  // senão os 5 capítulos eram pintados na mesma tarefa e a trilha travava ao abrir
+  const nova = ativo() ? ([...cenas].find((c) => !c.pintada && c.visivel && c.canvas.clientWidth) ?? [...cenas].find((c) => !c.pintada && c.io && c.canvas.clientWidth)) : null;
   for (const c of cenas) {
     if (!c.canvas.isConnected) { cenas.delete(c); visiveis.unobserve(c.canvas); continue; }
+    if (!c.pintada) { continuar = true; if (c === nova) { c.pintada = true; c.pintar(agora); } continue; }
     if (!c.visivel || !ativo()) { continuar = true; continue; }
     if (c.pintar(agora)) continuar = true;
   }
@@ -805,8 +846,8 @@ export function definirAtivo(fn) { ativo = fn; }
 export function retomar() { if (!raf && cenas.size) raf = requestAnimationFrame(laco); }
 document.addEventListener('visibilitychange', retomar);
 export function montarCena(cfg) {
-  const c = new CenaTrilha(cfg); c.visivel = true; cfg.canvas.__cena = c; cenas.add(c); visiveis.observe(cfg.canvas);
-  c.pintar(performance.now()); retomar(); return c;
+  const c = new CenaTrilha(cfg); c.visivel = false; cfg.canvas.__cena = c; cenas.add(c); visiveis.observe(cfg.canvas);
+  retomar(); return c;   // a primeira pintura fica por conta do laço (uma por quadro)
 }
 export function limparCenas() { for (const c of cenas) visiveis.unobserve(c.canvas); cenas.clear(); }
 
