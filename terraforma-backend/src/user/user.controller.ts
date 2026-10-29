@@ -1,5 +1,5 @@
 import { Body, Controller, Delete, Get, Patch, Post } from '@nestjs/common';
-import { Throttle } from '@nestjs/throttler';
+import { Throttle } from '../common/limite.js';
 import { CurrentUser } from '../auth/decorators/CurrentUser.decorator.js';
 import { Public } from '../auth/decorators/isPublic.decorator.js';
 import { CreateUserDto } from './dto/create-user.dto.js';

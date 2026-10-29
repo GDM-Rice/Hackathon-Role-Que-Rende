@@ -13,7 +13,7 @@ async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
   // Atrás de proxy (Vercel, Render...), o IP de quem chama vem em X-Forwarded-For. Sem isto,
-  // o limite de tentativas (ThrottlerGuard) contaria todo mundo como o mesmo IP do proxy:
+  // o limite de tentativas (LimiteGuard) contaria todo mundo como o mesmo IP do proxy:
   // 5 logins por minuto para o app inteiro. TRUST_PROXY=1 liga fora do Vercel.
   if (process.env.VERCEL || process.env.TRUST_PROXY === '1')
     app.set('trust proxy', 1);

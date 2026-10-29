@@ -1,12 +1,12 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { APP_GUARD } from '@nestjs/core';
-import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { AppController } from './app.controller.js';
 import { AppService } from './app.service.js';
 import { AuthModule } from './auth/auth.module.js';
 import { AuthGuard } from './auth/guards/auth-guard.js';
 import { ChatModule } from './chat/chat.module.js';
+import { LimiteGuard } from './common/limite.js';
 import { PrismaModule } from './prisma/prisma.module.js';
 import { TrilhaModule } from './trilha/trilha.module.js';
 import { UserModule } from './user/user.module.js';
@@ -25,8 +25,6 @@ import { UserModule } from './user/user.module.js';
         return env;
       },
     }),
-    // Limite padrão para todas as rotas; login e recuperação de senha têm limites próprios com @Throttle.
-    ThrottlerModule.forRoot([{ ttl: 60_000, limit: 60 }]),
     PrismaModule,
     UserModule,
     AuthModule,
@@ -37,7 +35,8 @@ import { UserModule } from './user/user.module.js';
   providers: [
     AppService,
     // A ordem importa: primeiro limita a taxa, depois exige o token.
-    { provide: APP_GUARD, useClass: ThrottlerGuard },
+    // Limite padrão (60/min por IP e rota); login e senha têm limites próprios com @Throttle.
+    { provide: APP_GUARD, useClass: LimiteGuard },
     { provide: APP_GUARD, useClass: AuthGuard },
   ],
 })

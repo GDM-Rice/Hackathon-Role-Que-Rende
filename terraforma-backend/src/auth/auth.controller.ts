@@ -7,7 +7,7 @@ import {
   Post,
   Request,
 } from '@nestjs/common';
-import { Throttle } from '@nestjs/throttler';
+import { Throttle } from '../common/limite.js';
 import { UserService } from '../user/user.service.js';
 import { AuthService } from './auth.service.js';
 import { Public } from './decorators/isPublic.decorator.js';
