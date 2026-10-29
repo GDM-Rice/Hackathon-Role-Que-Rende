@@ -1,10 +1,22 @@
 import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
-import helmet from 'helmet';
+import type { NestExpressApplication } from '@nestjs/platform-express';
+import * as helmetModule from 'helmet';
 import { AppModule } from './app.module.js';
 
+// O build do Vercel compila este arquivo como CommonJS, e aí o `import helmet from 'helmet'`
+// não acha a função. Este jeito funciona nos dois formatos (ESM local e CommonJS no Vercel).
+const helmet = ((helmetModule as { default?: unknown }).default ??
+  helmetModule) as unknown as typeof import('helmet').default;
+
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule);
+
+  // Atrás de proxy (Vercel, Render...), o IP de quem chama vem em X-Forwarded-For. Sem isto,
+  // o limite de tentativas (ThrottlerGuard) contaria todo mundo como o mesmo IP do proxy:
+  // 5 logins por minuto para o app inteiro. TRUST_PROXY=1 liga fora do Vercel.
+  if (process.env.VERCEL || process.env.TRUST_PROXY === '1')
+    app.set('trust proxy', 1);
 
   // Faz os decorators dos DTOs (@IsEmail, @MinLength...) valerem em TODA rota.
   app.useGlobalPipes(
@@ -35,4 +47,4 @@ async function bootstrap() {
 
   await app.listen(process.env.PORT ?? 3001);
 }
-await bootstrap();
+void bootstrap();

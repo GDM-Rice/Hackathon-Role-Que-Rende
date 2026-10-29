@@ -3,6 +3,8 @@
 generator client {
   provider = "prisma-client-js"
   output   = "../src/generated/prisma"
+  // native: a máquina onde roda o build; rhel-openssl-3.0.x: as funções do Vercel (Amazon Linux 2023)
+  binaryTargets = ["native", "rhel-openssl-3.0.x"]
 }
 
 datasource db {
