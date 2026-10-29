@@ -1,0 +1,25 @@
+TERRAFORMA · PITCH DE 3 MINUTOS
+================================
+
+Como abrir (funciona sem internet)
+1. Descompacte esta pasta no computador da apresentação.
+2. Abra o arquivo index.html no Google Chrome (ou Edge).
+3. Tecle F para tela cheia. Tecle → (ou espaço, ou o passador) para começar.
+
+Atalhos
+→ / espaço / passador ..... avança (14 toques no total; o primeiro começa)
+← ......................... volta
+F ......................... tela cheia
+P ......................... abre a janela do apresentador (roteiro, cronômetro, próximo avanço)
+A ......................... ensaio automático: avança sozinho no tempo do roteiro
+T ......................... mostra o cronômetro na tela (só para ensaio)
+L ......................... mostra a fala atual na tela (só para ensaio)
+Q ......................... qualidade do 3D (use se o computador travar)
+R ......................... recomeça
+1 a 9 ..................... vai direto ao slide
+
+Dica de palco: com o notebook ligado ao projetor em "estender tela", deixe a
+apresentação no projetor e a janela do apresentador (P) na tela do notebook.
+
+Os vídeos do celular são gravações reais do app Terraforma (pasta video/).
+O planeta e o oceano são os motores 3D do próprio app.
