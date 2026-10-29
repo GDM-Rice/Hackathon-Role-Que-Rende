@@ -95,6 +95,6 @@ Abrir uma tela direto: `http://localhost:3000/#financas` (lista em `const telas`
 
 1. `npm run lint` e `npm run build` sem erro.
 2. `node testes/fumaca.mjs` sem erro (todas as telas abrem, eventos chegam).
-3. Olhar a tela mexida nos temas claro e escuro, em 390 px de largura e no computador.
+3. Olhar a tela mexida nos temas claro e escuro, em 320 e 390 px (celular), 768 px (tablet), 844×390 (celular deitado) e 1440 px (computador). O layout responsivo fica no fim de `app/globals.css` (seção `responsivo`): coluna central a partir de 600 px e barra lateral a partir de 1024 px ou em tela baixa.
 4. Se criou evento, campo de estado ou número com fonte: atualizar `lib/tipos.ts`, `docs/API.md` e `docs/CONTEXTO.md`.
 5. Marcar a tarefa em `docs/BACKLOG.md`.

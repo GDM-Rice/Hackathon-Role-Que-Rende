@@ -1335,3 +1335,40 @@ body { padding: 0; overflow: hidden; background: var(--pagina); }
 .nova-conv button { min-height: 46px; min-width: 44px; border-radius: 12px; border: 0; padding: 0 16px; font: inherit; font-weight: 700; background: var(--primaria); color: var(--sobre-primaria); cursor: pointer; }
 .nova-conv button:disabled { opacity: .6; cursor: default; }
 .erro-conv { margin: 0; font-size: 13px; color: var(--erro); } .erro-conv:empty { display: none; }
+
+/* ---------- responsivo ----------
+   celular (até 599px): o app ocupa a tela inteira, como antes.
+   tablet (600px+): fundo na tela inteira; o conteúdo fica numa coluna central e a barra de baixo acompanha a coluna.
+   computador (1024px+) e celular deitado (600px+ de largura, até 520px de altura): a navegação vira uma barra lateral.
+   --resp-coluna é a largura do conteúdo; --resp-margem, o espaço de cada lado para centralizá-lo.
+   (prefixo "resp-": o tema escuro já usa --margem para a cor da margem dos rios) */
+/* lista de regiões do Mapa-Mundi: com overflow: hidden numa coluna flex, ela encolhia até sumir em telas baixas */
+.lista-regioes { flex-shrink: 0; }
+@media (max-width: 349px) {
+  .trilho-cap { zoom: .9; }   /* a trilha é desenhada em 350px */
+}
+@media (min-width: 600px) {
+  .celular { max-width: none; box-shadow: none; }
+  .app { --resp-coluna: 600px; --resp-margem: max(20px, calc((100% - var(--resp-coluna)) / 2)); }
+  .tela:not(.tela-trilha) { padding-left: var(--resp-margem); padding-right: var(--resp-margem); }
+  .tela-trilha .cab-trilha, .tela-trilha .topo-trilha { padding-left: var(--resp-margem); padding-right: var(--resp-margem); }
+  .tela-trilha .proxima { width: min(calc(100% - 24px), var(--resp-coluna)); margin-left: auto; margin-right: auto; }
+  .tela-trilha .nav { width: min(100%, calc(var(--resp-coluna) + 40px)); margin-left: auto !important; margin-right: auto !important; }   /* a marcação tem style="margin: 0" */
+  .capitulo .faixa-cap { width: min(calc(100% - 32px), var(--resp-coluna)); margin-left: auto; margin-right: auto; }
+  .folha-corpo, .sair-sheet .folha { max-width: var(--resp-coluna); margin-left: auto; margin-right: auto; }
+  .info { left: 50%; right: auto; width: min(100%, var(--resp-coluna)); translate: -50% 0; }
+  .aviso { left: var(--resp-margem); right: var(--resp-margem); }
+  .escrever { right: calc(var(--resp-margem) - 2px); }
+}
+@media (min-width: 1024px) {
+  .app { --resp-coluna: 640px; }
+}
+@media (min-width: 1024px), (min-width: 600px) and (max-height: 520px) {
+  /* fixed: no Mapa-Mundi a navegação fica dentro da folha; assim ela se alinha à tela em todas as telas */
+  .nav { position: fixed; top: 50%; translate: 0 -50%; left: max(12px, calc((100vw - var(--resp-coluna)) / 2 - 124px)); width: 92px; height: auto; margin: 0 !important;
+    grid-template-columns: none; grid-auto-rows: 60px; gap: 4px; padding: 10px 8px; border-radius: 24px; border: 1px solid var(--nav-borda, #DDE2E8); }
+  .tela-trilha .nav { width: 92px; }
+  .nav .indicador { left: 8px; top: 10px; bottom: auto; width: calc(100% - 16px); height: 60px; transform: translateY(calc(var(--i, 2) * (100% + 4px))); }
+  .aviso { bottom: 24px; }
+  .escrever { bottom: 28px; }
+}
