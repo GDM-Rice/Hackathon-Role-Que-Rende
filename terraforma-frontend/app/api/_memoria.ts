@@ -8,7 +8,7 @@ export const estado: EstadoUsuario = {
   conta: null,
   perfil: { nome: 'Rafael', motivo: 'Para voltar a dormir em paz', valor: 120, periodo: 'semana', sobre: {}, pesquisa: false },
   progresso: { inicio: new Date().toISOString(), diasDeRecomeco: 21, mares: 9, rios: { amazonas: false, saoFrancisco: false, parana: false }, tempestadeHoje: false },
-  ajustes: { tema: 'auto', contraste: false, daltonismo: false, texto: 0, espaco: false, anim: 'auto', som: true, legendas: true },
+  ajustes: { tema: 'auto', contraste: false, daltonismo: false, texto: 0, espaco: false, anim: 'auto', som: true, legendas: false },
   financas: {
     basico: { Moradia: true, Comida: true, 'Luz e água': false, Transporte: true, Remédios: true },
     estrategia: 'cara',

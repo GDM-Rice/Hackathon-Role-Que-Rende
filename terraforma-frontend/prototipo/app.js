@@ -972,7 +972,7 @@ const SOBRE = [
 ];
 perfil.sobre ||= {};
 // ---------- Ajustes e acessibilidade ----------
-s.tema ??= 'auto'; s.texto ??= 0; s.anim ??= 'auto'; s.legendas ??= true;
+s.tema ??= 'auto'; s.texto ??= 0; s.anim ??= 'auto'; s.legendas ??= false;
 const OPC_AJ = { tema: [['claro', 'Claro'], ['escuro', 'Escuro'], ['auto', 'Seguir o celular']], texto: [[0, 'A'], [1, 'A'], [2, 'A']], anim: [['auto', 'Seguir o celular'], ['reduzidas', 'Reduzidas'], ['normais', 'Normais']] };
 function aplicarAjustes() {
   if (s.tema !== 'manual') { if (s.tema === 'auto') s.escuro = mq('(prefers-color-scheme: dark)'); else s.escuro = s.tema === 'escuro'; }
