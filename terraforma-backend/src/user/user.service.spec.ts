@@ -15,7 +15,7 @@ describe('UserService', () => {
     chat: { deleteMany: vi.fn() },
   };
   const prisma = {
-    user: { findUnique: vi.fn(), update: vi.fn() },
+    user: { findUnique: vi.fn(), update: vi.fn(), updateMany: vi.fn() },
     tokenRecuperacaoSenha: { deleteMany: vi.fn() },
     $transaction: vi.fn(),
   };
@@ -23,7 +23,9 @@ describe('UserService', () => {
   beforeEach(async () => {
     vi.clearAllMocks();
     prisma.$transaction.mockImplementation((arg: unknown) =>
-      typeof arg === 'function' ? arg(tx) : Promise.all(arg as Promise<unknown>[]),
+      typeof arg === 'function'
+        ? arg(tx)
+        : Promise.all(arg as Promise<unknown>[]),
     );
     const module: TestingModule = await Test.createTestingModule({
       providers: [UserService, { provide: PrismaService, useValue: prisma }],
@@ -49,7 +51,10 @@ describe('UserService', () => {
         senha: await bcrypt.hash('senha-certa-1', 4),
       });
       await expect(
-        service.update('u1', { senha: 'nova-senha-1', senhaAtual: 'errada-errada' }),
+        service.update('u1', {
+          senha: 'nova-senha-1',
+          senhaAtual: 'errada-errada',
+        }),
       ).rejects.toBeInstanceOf(ForbiddenException);
       expect(prisma.user.update).not.toHaveBeenCalled();
     });
@@ -82,9 +87,30 @@ describe('UserService', () => {
     });
   });
 
+  describe('concluirBoasVindas', () => {
+    it('marca só a primeira vez e devolve o usuário com a data', async () => {
+      const em = new Date('2026-10-29T12:00:00Z');
+      prisma.user.findUnique.mockResolvedValue({
+        id: 'u1',
+        username: 'ana',
+        boasVindasEm: em,
+      });
+      await expect(service.concluirBoasVindas('u1')).resolves.toMatchObject({
+        boasVindasEm: em,
+      });
+      expect(prisma.user.updateMany).toHaveBeenCalledWith({
+        where: { id: 'u1', boasVindasEm: null },
+        data: { boasVindasEm: expect.any(Date) },
+      });
+    });
+  });
+
   describe('remove', () => {
     it('apaga a conta e os chats em que ela era o último membro', async () => {
-      tx.chatMembro.findMany.mockResolvedValue([{ chatId: 'c1' }, { chatId: 'c2' }]);
+      tx.chatMembro.findMany.mockResolvedValue([
+        { chatId: 'c1' },
+        { chatId: 'c2' },
+      ]);
       tx.user.delete.mockResolvedValue({ id: 'u1' });
       await service.remove('u1');
       expect(tx.chat.deleteMany).toHaveBeenCalledWith({
@@ -95,17 +121,28 @@ describe('UserService', () => {
 
   describe('username', () => {
     const erros = async (username: string) =>
-      validate(plainToInstance(CreateUserDto, { username, email: 'a@b.com', senha: '12345678' }));
+      validate(
+        plainToInstance(CreateUserDto, {
+          username,
+          email: 'a@b.com',
+          senha: '12345678',
+        }),
+      );
 
     it.each(['bet365', 'Bet_365', 'blaze', 'estrela-bet', 'meusite.com'])(
       '%s é recusado',
       async (u) => {
-        expect((await erros(u)).some((e) => e.property === 'username')).toBe(true);
+        expect((await erros(u)).some((e) => e.property === 'username')).toBe(
+          true,
+        );
       },
     );
 
-    it.each(['ana', 'joao.silva', 'beterraba', 'alphabet'])('%s é aceito', async (u) => {
-      expect(await erros(u)).toHaveLength(0);
-    });
+    it.each(['ana', 'joao.silva', 'beterraba', 'alphabet'])(
+      '%s é aceito',
+      async (u) => {
+        expect(await erros(u)).toHaveLength(0);
+      },
+    );
   });
 });

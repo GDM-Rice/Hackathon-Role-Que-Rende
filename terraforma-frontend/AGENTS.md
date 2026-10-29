@@ -16,6 +16,7 @@ npm run build               # tem que passar antes de qualquer entrega
 node testes/fumaca.mjs      # teste de fumaça (precisa do servidor rodando; ver o arquivo)
 node testes/conta.mjs       # conta, senha e conversas reais (precisa também do back NestJS na 3001)
 node testes/trilha-conta.mjs  # progresso da trilha salvo na conta (front + back NestJS)
+node testes/boas-vindas.mjs   # o tutorial só aparece na primeira vez (front + back NestJS)
 ```
 
 Abrir uma tela direto: `http://localhost:3000/#financas` (lista em `const telas`, em `prototipo/app.js`).

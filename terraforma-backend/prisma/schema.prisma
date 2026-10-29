@@ -18,6 +18,8 @@ model User {
   email       String   @unique
   senha       String
   senhaVersao Int      @default(0) @map("senha_versao")
+  // quando a pessoa concluiu as boas-vindas (o tutorial de 3 passos); null = ainda não
+  boasVindasEm DateTime? @map("boas_vindas_em")
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
 

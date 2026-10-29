@@ -1,4 +1,13 @@
-import { Body, Controller, Delete, Get, Patch, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Patch,
+  Post,
+} from '@nestjs/common';
 import { Throttle } from '../common/limite.js';
 import { CurrentUser } from '../auth/decorators/CurrentUser.decorator.js';
 import { Public } from '../auth/decorators/isPublic.decorator.js';
@@ -28,6 +37,13 @@ export class UserController {
   @Patch('me')
   updateMe(@CurrentUser('sub') userId: string, @Body() dto: UpdateUserDto) {
     return this.userService.update(userId, dto);
+  }
+
+  // O tutorial de boas-vindas foi concluído: nos próximos logins (em qualquer aparelho) ele não aparece.
+  @HttpCode(HttpStatus.OK)
+  @Post('me/boas-vindas')
+  concluirBoasVindas(@CurrentUser('sub') userId: string) {
+    return this.userService.concluirBoasVindas(userId);
   }
 
   @Delete('me')

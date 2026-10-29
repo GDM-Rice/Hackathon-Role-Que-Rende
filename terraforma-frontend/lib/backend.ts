@@ -70,7 +70,7 @@ async function chamar<T>(caminho: string, { method = 'GET', body, publica = fals
 
 // ---- Tipos que espelham as respostas do back ----
 
-export type Usuario = { id: string; username: string; email: string; createdAt: string; updatedAt: string };
+export type Usuario = { id: string; username: string; email: string; createdAt: string; updatedAt: string; boasVindasEm: string | null };
 export type Pessoa = { id: string; username: string };
 export type Mensagem = { id: string; chatId: string; autorId: string | null; autor: Pessoa | null; conteudo: string; moderada: boolean; createdAt: string };
 export type Conversa = { id: string; titulo: string; createdAt: string; updatedAt: string; membros: Pessoa[] };
@@ -100,6 +100,8 @@ export async function sessao(): Promise<Usuario | null> {
 }
 
 export const eu = () => chamar<Usuario>('/auth/me');
+/** Tutorial de boas-vindas concluído: nos próximos logins, em qualquer aparelho, ele não aparece. */
+export const concluirBoasVindas = () => chamar<Usuario>('/user/me/boas-vindas', { method: 'POST' });
 export const sair = () => token.limpar();
 export const esqueciSenha = (email: string) =>
   chamar<{ message: string }>('/auth/forgot-password', { method: 'POST', body: { email }, publica: true });

@@ -111,6 +111,7 @@ Hoje o protótipo usa `localStorage`. Ao ligar o backend, estes dados passam a v
 | chave | conteúdo |
 | --- | --- |
 | `terraforma:trilha-aulas` | progresso da trilha (`trilha.feitas`; com conta, também `dono` = id da conta e `pendente` = ainda não chegou ao servidor). **Com conta, vai para o back NestJS** (`/trilha`, ver abaixo) |
+| `terraforma:boas-vindas` | tutorial de boas-vindas já feito neste aparelho: `{ feito, dono (id da conta ou null), perfil: { nome, motivo, valor, periodo } }`. Com ele, entrar vai direto ao Início e a saudação mantém o nome. "Apagar meus dados" apaga |
 | `terraforma:luneta` | planeta, região, mostrar dias, bloqueados, mutirão, força, posts, respostas, mensagens, reações, denúncias |
 | `terraforma:orbita` | pessoas da Órbita (nome, relação, telefone) e recados. **Telefone e nome não vão para o servidor sem consentimento explícito** |
 | `terraforma:som` | som ligado/desligado |
@@ -133,6 +134,7 @@ Conta, senha, conversas entre pessoas e o progresso da trilha já são reais. O 
 | Luneta → Conversas: Suas conversas | `GET /chats`, `POST /chats` (`membros`: usernames) |
 | Conversa real | `GET /chats/:id` (a cada 5 s com a tela aberta), `POST /chats/:id/messages` |
 | Trilha: concluir aula, quiz ou "Na prática" (com conta) | `POST /trilha/sincronizar` |
+| Boas-vindas: "Começar a missão" (com conta) | `POST /user/me/boas-vindas` (guarda `boasVindasEm` na primeira vez; `GET /auth/me` devolve o campo e, se preenchido, o login pula o tutorial em qualquer aparelho) |
 | Entrar ou abrir o app com sessão salva | `POST /trilha/sincronizar` com o progresso do aparelho; a resposta é o progresso inteiro da conta |
 
 ### Progresso da trilha (`/trilha`)

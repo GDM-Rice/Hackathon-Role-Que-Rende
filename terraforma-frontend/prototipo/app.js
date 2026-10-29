@@ -800,6 +800,29 @@ app.addEventListener('click', (e) => {
 // 1. o problema (as apostas secaram a terra) · 2. o que troca a aposta (o planeta revive em lapso de tempo) · 3. a pessoa começa
 let boasPasso = 0, lapso = null;
 var perfil = { nome: '', motivo: 'Para voltar a dormir em paz', valor: 0, periodo: 'semana' };
+// boas-vindas já feitas neste aparelho: { feito, dono (id da conta ou null), perfil: { nome, motivo, valor, periodo } }.
+// Com conta, o back também guarda (boasVindasEm), então outro aparelho pula o tutorial.
+let boasVindas = null;
+try { const v = JSON.parse(localStorage.getItem('terraforma:boas-vindas')); if (v && v.feito) { boasVindas = v; Object.assign(perfil, v.perfil || {}); } } catch {}
+function guardarBoasVindas() {
+  if (!boasVindas) return;
+  const { nome, motivo, valor, periodo } = perfil;
+  boasVindas.perfil = { nome, motivo, valor, periodo };
+  try { localStorage.setItem('terraforma:boas-vindas', JSON.stringify(boasVindas)); } catch {}
+}
+// o tutorial aparece só na primeira vez: depois do login (ou de "Continuar sem conta") vai direto ao Início
+function tutorialFeito() {
+  if (conta?.boasVindas) return true;
+  if (!boasVindas) return false;
+  return !conta || !boasVindas.dono || boasVindas.dono === conta.id;   // outra conta neste aparelho ainda não fez
+}
+function entrarNoApp() {
+  if (!tutorialFeito()) { irPara('boas'); return; }
+  // feito sem conta e agora entrou numa conta: a conta passa a ter as boas-vindas feitas
+  if (conta && !conta.boasVindas) { conta.boasVindas = true; B?.concluirBoasVindas().catch(() => {}); }
+  if (conta && boasVindas) { boasVindas.dono = conta.id; guardarBoasVindas(); }
+  irPara('inicio'); aplicar();
+}
 const MOTIVOS = ['Para voltar a dormir em paz', 'Pela minha família', 'Para ter dinheiro de novo', 'Para voltar a ser eu'];
 const DIA1 = () => estadoDoPlaneta({ dias: 1, mares: 0, rios: {} });
 const palavras = (txt, d = 0) => txt.split(' ').map((w, k, a) => `<span class="palavra" style="--k:${k};--d:${d}ms">${w}${k < a.length - 1 ? ' ' : ''}</span>`).join('');
@@ -813,7 +836,7 @@ function planetaBoas(e) { estadoBoas = e; if (globo) globo.setEstado(e); }
 // conta = { id, username, email } quando há sessão no back; null = modo sem conta (tudo fica no aparelho)
 let conta = null, modoLogin = 'entrar', tokenRedefinir = null, enviandoLogin = false;
 const EMAIL_OK = /^[^\s@]+@[^\s@]+\.[^\s@]+$/, USUARIO_OK = /^[a-z0-9._-]{3,30}$/;
-const contaDe = (u) => ({ id: u.id, username: u.username, email: u.email });
+const contaDe = (u) => ({ id: u.id, username: u.username, email: u.email, boasVindas: !!u.boasVindasEm });
 function desenharLogin() {
   const redef = modoLogin === 'redefinir';
   $$('#tela-login [data-login]').forEach((b) => b.setAttribute('aria-selected', String(b.dataset.login === modoLogin)));
@@ -838,7 +861,7 @@ $('#tela-login').addEventListener('click', async (e) => {
     catch (err) { $('#erro-login').textContent = err.message; }
     return;
   }
-  if (t.closest('#sem-conta')) { conta = null; emitir?.('entrada', { comConta: false }); irPara('boas'); }
+  if (t.closest('#sem-conta')) { conta = null; emitir?.('entrada', { comConta: false }); entrarNoApp(); }
 });
 $('#form-login').addEventListener('submit', async (e) => {
   e.preventDefault(); if (enviandoLogin) return;
@@ -862,7 +885,7 @@ $('#form-login').addEventListener('submit', async (e) => {
     const u = criar ? await B.criarConta(us, em, se) : await B.entrar(em, se);
     conta = contaDe(u); $('#login-senha').value = ''; trilhaDaConta();
     emitir?.(criar ? 'conta_criada' : 'login', {});
-    aviso(criar ? 'Conta criada.' : 'Que bom te ver.'); irPara('boas');
+    aviso(criar ? 'Conta criada.' : 'Que bom te ver.'); entrarNoApp();
   } catch (err) {
     $('#erro-login').textContent = err.status === 401 ? 'E-mail ou senha não conferem.' : err.message;
   } finally { enviandoLogin = false; bt.disabled = false; if (bt.textContent === 'Um instante…') bt.textContent = rotulo; }
@@ -936,6 +959,8 @@ function comecarMissao() {
   if ($('#motivo-outro-bt')?.getAttribute('aria-pressed') === 'true') { const mt = $('#motivo-txt').value.trim(); if (mt.length < 3) { $('#motivo-txt').focus(); aviso('Escreva seu motivo ou escolha um da lista.'); return; } perfil.motivo = mt; }
   __evento('perfil_criado', { nome: perfil.nome, motivo: perfil.motivo, valor: perfil.valor || null, periodo: perfil.periodo });
   Object.assign(s, { dias: 1, mares: 0, rios: { amazonas: false, saoFrancisco: false, parana: false } });
+  boasVindas = { feito: true, dono: conta?.id ?? null }; guardarBoasVindas();
+  if (conta && !conta.boasVindas) { conta.boasVindas = true; B?.concluirBoasVindas().catch(() => {}); }   // sem rede: o aparelho já lembra
   estadoBoas = null; irPara('inicio'); aplicar();
 }
 const SOBRE = [
@@ -976,8 +1001,8 @@ $('#tela-ajustes').addEventListener('click', async (e) => {
     }
     try { localStorage.removeItem('terraforma:token'); } catch {}
     conversasApi = null; convApi = null;
-    try { ['terraforma:trilha-aulas', 'terraforma:luneta', 'terraforma:orbita', 'terraforma:som', 'terraforma:video'].forEach((k) => localStorage.removeItem(k)); } catch {}
-    ORBITA.splice(0); guardarOrbita(); troca.minhas = []; Object.assign(perfil, { nome: '', valor: 0 }); emitir?.('dados_apagados', {});
+    try { ['terraforma:trilha-aulas', 'terraforma:boas-vindas', 'terraforma:luneta', 'terraforma:orbita', 'terraforma:som', 'terraforma:video'].forEach((k) => localStorage.removeItem(k)); } catch {}
+    ORBITA.splice(0); guardarOrbita(); troca.minhas = []; Object.assign(perfil, { nome: '', valor: 0 }); boasVindas = null; emitir?.('dados_apagados', {});
     trilha = { feitas: {} }; lun = { aba: 'mural', filtro: 'tudo', ident: {}, denun: {}, meus: [], resp: {}, msgs: {}, planeta: lun.planeta, regiao: lun.regiao, mostrarDias: true, bloq: {} };
     fin = JSON.parse(JSON.stringify(FIN_PADRAO)); Object.assign(s, { dias: 1, mares: 0, rios: { amazonas: false, saoFrancisco: false, parana: false } });
     perfil.sobre = {}; perfil.pesquisa = false; const tinhaConta = !!conta; conta = null; aplicar(); aviso(tinhaConta ? 'Sua conta e seus dados foram apagados.' : 'Seus dados foram apagados deste celular.'); irPara('login');
@@ -1009,13 +1034,13 @@ $('#tela-perfil').addEventListener('click', (e) => {
   const sb = e.target.closest('[data-sobre]'); if (sb) { perfil.sobre[sb.dataset.sobre] = sb.dataset.op; const aberto = sb.closest('details'); desenharPerfil(); if (sb.dataset.op === 'Quero buscar') { aviso('A Ajuda mostra como falar com um psicólogo pelo SUS.'); setTimeout(() => irPara('ajuda'), 700); } return; }
   if (e.target.closest('#editar-perfil')) { $('#edicao-perfil').hidden = false; $('#perfil-motivo').hidden = true; $('#ed-nome').value = perfil.nome; $('#ed-motivo').value = perfil.motivo; $('#ed-nome').focus(); return; }
   if (e.target.closest('#cancelar-perfil')) { desenharPerfil(); return; }
-  if (e.target.closest('#salvar-perfil')) { const n = $('#ed-nome').value.trim(), m = $('#ed-motivo').value.trim(); if (n) perfil.nome = n; if (m.length >= 3) perfil.motivo = m; desenharPerfil(); atualizarTextos(); aviso('Perfil atualizado.'); return; }
+  if (e.target.closest('#salvar-perfil')) { const n = $('#ed-nome').value.trim(), m = $('#ed-motivo').value.trim(); if (n) perfil.nome = n; if (m.length >= 3) perfil.motivo = m; guardarBoasVindas(); desenharPerfil(); atualizarTextos(); aviso('Perfil atualizado.'); return; }
   if (e.target.closest('#conta-perfil')) { if (conta) { B?.sair(); conta = null; conversasApi = null; convApi = null; const trilhaNaConta = !trilha.pendente; if (trilhaNaConta) { trilha = { feitas: {} }; guardarTrilha(); } aviso(trilhaNaConta ? 'Você saiu da conta. Sua trilha fica guardada nela; o resto fica neste celular.' : 'Você saiu da conta. Seus dados ficam neste celular.'); desenharPerfil(); } else { modoLogin = 'entrar'; irPara('login'); } return; }
   const pe = e.target.closest('[data-periodo-p]'); if (pe) { $$('#perfil-periodo [data-periodo-p]').forEach((b) => { b.setAttribute('aria-checked', String(b === pe)); b.setAttribute('aria-selected', String(b === pe)); }); return; }
   if (e.target.closest('#salvar-valor')) {
     const v = parseInt($('#perfil-valor').value.replace(/\D/g, ''), 10); perfil.valor = v > 0 ? v : 0;
     perfil.periodo = $('#perfil-periodo [aria-checked="true"]')?.dataset.periodoP || 'semana';
-    aplicar(); desenharPerfil(); aviso(perfil.valor ? 'Salvo. O Início mostra o dinheiro que ficou com você.' : 'Tudo bem. O Início não mostra valor.');
+    guardarBoasVindas(); aplicar(); desenharPerfil(); aviso(perfil.valor ? 'Salvo. O Início mostra o dinheiro que ficou com você.' : 'Tudo bem. O Início não mostra valor.');
   }
 });
 $('#pesquisa-on').addEventListener('change', (e) => { perfil.pesquisa = e.target.checked; aviso(e.target.checked ? 'Obrigado. Só números anônimos são enviados.' : 'Você saiu da pesquisa.'); emitir?.('pesquisa', { participa: e.target.checked }); });
@@ -1984,7 +2009,7 @@ if (B) {
   // token vencido, senha trocada em outro aparelho ou conta apagada: volta ao modo sem conta
   B.quandoDeslogar(() => { if (!conta) return; conta = null; conversasApi = null; convApi = null; aviso('Sua sessão terminou. Entre de novo para ver suas conversas.'); if (telaAtual === 'conversa' && ehApi(convAberta)) { lun.aba = 'conversas'; irPara('luneta'); } });
   // sessão salva: reconhece a pessoa sem pedir a senha de novo
-  B.sessao().then((u) => { if (!u) return; conta = contaDe(u); trilhaDaConta(); if (telaAtual === 'login' && modoLogin !== 'redefinir') irPara('boas'); else if (telaAtual === 'perfil') desenharPerfil(); })
+  B.sessao().then((u) => { if (!u) return; conta = contaDe(u); trilhaDaConta(); if (telaAtual === 'login' && modoLogin !== 'redefinir') entrarNoApp(); else if (telaAtual === 'perfil') desenharPerfil(); })
     .catch(() => { /* servidor fora do ar: segue sem conta, o token fica para a próxima vez */ });
 }
 addEventListener('hashchange', () => irPara(location.hash.slice(1)));
