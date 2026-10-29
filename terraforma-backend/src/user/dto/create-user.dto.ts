@@ -8,6 +8,7 @@ import {
   MinLength,
 } from 'class-validator';
 import { NormalizeEmail } from '../../common/normalize-email.js';
+import { UsernamePermitido } from '../../common/username-permitido.js';
 
 export class CreateUserDto {
   // Minúsculas e sem espaços nas pontas: "Ana" e "ana" não podem ser duas contas
@@ -23,6 +24,7 @@ export class CreateUserDto {
     message:
       'O username só pode ter letras minúsculas, números, ponto, hífen e sublinhado.',
   })
+  @UsernamePermitido()
   username!: string;
 
   @NormalizeEmail()

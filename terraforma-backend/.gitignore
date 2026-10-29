@@ -1,39 +1,10 @@
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
-
 # compiled output
 /dist
-
-# Dependencies
 /node_modules
-/.pnp
-.pnp.*
-.yarn/*
-!.yarn/patches
-!.yarn/plugins
-!.yarn/releases
-!.yarn/versions
-
-# Build output
-/dist
 /build
-/out
-/.next/
-
-# Testing
-/coverage
-/.nyc_output
 
 # TypeScript build cache
-# TypeScript
 *.tsbuildinfo
-next-env.d.ts
-
-# Generated
-/src/generated/prisma
-
-# Environment variables (opt-in for committing .env.example)
-.env*
-!.env.example
 
 # Logs
 logs
@@ -42,32 +13,14 @@ npm-debug.log*
 pnpm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-.pnpm-debug.log*
 lerna-debug.log*
 
-# Runtime data
-pids
-*.pid
-*.seed
-*.pid.lock
+# OS
+.DS_Store
 
 # Tests
 /coverage
 /.nyc_output
-
-# Diagnostic reports (https://nodejs.org/api/report.html)
-report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
-
-# Temp directories
-.temp
-.tmp
-
-# OS
-.DS_Store
-Thumbs.db
-
-# Certificates / keys
-*.pem
 
 # IDEs and editors
 /.idea
@@ -78,7 +31,7 @@ Thumbs.db
 .settings/
 *.sublime-workspace
 
-# VSCode
+# IDE - VSCode
 .vscode/*
 !.vscode/settings.json
 !.vscode/tasks.json
@@ -106,6 +59,3 @@ pids
 report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 
 src/generated/prisma
-
-# Vercel
-.vercel

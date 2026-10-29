@@ -10,11 +10,6 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-enum MessageRole {
-  USER
-  ASSISTANT
-}
-
 model User {
   id          String   @id @default(cuid())
   username    String   @unique
@@ -25,7 +20,8 @@ model User {
   updatedAt   DateTime @updatedAt @map("updated_at")
 
   tokensRecuperacaoSenha TokenRecuperacaoSenha[]
-  chats                  Chat[]
+  participacoes          ChatMembro[]
+  mensagens              Message[]
 
   @@map("users")
 }
@@ -43,29 +39,48 @@ model TokenRecuperacaoSenha {
   @@map("tokens_recuperacao_senha")
 }
 
+// Conversa entre membros (2 ou mais usuários).
 model Chat {
   id        String   @id @default(cuid())
   titulo    String
-  userId    String   @map("user_id")
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  membros   ChatMembro[]
   mensagens Message[]
 
-  @@index([userId, updatedAt])
+  @@index([updatedAt])
   @@map("chats")
 }
 
-model Message {
-  id        String      @id @default(cuid())
-  chatId    String      @map("chat_id")
-  role      MessageRole
-  conteudo  String
-  createdAt DateTime    @default(now()) @map("created_at")
+// Quem participa de cada chat. Só membros leem e escrevem.
+model ChatMembro {
+  chatId    String   @map("chat_id")
+  userId    String   @map("user_id")
+  createdAt DateTime @default(now()) @map("created_at")
 
   chat Chat @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([chatId, userId])
+  @@index([userId])
+  @@map("chat_membros")
+}
+
+model Message {
+  id        String   @id @default(cuid())
+  chatId    String   @map("chat_id")
+  // null quando o autor apagou a conta: a mensagem fica, sem nome.
+  autorId   String?  @map("autor_id")
+  conteudo  String
+  // true quando a moderação automática removeu algum trecho.
+  moderada  Boolean  @default(false)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  chat  Chat  @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  autor User? @relation(fields: [autorId], references: [id], onDelete: SetNull)
 
   @@index([chatId, createdAt])
+  @@index([autorId])
   @@map("messages")
 }
