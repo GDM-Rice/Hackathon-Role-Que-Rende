@@ -1,0 +1,7 @@
+# Não sobe no deploy pela CLI: segredos locais, build e capturas de teste
+.env
+.env.*
+!.env.example
+node_modules
+.next
+testes/capturas
