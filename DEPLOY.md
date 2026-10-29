@@ -7,6 +7,20 @@ O repositório vira **dois projetos no Vercel**, um para cada pasta, e um banco 
 | `terraforma-api` | `terraforma-backend` | NestJS (fixado em `vercel.json`) | a API inteira como uma Vercel Function |
 | `terraforma` | `terraforma-frontend` | Next.js (detectado sozinho) | o site |
 
+## Como está hoje
+
+| | URL | Projeto no Vercel (time "O Recomeço") |
+|---|---|---|
+| Site | https://terraforma-five.vercel.app | `terraforma` |
+| API | https://terraforma-api.vercel.app (`/health`) | `terraforma-api`, função em São Paulo (`gru1`) |
+| Banco | Neon Postgres `terraforma-db`, São Paulo, plano gratuito | conectado ao `terraforma-api` |
+
+Variáveis já configuradas: no back, `JWT_SECRET`, `FRONTEND_URL` e as do Neon (`DATABASE_URL`, `DATABASE_URL_UNPOOLED`...); no front, `NEXT_PUBLIC_BACKEND_URL`. Falta só SMTP, se quiserem o e-mail de "Esqueci a senha".
+
+Para publicar de novo pela CLI (logada na conta do time): `npx vercel deploy --prod --yes` dentro de `terraforma-backend` ou `terraforma-frontend`. Teste ponta a ponta contra produção: `BASE=https://terraforma-five.vercel.app BACKEND=https://terraforma-api.vercel.app node testes/trilha-conta.mjs` (na pasta do front).
+
+## Do zero
+
 Faça nesta ordem: banco e back primeiro, depois o front, depois volte ao back para liberar o endereço do front.
 
 ## 1. Back-end (`terraforma-api`)
@@ -41,7 +55,7 @@ Depois disso: abrir o site, criar conta, concluir uma aula da trilha e entrar co
 ## Bom saber
 
 - **Previews:** o back só aceita chamadas das origens em `FRONTEND_URL`/`CORS_ORIGINS`. Um preview do front (URL que muda a cada deploy) não fala com o back de produção, a não ser que você inclua a URL dele em `CORS_ORIGINS`. Com a Deployment Protection ligada, os previews do back também pedem login do Vercel.
-- **Limite de tentativas** (login, cadastro, senha): fica na memória de cada instância da função, então no Vercel é um limite aproximado. O IP de quem chama vem do proxy do Vercel (`trust proxy` liga sozinho quando `VERCEL` existe).
+- **Limite de tentativas** (login, cadastro, senha): é o `src/common/limite.ts` do back (o `@nestjs/throttler` não roda no Vercel: é CommonJS e o Nest 12 é só ESM). Fica na memória de cada instância da função, então no Vercel é um limite aproximado. O IP de quem chama vem do proxy do Vercel (`trust proxy` liga sozinho quando `VERCEL` existe).
 - **Eventos e estado de exemplo** (`/api/eventos`, `/api/estado` do Next): continuam em memória e somem quando a função reinicia. Conta, conversas e trilha ficam no banco.
 - **Migração manual:** `DATABASE_URL="<url direta>" npx prisma migrate deploy` na pasta do back.
 - **Conferir o build sem subir:** `npx vercel build` na pasta de cada projeto (precisa de `vercel link` antes).
