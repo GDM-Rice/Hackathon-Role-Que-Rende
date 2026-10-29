@@ -9,7 +9,7 @@ O Terraforma usou IA como apoio, bibliotecas de código aberto e assets de terce
 | Solução | Terraforma: app de bem-estar para quem quer parar de apostar |
 | Evento | Game Jam Rolê que Rende – BBDW 2026, desafio Além da Aposta |
 | Itens do Edital | 8.5 (IA, código aberto, assets e dados) e 9.1 (declaração exigida na etapa eliminatória) |
-| Equipe | (nomes dos integrantes) |
+| Equipe | Igor Alves, Ricieri Vieira, Isaac Jose, Graziele Alves, Vinicius Cruz e Joao Paulo |
 
 ## Uso de inteligência artificial
 
