@@ -281,7 +281,8 @@ const lerp = (a, b, t) => a + (b - a) * t;
 function lerpAngulo(a, b, t) { let d = ((b - a + 540) % 360) - 180; return a + d * t; }
 
 function carregarImagem(url) {
-  return new Promise((ok, erro) => { const im = new Image(); im.onload = () => ok(im); im.onerror = erro; im.src = url; });
+  // decode(): a imagem já chega decodificada, então subir a textura para a GPU não trava o quadro
+  return new Promise((ok, erro) => { const im = new Image(); im.onload = () => (im.decode ? im.decode().catch(() => {}) : Promise.resolve()).then(() => ok(im)); im.onerror = erro; im.src = url; });
 }
 
 // ---------- o planeta ----------
@@ -289,10 +290,15 @@ export async function criarGlobo(container, opcoes = {}) {
   const fragmentado = !!opcoes.fragmentado; // placas soltas que se juntam (desligado: o Brasil só reverdece)
   const base = opcoes.assets ?? 'assets/';
   const info = await fetch(base + 'brasil.json').then((r) => r.json());
-  // carga progressiva: primeiro uma Terra leve (~50 KB) para o planeta aparecer logo;
-  // a textura de 4K e os rios chegam depois e trocam no lugar, sem piscar
-  const [imDia, imAgua, imReg, imLin] = await Promise.all(
-    ['terra-dia-baixa.webp', 'terra-agua.png', 'brasil-regioes.png', 'brasil-linhas.png'].map((f) => carregarImagem(base + f)));
+  // carga em duas etapas: a Terra de 2K (~200 KB) segura a entrada, para o planeta aparecer já nítido (e a animação
+  // de entrada não rodar sobre uma imagem borrada). Se a rede passar do limite, entra com a leve (~50 KB) e a de 2K
+  // troca depois. A de 4K e os rios chegam por último, em segundo plano.
+  const nitida = carregarImagem(base + 'terra-dia-2k.webp').catch(() => null);
+  const limite = new Promise((ok) => setTimeout(() => ok(null), opcoes.esperaNitida ?? 3000));
+  const [imAgua, imReg, imLin] = await Promise.all(
+    ['terra-agua.png', 'brasil-regioes.png', 'brasil-linhas.png'].map((f) => carregarImagem(base + f)));
+  const imNitida = await Promise.race([nitida, limite]);
+  const imDia = imNitida ?? await carregarImagem(base + 'terra-dia-baixa.webp');
   const imRios = document.createElement('canvas'); imRios.width = imRios.height = 4;   // sem rios até o arquivo chegar
 
   // máscara das regiões também na CPU, para saber em que região o toque caiu
@@ -650,7 +656,10 @@ export async function criarGlobo(container, opcoes = {}) {
   requestAnimationFrame(() => requestAnimationFrame(() => { canvas.style.opacity = '1'; }));
   // a versão em alta chega em segundo plano
   const trocar = (t, im) => { t.dispose(); t.image = im; t.needsUpdate = true; };   // dispose: a textura muda de tamanho e precisa ser recriada na GPU
-  carregarImagem(base + 'terra-dia.jpg').then((im) => trocar(texturas[0], im)).catch(() => {});
+  (async () => {
+    if (!imNitida) { const im = await nitida; if (im) trocar(texturas[0], im); }   // a rede foi lenta: a de 2K entra no lugar da leve
+    carregarImagem(base + 'terra-dia-4k.webp').then((im) => trocar(texturas[0], im)).catch(() => {});
+  })();
   carregarImagem(base + 'brasil-rios.png').then((im) => trocar(texturas[4], im)).catch(() => {});
 
   function setEstado(e) {

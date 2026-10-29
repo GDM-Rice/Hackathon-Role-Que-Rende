@@ -59,6 +59,7 @@ Prioridades: **P0** bloqueia o uso real · **P1** qualidade de produto · **P2**
 - **Pronto quando:** no Android e no iPhone dá para "Adicionar à tela inicial" e o app abre sem a barra do navegador.
 
 ### F-11 [ ] Peso da primeira carga
+- **Feito (feat/debloat):** a textura virou `terra-dia-2k.webp` (206 KB, segura a entrada do planeta) e `terra-dia-4k.webp` (761 KB, chega depois); o JPG de 1,2 MB não é mais usado. **Falta:** o áudio do mar e carregar o oceano/som só ao entrar em Respire.
 - **O quê:** `terra-dia.jpg` tem 1,2 MB e `mar.mp3` 3 MB. Gerar WebP/AVIF da textura em 2 tamanhos, áudio em AAC/Opus menor, carregar o oceano e o som só ao entrar em Respire.
 - **Pronto quando:** Lighthouse mobile ≥ 80 em desempenho no Início; Respire continua igual.
 

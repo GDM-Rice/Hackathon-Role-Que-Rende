@@ -16,8 +16,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="pt-BR">
       <head>
-        {/* Texturas leves do planeta: baixam em paralelo com o JavaScript */}
-        <link rel="preload" href="/terra/terra-dia-baixa.webp" as="image" type="image/webp" />
+        {/* Texturas leves do planeta: baixam em paralelo com o JavaScript. A de 2K segura a entrada do planeta */}
+        <link rel="preload" href="/terra/terra-dia-2k.webp" as="image" type="image/webp" />
         <link rel="preload" href="/terra/terra-agua.png" as="image" />
         <link rel="preload" href="/terra/brasil-regioes.png" as="image" />
         <link rel="preload" href="/terra/brasil-linhas.png" as="image" />
